@@ -1,0 +1,5 @@
+com/tuwien/gitanalyser/security/MvcConfig.class
+com/tuwien/gitanalyser/GitanalyserApplication.class
+com/tuwien/gitanalyser/security/WebSecurityConfig.class
+com/tuwien/gitanalyser/endpoints/HelloEndpoint.class
+com/tuwien/gitanalyser/endpoints/LoginEndpoint.class
