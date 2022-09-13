@@ -5,4 +5,4 @@ stages:
 
 build:
   stage: test
-  script: cd backend && ./mvnw clean install
+  script: cd backend && mvn clean install
