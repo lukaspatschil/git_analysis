@@ -1,0 +1,8 @@
+image: openjdk:17
+
+stages:
+  - test
+
+build:
+  stage: test
+  script: cd backend && ./mvnw clean install
