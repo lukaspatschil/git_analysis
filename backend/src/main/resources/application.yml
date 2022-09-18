@@ -13,3 +13,10 @@ spring:
   h2:
     console.enabled: true
     console.path: /h2-console
+  security:
+    oauth2:
+      client:
+        registration:
+          github:
+            client-id: abee8ba24898a4e6fd58
+            client-secret: 958218d36a6a1c85f70b04f57b4bc05afffc861f
