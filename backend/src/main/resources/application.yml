@@ -1,0 +1,13 @@
+spring:
+  datasource:
+    url: jdbc:h2:file:./database/backend;AUTO_SERVER=TRUE;MODE=MySQL;NON_KEYWORDS=USER
+    username: admin
+    password: password
+    driverClassName: org.h2.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    show-sql: true
+    generate-ddl: true
+  h2:
+    console.enabled: true
+    console.path: /h2-console
