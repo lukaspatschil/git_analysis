@@ -1,0 +1,42 @@
+package com.tuwien.gitanalyser.endpoints;
+
+import com.tuwien.gitanalyser.endpoints.DTOs.UserDTO;
+import com.tuwien.gitanalyser.entity.mapper.UserMapper;
+import com.tuwien.gitanalyser.service.UserService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/user")
+public class UserEndpoint {
+
+    private final Logger LOGGER = LoggerFactory.getLogger(UserEndpoint.class);
+    private final UserService userService;
+
+    private final UserMapper userMapper;
+
+    public UserEndpoint(UserService userService, UserMapper userMapper) {
+        this.userService = userService;
+        this.userMapper = userMapper;
+    }
+
+    @GetMapping(path="/{id}")
+    public UserDTO getUser(@PathVariable Long id) {
+        LOGGER.info("UserEndpoint: Get user with id " + id);
+        return userMapper.entityToDTO(userService.getUser(id));
+    }
+
+    @GetMapping
+    public List<UserDTO> getAllUsers() {
+        return userMapper.entitiesToDTOs(userService.getAll());
+    }
+
+
+
+}
