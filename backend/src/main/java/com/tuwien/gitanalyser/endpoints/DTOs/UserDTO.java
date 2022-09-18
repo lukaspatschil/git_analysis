@@ -1,5 +1,6 @@
 package com.tuwien.gitanalyser.endpoints.DTOs;
 
+import com.tuwien.gitanalyser.entity.utils.AuthenticationProvider;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,5 +16,9 @@ public class UserDTO {
 
     private String username;
 
-    private String password;
+    private String email;
+
+    private AuthenticationProvider authenticationProvider;
+
+    private Integer platformId;
 }
