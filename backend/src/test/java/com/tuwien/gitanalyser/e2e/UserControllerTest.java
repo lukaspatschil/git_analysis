@@ -16,7 +16,7 @@ public class UserControllerTest {
 
     @Autowired
     private MockMvc mvc;
-    private final String USER_ENDPOINT = "/user";
+    private static final String USER_ENDPOINT = "/user";
 
     @Test
     public void getAllPersons() throws Exception {
