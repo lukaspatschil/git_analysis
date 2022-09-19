@@ -16,22 +16,31 @@ import java.util.List;
 @RequestMapping("/user")
 public class UserEndpoint {
 
-    private final Logger LOGGER = LoggerFactory.getLogger(UserEndpoint.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(UserEndpoint.class);
     private final UserService userService;
 
     private final UserMapper userMapper;
 
-    public UserEndpoint(UserService userService, UserMapper userMapper) {
+    public UserEndpoint(final UserService userService, final UserMapper userMapper) {
         this.userService = userService;
         this.userMapper = userMapper;
     }
 
-    @GetMapping(path="/{id}")
-    public UserDTO getUser(@PathVariable Long id) {
+    /**
+     * get user by id.
+     * @param id of the user
+     * @return single user DTO
+     */
+    @GetMapping(path = "/{id}")
+    public UserDTO getUser(final @PathVariable Long id) {
         LOGGER.info("UserEndpoint: Get user with id " + id);
         return userMapper.entityToDTO(userService.getUser(id));
     }
 
+    /**
+     * get all users.
+     * @return a list of users
+     */
     @GetMapping
     public List<UserDTO> getAllUsers() {
         return userMapper.entitiesToDTOs(userService.getAll());

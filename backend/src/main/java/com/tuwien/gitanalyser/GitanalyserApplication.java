@@ -6,7 +6,11 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class GitanalyserApplication {
 
-    public static void main(String[] args) {
+    /**
+     * starts the application.
+     * @param args arguments
+     */
+    public static void main(final String[] args) {
         SpringApplication.run(GitanalyserApplication.class, args);
     }
 

@@ -18,6 +18,7 @@
         <mapstruct.version>1.5.2.Final</mapstruct.version>
         <jackson.version>2.13.4</jackson.version>
         <spring.framework.data.version>2.1.4.RELEASE</spring.framework.data.version>
+        <checkstyle.maven.plugin.version>3.2.0</checkstyle.maven.plugin.version>
     </properties>
 
     <dependencies>
@@ -80,6 +81,12 @@
             <artifactId>spring-data-jpa</artifactId>
             <version>${spring.framework.data.version}</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-checkstyle-plugin -->
+        <dependency>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-checkstyle-plugin</artifactId>
+            <version>${checkstyle.maven.plugin.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-oauth2-client</artifactId>
@@ -122,6 +129,30 @@
                         </path>
                     </annotationProcessorPaths>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>${checkstyle.maven.plugin.version}</version>
+                <configuration>
+                    <configLocation>./src/main/resources/checkstyle.xml</configLocation>
+                    <consoleOutput>true</consoleOutput>
+                    <failsOnError>true</failsOnError>
+                    <linkXRef>false</linkXRef>
+                    <sourceDirectories>
+                        <sourceDirectory>${project.build.sourceDirectory}</sourceDirectory>
+                        <sourceDirectory>${project.build.testSourceDirectory}</sourceDirectory>
+                    </sourceDirectories>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>validate</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>checkstyle</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
