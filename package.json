@@ -1,0 +1,25 @@
+{
+  "name": "git_analysis",
+  "version": "0.0.0",
+  "description": "A tool for analysing git projects online.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lukaspatschil/git_analysis.git"
+  },
+  "workspaces":["backend", "frontend"],
+  "contributors": [
+    {
+      "name": "Simon Hofbauer",
+      "email": "simon.hofbauer@tuwien.ac.at"
+    },
+    {
+      "name": "Lukas Spatschil",
+      "email": "lukas.spatschil@student.tuwien.ac.at"
+    }
+  ],
+  "author": "Simon & Lukas",
+  "bugs": {
+    "url": "https://github.com/lukaspatschil/git_analysis/issues"
+  },
+  "homepage": "https://github.com/lukaspatschil/git_analysis#readme"
+}
