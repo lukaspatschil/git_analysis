@@ -6,7 +6,10 @@
     "type": "git",
     "url": "git+https://github.com/lukaspatschil/git_analysis.git"
   },
-  "workspaces":["backend", "frontend"],
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
   "contributors": [
     {
       "name": "Simon Hofbauer",
@@ -21,5 +24,10 @@
   "bugs": {
     "url": "https://github.com/lukaspatschil/git_analysis/issues"
   },
-  "homepage": "https://github.com/lukaspatschil/git_analysis#readme"
+  "homepage": "https://github.com/lukaspatschil/git_analysis#readme",
+  "devDependencies": {
+    "@nrwl/nx-cloud": "latest",
+    "@nxrocks/nx-spring-boot": "^5.0.2",
+    "nx": "14.7.6"
+  }
 }
