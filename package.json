@@ -1,10 +1,10 @@
 {
   "name": "git_analysis",
-  "version": "0.0.0",
+  "version": "0.0.0-development",
   "description": "A tool for analysing git projects online.",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/lukaspatschil/git_analysis.git"
+    "url": "https://github.com/lukaspatschil/git_analysis.git"
   },
   "workspaces": [
     "backend",
@@ -26,8 +26,40 @@
   },
   "homepage": "https://github.com/lukaspatschil/git_analysis#readme",
   "devDependencies": {
+    "@commitlint/cli": "^17.1.2",
+    "@commitlint/config-conventional": "^17.1.0",
     "@nrwl/nx-cloud": "latest",
     "@nxrocks/nx-spring-boot": "^5.0.2",
-    "nx": "14.7.6"
+    "@semantic-release/changelog": "^6.0.1",
+    "@semantic-release/git": "^10.0.1",
+    "husky": "^8.0.1",
+    "nx": "14.7.6",
+    "semantic-release": "^19.0.5"
+  },
+  "scripts": {
+    "semantic-release": "semantic-release"
+  },
+  "publishConfig": {
+    "access": "restricted"
+  },
+  "husky": {
+    "hooks": {
+      "commit-msg": "commitlint -E  HUSKY_GIT_PARAMS"
+    }
+  },
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ],
+    "rules": {
+      "subject-case": [
+        2,
+        "never",
+        [
+          "start-case",
+          "pascal-case"
+        ]
+      ]
+    }
   }
 }
