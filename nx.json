@@ -20,6 +20,9 @@
       ]
     }
   },
+  "workspaceLayout": {
+    "appsDir": "."
+  },
   "affected": {
     "defaultBase": "main"
   },
