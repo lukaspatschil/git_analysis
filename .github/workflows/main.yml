@@ -9,10 +9,6 @@ jobs:
   main:
     runs-on: ubuntu-latest
     
-    env:
-      NX_BRANCH: ${{ github.event.number }}
-      NX_RUN_GROUP: ${{ github.run_id }}
-    
     steps:
       - uses: actions/checkout@v2
         with:
@@ -29,3 +25,8 @@ jobs:
       - run: npx nx affected --target=lint --parallel=3
       - run: npx nx affected --target=test --parallel=3
       - run: npx nx affected --target=build --parallel=3
+      - name: Release
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          GIT_AUTHOR_NAME: '@semantic-release-bot'
+        run: npx semantic-release
