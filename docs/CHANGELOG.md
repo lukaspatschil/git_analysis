@@ -1,3 +1,15 @@
+# [1.1.0](https://github.com/lukaspatschil/git_analysis/compare/v1.0.0...v1.1.0) (2022-09-21)
+
+
+### Bug Fixes
+
+* fix npm token and add lint and test to nx cache ([7bfa0a7](https://github.com/lukaspatschil/git_analysis/commit/7bfa0a7afd931131799f366d2797661d43d9b9a3))
+
+
+### Features
+
+* add npm release for package.json version update ([11de94e](https://github.com/lukaspatschil/git_analysis/commit/11de94e42e7615915435c331f61fae4e465cbb92))
+
 # 1.0.0 (2022-09-21)
 
 
