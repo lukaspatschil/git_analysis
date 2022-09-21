@@ -1,6 +1,6 @@
 {
   "name": "git_analysis",
-  "version": "0.0.0-development",
+  "version": "0.0.0",
   "description": "A tool for analysing git projects online.",
   "repository": {
     "type": "git",
@@ -24,6 +24,7 @@
   "bugs": {
     "url": "https://github.com/lukaspatschil/git_analysis/issues"
   },
+  "private":"true",
   "homepage": "https://github.com/lukaspatschil/git_analysis#readme",
   "devDependencies": {
     "@commitlint/cli": "^17.1.2",
@@ -32,6 +33,7 @@
     "@nxrocks/nx-spring-boot": "^5.0.2",
     "@semantic-release/changelog": "^6.0.1",
     "@semantic-release/git": "^10.0.1",
+    "@semantic-release/npm": "^9.0.1",
     "husky": "^8.0.1",
     "nx": "14.7.6",
     "semantic-release": "^19.0.5"
