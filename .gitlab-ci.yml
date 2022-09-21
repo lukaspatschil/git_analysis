@@ -1,8 +1,0 @@
-image: maven:latest
-
-stages:
-  - test
-
-build:
-  stage: test
-  script: cd backend && mvn clean install
