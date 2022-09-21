@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/lukaspatschil/git_analysis/compare/v1.1.0...v1.1.1) (2022-09-21)
+
+
+### Bug Fixes
+
+* fix private field ([348e139](https://github.com/lukaspatschil/git_analysis/commit/348e1399152059a15191c7008fad1d0d264bdfe7))
+
 # [1.1.0](https://github.com/lukaspatschil/git_analysis/compare/v1.0.0...v1.1.0) (2022-09-21)
 
 
