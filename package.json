@@ -24,7 +24,7 @@
   "bugs": {
     "url": "https://github.com/lukaspatschil/git_analysis/issues"
   },
-  "private":"true",
+  "private": true,
   "homepage": "https://github.com/lukaspatschil/git_analysis#readme",
   "devDependencies": {
     "@commitlint/cli": "^17.1.2",
