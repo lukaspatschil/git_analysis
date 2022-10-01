@@ -36,35 +36,37 @@ public class SecurityConfiguration {
 
         private ClientRegistration gitLabClientRegistration() {
             return this.baseGitRegistration(
-                GitLabOAuthProviderProperties.registrationId,
-                GitLabOAuthProviderProperties.clientId,
-                GitLabOAuthProviderProperties.clientSecret,
-                GitLabOAuthProviderProperties.redirectUri,
-                GitLabOAuthProviderProperties.scopes,
-                GitLabOAuthProviderProperties.authorizationUri,
-                GitLabOAuthProviderProperties.tokenUri,
-                GitLabOAuthProviderProperties.userInfoUri,
-                GitLabOAuthProviderProperties.clientName
+                GitLabOAuthProviderProperties.REGISTRATION_ID,
+                GitLabOAuthProviderProperties.CLIENT_ID,
+                GitLabOAuthProviderProperties.CLIENT_SECRET,
+                GitLabOAuthProviderProperties.REDIRECT_URI,
+                GitLabOAuthProviderProperties.SCOPES,
+                GitLabOAuthProviderProperties.AUTHORIZATION_URI,
+                GitLabOAuthProviderProperties.TOKEN_URI,
+                GitLabOAuthProviderProperties.USER_INFO_URI,
+                GitLabOAuthProviderProperties.CLIENT_NAME
             );
         }
 
         public ClientRegistration gitHubClientRegistration() {
             return this.baseGitRegistration(
-                GitHubOAuthProviderProperties.registrationId,
-                GitHubOAuthProviderProperties.clientId,
-                GitHubOAuthProviderProperties.clientSecret,
-                GitHubOAuthProviderProperties.redirectUri,
-                GitHubOAuthProviderProperties.scopes,
-                GitHubOAuthProviderProperties.authorizationUri,
-                GitHubOAuthProviderProperties.tokenUri,
-                GitHubOAuthProviderProperties.userInfoUri,
-                GitHubOAuthProviderProperties.clientName
+                GitHubOAuthProviderProperties.REGISTRATION_ID,
+                GitHubOAuthProviderProperties.CLIENT_ID,
+                GitHubOAuthProviderProperties.CLIENT_SECRET,
+                GitHubOAuthProviderProperties.REDIRECT_URI,
+                GitHubOAuthProviderProperties.SCOPES,
+                GitHubOAuthProviderProperties.AUTHORIZATION_URI,
+                GitHubOAuthProviderProperties.TOKEN_URI,
+                GitHubOAuthProviderProperties.USER_INFO_URI,
+                GitHubOAuthProviderProperties.CLIENT_NAME
             );
         }
 
-        private ClientRegistration baseGitRegistration(String registrationId, String clientId, String clientSecret,
-                                                       String redirectUri, String[] scopes, String authorizationUri,
-                                                       String tokenUri, String userInfoUri, String clientName) {
+        private ClientRegistration baseGitRegistration(final String registrationId, final String clientId,
+                                                       final String clientSecret, final String redirectUri,
+                                                       final String[] scopes, final String authorizationUri,
+                                                       final String tokenUri, final String userInfoUri,
+                                                       final String clientName) {
             return ClientRegistration.withRegistrationId(registrationId)
                                      .clientId(clientId)
                                      .clientSecret(clientSecret)

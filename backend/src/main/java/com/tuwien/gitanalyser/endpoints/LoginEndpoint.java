@@ -15,9 +15,9 @@ import org.springframework.web.bind.annotation.RestController;
 public class LoginEndpoint {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LoginEndpoint.class);
-    
+
     @GetMapping("/login/success")
-    public String loginSuccessful(OAuth2AuthenticationToken authentication) {
+    public String loginSuccessful(final OAuth2AuthenticationToken authentication) {
         LOGGER.info("LoginEndpoint: Login successful; " + authentication.toString());
         return "Login successful; " + authentication;
     }
@@ -29,7 +29,7 @@ public class LoginEndpoint {
     }
 
     @GetMapping("/users")
-    public OAuth2User user(@AuthenticationPrincipal OAuth2User principal) {
+    public OAuth2User user(final @AuthenticationPrincipal OAuth2User principal) {
         return principal;
     }
 }
