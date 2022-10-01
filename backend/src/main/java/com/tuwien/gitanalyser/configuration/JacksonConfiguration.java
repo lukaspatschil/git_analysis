@@ -20,7 +20,6 @@ public class JacksonConfiguration {
                    .indentOutput(true)
                    .findModulesViaServiceLoader(true)
                    .modules(new JavaTimeModule())
-                   .timeZone(TimeZone.getDefault())
-            ;
+                   .timeZone(TimeZone.getDefault());
     }
 }
