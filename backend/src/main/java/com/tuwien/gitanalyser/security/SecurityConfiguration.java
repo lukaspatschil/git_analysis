@@ -15,8 +15,6 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @Configuration
 public class SecurityConfiguration {
 
-    private static final String[] SCOPE = {"user:email", "read:user", "repo"};
-
     @Configuration
     public static class OAuth2LoginConfig {
         @Bean
@@ -31,7 +29,8 @@ public class SecurityConfiguration {
         @Bean
         public ClientRegistrationRepository clientRegistrationRepository() {
             return new InMemoryClientRegistrationRepository(
-                this.gitHubClientRegistration()
+                this.gitHubClientRegistration(),
+                this.gitLabClientRegistration()
             );
         }
 
@@ -41,6 +40,7 @@ public class SecurityConfiguration {
                 GitLabOAuthProviderProperties.clientId,
                 GitLabOAuthProviderProperties.clientSecret,
                 GitLabOAuthProviderProperties.redirectUri,
+                GitLabOAuthProviderProperties.scopes,
                 GitLabOAuthProviderProperties.authorizationUri,
                 GitLabOAuthProviderProperties.tokenUri,
                 GitLabOAuthProviderProperties.userInfoUri,
@@ -50,28 +50,28 @@ public class SecurityConfiguration {
 
         public ClientRegistration gitHubClientRegistration() {
             return this.baseGitRegistration(
-                GitHubOAuthProviderProperties.REGISTRATION_ID,
-                GitHubOAuthProviderProperties.CLIENT_ID,
-                GitHubOAuthProviderProperties.CLIENT_SECRET,
-                GitHubOAuthProviderProperties.REDIRECT_URI,
-                GitHubOAuthProviderProperties.AUTHORIZATION_URI,
-                GitHubOAuthProviderProperties.TOKEN_URI,
-                GitHubOAuthProviderProperties.USER_INFO_URI,
-                GitHubOAuthProviderProperties.CLIENT_NAME
+                GitHubOAuthProviderProperties.registrationId,
+                GitHubOAuthProviderProperties.clientId,
+                GitHubOAuthProviderProperties.clientSecret,
+                GitHubOAuthProviderProperties.redirectUri,
+                GitHubOAuthProviderProperties.scopes,
+                GitHubOAuthProviderProperties.authorizationUri,
+                GitHubOAuthProviderProperties.tokenUri,
+                GitHubOAuthProviderProperties.userInfoUri,
+                GitHubOAuthProviderProperties.clientName
             );
         }
 
-        private ClientRegistration baseGitRegistration(final String registrationId, final String clientId,
-                                                       final String clientSecret, final String redirectUri,
-                                                       final String authorizationUri, final String tokenUri,
-                                                       final String userInfoUri, final String clientName) {
+        private ClientRegistration baseGitRegistration(String registrationId, String clientId, String clientSecret,
+                                                       String redirectUri, String[] scopes, String authorizationUri,
+                                                       String tokenUri, String userInfoUri, String clientName) {
             return ClientRegistration.withRegistrationId(registrationId)
                                      .clientId(clientId)
                                      .clientSecret(clientSecret)
                                      .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
                                      .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
                                      .redirectUri(redirectUri)
-                                     .scope(SCOPE)
+                                     .scope(scopes)
                                      .authorizationUri(authorizationUri)
                                      .tokenUri(tokenUri)
                                      .userInfoUri(userInfoUri)
