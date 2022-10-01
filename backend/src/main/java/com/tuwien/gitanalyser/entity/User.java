@@ -36,7 +36,7 @@ public class User {
     @Column
     private String password;
 
-    @Enumerated(EnumType.STRING )
+    @Enumerated(EnumType.STRING)
     @Column
     private AuthenticationProvider authenticationProvider;
 

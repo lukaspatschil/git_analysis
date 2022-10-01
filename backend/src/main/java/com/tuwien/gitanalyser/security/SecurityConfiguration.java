@@ -20,7 +20,7 @@ public class SecurityConfiguration {
     @Configuration
     public static class OAuth2LoginConfig {
         @Bean
-        public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        public SecurityFilterChain filterChain(final HttpSecurity http) throws Exception {
             http
                 .authorizeHttpRequests(authorize -> authorize.anyRequest().authenticated())
                 .oauth2Login(withDefaults());
@@ -50,20 +50,21 @@ public class SecurityConfiguration {
 
         public ClientRegistration gitHubClientRegistration() {
             return this.baseGitRegistration(
-                GitHubOAuthProviderProperties.registrationId,
-                GitHubOAuthProviderProperties.clientId,
-                GitHubOAuthProviderProperties.clientSecret,
-                GitHubOAuthProviderProperties.redirectUri,
-                GitHubOAuthProviderProperties.authorizationUri,
-                GitHubOAuthProviderProperties.tokenUri,
-                GitHubOAuthProviderProperties.userInfoUri,
-                GitHubOAuthProviderProperties.clientName
+                GitHubOAuthProviderProperties.REGISTRATION_ID,
+                GitHubOAuthProviderProperties.CLIENT_ID,
+                GitHubOAuthProviderProperties.CLIENT_SECRET,
+                GitHubOAuthProviderProperties.REDIRECT_URI,
+                GitHubOAuthProviderProperties.AUTHORIZATION_URI,
+                GitHubOAuthProviderProperties.TOKEN_URI,
+                GitHubOAuthProviderProperties.USER_INFO_URI,
+                GitHubOAuthProviderProperties.CLIENT_NAME
             );
         }
 
-        private ClientRegistration baseGitRegistration(String registrationId, String clientId, String clientSecret,
-                                                       String redirectUri, String authorizationUri,
-                                                       String tokenUri, String userInfoUri, String clientName) {
+        private ClientRegistration baseGitRegistration(final String registrationId, final String clientId,
+                                                       final String clientSecret, final String redirectUri,
+                                                       final String authorizationUri, final String tokenUri,
+                                                       final String userInfoUri, final String clientName) {
             return ClientRegistration.withRegistrationId(registrationId)
                                      .clientId(clientId)
                                      .clientSecret(clientSecret)

@@ -13,13 +13,9 @@ import java.util.Map;
 @RequestMapping(value = "/", produces = MediaType.APPLICATION_JSON_VALUE)
 public class HelloEndpoint {
 
-    /**
-     * get hello.
-     * @return String hallo
-     */
     @GetMapping()
-    public Map<String, Object> index(@RequestParam(required = false, value = "code") String code) {
-        if(code != null) {
+    public Map<String, Object> index(final @RequestParam(required = false, value = "code") String code) {
+        if (code != null) {
             return Collections.singletonMap("code", code);
         }
         return Collections.emptyMap();
