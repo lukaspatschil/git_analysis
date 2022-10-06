@@ -25,6 +25,7 @@ public class UserServiceImpl implements UserService {
 
     /**
      * get single user by id.
+     *
      * @param id of the user
      * @return single user
      */
@@ -38,6 +39,7 @@ public class UserServiceImpl implements UserService {
 
     /**
      * get all users.
+     *
      * @return list of users
      */
     @Override
@@ -46,9 +48,8 @@ public class UserServiceImpl implements UserService {
     }
 
     public void processOAuthPostLogin(final BasicAuth2User user) {
-        List<User> existUser = userRepository
-                                   .findByPlatformAndPlatformId(user.getAuthenticationProvider(),
-                                       user.getPlatformId());
+        List<User> existUser = userRepository.findByPlatformAndPlatformId(user.getAuthenticationProvider(),
+            user.getPlatformId());
 
         if (existUser.size() == 0) {
             User newUser = new User();

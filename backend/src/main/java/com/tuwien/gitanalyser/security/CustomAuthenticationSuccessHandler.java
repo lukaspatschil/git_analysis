@@ -22,21 +22,15 @@ public class CustomAuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     private UserService userService;
 
     @Override
-    public void onAuthenticationSuccess(
-        final HttpServletRequest request,
-        final HttpServletResponse response,
-        final Authentication authentication) throws IOException {
+    public void onAuthenticationSuccess(final HttpServletRequest request, final HttpServletResponse response,
+                                        final Authentication authentication) throws IOException {
 
         BasicAuth2User oauthUser;
 
-        if (((OAuth2AuthenticationToken) authentication)
-                .getAuthorizedClientRegistrationId()
-                .equals("github")) {
-            oauthUser =
-                new GitHubOAuth2User((OAuth2User) authentication.getPrincipal());
+        if (((OAuth2AuthenticationToken) authentication).getAuthorizedClientRegistrationId().equals("github")) {
+            oauthUser = new GitHubOAuth2User((OAuth2User) authentication.getPrincipal());
         } else {
-            oauthUser =
-                new GitLabOAuth2User((OAuth2User) authentication.getPrincipal());
+            oauthUser = new GitLabOAuth2User((OAuth2User) authentication.getPrincipal());
         }
 
         userService.processOAuthPostLogin(oauthUser);

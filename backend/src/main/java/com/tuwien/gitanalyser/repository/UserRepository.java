@@ -11,8 +11,7 @@ import java.util.List;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
-    @Query("select distinct u from User u where "
-               + "u.authenticationProvider = :authenticationProvider and "
+    @Query("select distinct u from User u where " + "u.authenticationProvider" + " = :authenticationProvider and "
                + "u.platformId = :platformId")
     List<User> findByPlatformAndPlatformId(
         @Param("authenticationProvider") AuthenticationProvider authenticationProvider,

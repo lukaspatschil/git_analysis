@@ -29,6 +29,7 @@ public class UserEndpoint {
 
     /**
      * get user by id.
+     *
      * @param id of the user
      * @return single user DTO
      */
@@ -40,6 +41,7 @@ public class UserEndpoint {
 
     /**
      * get all users.
+     *
      * @return a list of users
      */
     @GetMapping

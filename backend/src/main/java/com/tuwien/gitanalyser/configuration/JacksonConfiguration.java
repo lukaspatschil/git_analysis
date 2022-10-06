@@ -14,12 +14,9 @@ public class JacksonConfiguration {
 
     @Bean
     public Jackson2ObjectMapperBuilder jackson2ObjectMapperBuilder() {
-        return new Jackson2ObjectMapperBuilder()
-                   .serializationInclusion(JsonInclude.Include.NON_NULL)
-                   .featuresToDisable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-                   .indentOutput(true)
-                   .findModulesViaServiceLoader(true)
-                   .modules(new JavaTimeModule())
-                   .timeZone(TimeZone.getDefault());
+        return new Jackson2ObjectMapperBuilder().serializationInclusion(JsonInclude.Include.NON_NULL)
+                                                .featuresToDisable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+                                                .indentOutput(true).findModulesViaServiceLoader(true)
+                                                .modules(new JavaTimeModule()).timeZone(TimeZone.getDefault());
     }
 }

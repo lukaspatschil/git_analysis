@@ -26,10 +26,8 @@ import javax.persistence.UniqueConstraint;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode
-@Table(uniqueConstraints =
-           {@UniqueConstraint(
-               name = "Provider_plattformId",
-               columnNames = {"authenticationProvider", "platformId"})})
+@Table(uniqueConstraints = {@UniqueConstraint(name = "Provider_plattformId", columnNames = {"authenticationProvider",
+    "platformId"})})
 public class User {
 
     @Id

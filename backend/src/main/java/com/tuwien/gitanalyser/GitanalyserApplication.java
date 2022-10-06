@@ -8,6 +8,7 @@ public class GitanalyserApplication {
 
     /**
      * starts the application.
+     *
      * @param args arguments
      */
     public static void main(final String[] args) {
