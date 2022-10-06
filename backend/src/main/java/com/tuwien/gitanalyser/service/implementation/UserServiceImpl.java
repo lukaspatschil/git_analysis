@@ -4,6 +4,7 @@ import com.sun.istack.NotNull;
 import com.tuwien.gitanalyser.entity.User;
 import com.tuwien.gitanalyser.exception.NotFoundException;
 import com.tuwien.gitanalyser.repository.UserRepository;
+import com.tuwien.gitanalyser.security.OAuth2.BasicAuth2User;
 import com.tuwien.gitanalyser.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,5 +43,21 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<User> getAll() {
         return userRepository.findAll();
+    }
+
+    public void processOAuthPostLogin(final BasicAuth2User user) {
+        List<User> existUser = userRepository
+                                   .findByPlatformAndPlatformId(user.getAuthenticationProvider(),
+                                       user.getPlatformId());
+
+        if (existUser.size() == 0) {
+            User newUser = new User();
+            newUser.setUsername(user.getName());
+            newUser.setPlatformId(user.getPlatformId());
+            newUser.setAuthenticationProvider(user.getAuthenticationProvider());
+
+            userRepository.save(newUser);
+        }
+
     }
 }
