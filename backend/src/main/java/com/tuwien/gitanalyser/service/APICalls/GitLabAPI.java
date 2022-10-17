@@ -7,33 +7,41 @@ import org.gitlab4j.api.GitLabApi;
 import org.gitlab4j.api.GitLabApiException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
+@Service
 public class GitLabAPI implements GitAPI {
 
     static Logger LOGGER = LoggerFactory.getLogger(GitLabAPI.class);
 
-    public static List<RepositoryDTO> getAllRepositories(String tokenValue) throws GitLabApiException {
+    public List<RepositoryDTO> getAllRepositories(String tokenValue) throws GitLabApiException {
         LOGGER.info("GitLabAPI: getAllRepositories");
 
         List<RepositoryDTO> allRepos = new ArrayList<>();
 
-        GitLabApi gitLabApi = new GitLabApi(GitLabOAuthProviderProperties.CLIENT_URL,
-            Constants.TokenType.OAUTH2_ACCESS, tokenValue);
+        GitLabApi gitLabApi = new GitLabApi(GitLabOAuthProviderProperties.CLIENT_URL, Constants.TokenType.OAUTH2_ACCESS,
+                                            tokenValue);
 
-        gitLabApi.getProjectApi().getOwnedProjects().forEach(project -> {
-            LOGGER.info("GitLabAPI: getAllRepositories: " + project.getName());
-            allRepos.add(new RepositoryDTO(project.getName()));
-        });
-
-        gitLabApi.getProjectApi().getMemberProjects().forEach(project -> {
-            LOGGER.info("GitLabAPI: getMemberRepositories: " + project.getName());
-            allRepos.add(new RepositoryDTO(project.getName()));
-        });
+        allRepos.addAll(getOwnedProjects(gitLabApi));
+        allRepos.addAll(getMemberProjects(gitLabApi));
 
         return allRepos;
+    }
+
+    private static List<RepositoryDTO> getOwnedProjects(GitLabApi gitLabApi) throws GitLabApiException {
+        return gitLabApi.getProjectApi().getOwnedProjects().stream()
+                        .map(project -> new RepositoryDTO(project.getId(), project.getName()))
+                        .collect(Collectors.toList());
+    }
+
+    private static List<RepositoryDTO> getMemberProjects(GitLabApi gitLabApi) throws GitLabApiException {
+        return gitLabApi.getProjectApi().getMemberProjects().stream()
+                        .map(project -> new RepositoryDTO(project.getId(), project.getName()))
+                        .collect(Collectors.toList());
     }
 }
 
