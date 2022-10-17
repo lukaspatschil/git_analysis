@@ -22,14 +22,15 @@ public class SecurityConfiguration {
 
     @Configuration
     public class OAuth2LoginConfig {
+
         @Bean
         public SecurityFilterChain filterChain(final HttpSecurity http) throws Exception {
             http.authorizeHttpRequests(authorize -> {
                 authorize.antMatchers(H_2_CONSOLEPATH + "/**").permitAll();
 
                 authorize.anyRequest().authenticated();
-            }).oauth2Login(settings -> settings.successHandler(successHandler()).userInfoEndpoint()
-                                               .userService(oauthUserService));
+            }).oauth2Login(settings -> settings.successHandler(successHandler())
+                                               .userInfoEndpoint(config -> config.userService(oauthUserService)));
 
             return http.build();
         }
