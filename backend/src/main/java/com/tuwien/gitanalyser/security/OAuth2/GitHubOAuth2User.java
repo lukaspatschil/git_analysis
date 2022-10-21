@@ -6,6 +6,7 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Objects;
 
 public class GitHubOAuth2User implements BasicAuth2User {
 
@@ -36,5 +37,22 @@ public class GitHubOAuth2User implements BasicAuth2User {
 
     public Integer getPlatformId() {
         return oauth2User.getAttribute("id");
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        GitHubOAuth2User that = (GitHubOAuth2User) o;
+        return Objects.equals(oauth2User, that.oauth2User);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(oauth2User);
     }
 }

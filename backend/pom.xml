@@ -16,15 +16,18 @@
     <properties>
         <java.version>17</java.version>
         <mapstruct.version>1.5.2.Final</mapstruct.version>
-        <jackson.version>2.13.4</jackson.version>
-        <spring.framework.data.version>2.1.4.RELEASE</spring.framework.data.version>
+        <jackson.version>2.13.4.2</jackson.version>
+        <spring.framework.data.version>2.7.5</spring.framework.data.version>
         <checkstyle.maven.plugin.version>3.2.0</checkstyle.maven.plugin.version>
+        <jacoco.version>0.8.8</jacoco.version>
+        <spring.boot.starter.graphql.version>2.7.4</spring.boot.starter.graphql.version>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-graphql</artifactId>
+            <version>${spring.boot.starter.graphql.version}</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -95,6 +98,27 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.kohsuke/github-api -->
+        <dependency>
+            <groupId>org.kohsuke</groupId>
+            <artifactId>github-api</artifactId>
+            <version>1.313</version>
+        </dependency>
+
+        <!-- https://github.com/gitlab4j/gitlab4j-api -->
+        <dependency>
+            <groupId>org.gitlab4j</groupId>
+            <artifactId>gitlab4j-api</artifactId>
+            <version>5.0.1</version>
+        </dependency>
+
+        <!-- jacoco -->
+        <dependency>
+            <groupId>org.jacoco</groupId>
+            <artifactId>jacoco-maven-plugin</artifactId>
+            <version>${jacoco.version}</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -145,7 +169,7 @@
                     <linkXRef>false</linkXRef>
                     <sourceDirectories>
                         <sourceDirectory>${project.build.sourceDirectory}</sourceDirectory>
-                        <sourceDirectory>${project.build.testSourceDirectory}</sourceDirectory>
+                        <!--<sourceDirectory>${project.build.testSourceDirectory}</sourceDirectory>-->
                     </sourceDirectories>
                 </configuration>
                 <executions>
@@ -154,6 +178,25 @@
                         <phase>compile</phase>
                         <goals>
                             <goal>checkstyle</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>report</goal>
                         </goals>
                     </execution>
                 </executions>
