@@ -26,7 +26,7 @@ import javax.persistence.UniqueConstraint;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode
-@Table(uniqueConstraints = {@UniqueConstraint(name = "Provider_plattformId", columnNames = {"authenticationProvider",
+@Table(uniqueConstraints = {@UniqueConstraint(name = "Provider_platformId", columnNames = {"authenticationProvider",
     "platformId"})})
 public class User {
 
@@ -43,10 +43,10 @@ public class User {
     private String email;
 
     @Enumerated(EnumType.STRING)
-    @Column
+    @Column(name = "authenticationProvider")
     private AuthenticationProvider authenticationProvider;
 
-    @Column
+    @Column(name = "platformId")
     private Integer platformId;
 
 }

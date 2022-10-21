@@ -48,7 +48,8 @@ public class UserServiceImpl implements UserService {
     }
 
     public void processOAuthPostLogin(final BasicAuth2User user) {
-        List<User> existUser = userRepository.findByPlatformAndPlatformId(user.getAuthenticationProvider(),
+        List<User> existUser = userRepository.findByPlatformAndPlatformId(
+            user.getAuthenticationProvider(),
             user.getPlatformId());
 
         if (existUser.size() == 0) {

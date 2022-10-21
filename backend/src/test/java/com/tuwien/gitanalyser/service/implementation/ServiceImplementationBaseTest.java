@@ -8,7 +8,8 @@ import utils.Randoms;
 public abstract class ServiceImplementationBaseTest {
 
     protected ClientRegistration getRandomAuthorization() {
-        return ClientRegistration.withRegistrationId(Randoms.alpha()).clientId(Randoms.alpha()).clientSecret(Randoms.alpha())
+        return ClientRegistration.withRegistrationId(Randoms.alpha()).clientId(Randoms.alpha())
+                                 .clientSecret(Randoms.alpha())
                                  .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
                                  .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
                                  .redirectUri(Randoms.alpha()).scope(Randoms.alpha()).authorizationUri(Randoms.alpha())

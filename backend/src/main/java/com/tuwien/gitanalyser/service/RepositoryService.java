@@ -8,4 +8,5 @@ import java.util.List;
 public interface RepositoryService {
     List<RepositoryDTO> getAllRepositories(OAuth2AuthorizedClient client);
 
+    RepositoryDTO getRepositoryById(OAuth2AuthorizedClient client, long id);
 }

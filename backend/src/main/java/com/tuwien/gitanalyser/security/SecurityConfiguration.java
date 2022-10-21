@@ -1,6 +1,7 @@
 package com.tuwien.gitanalyser.security;
 
 import com.tuwien.gitanalyser.security.OAuth2.CustomOAuth2UserService;
+import com.tuwien.gitanalyser.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,9 +17,12 @@ import org.springframework.security.web.authentication.SimpleUrlAuthenticationSu
 @Configuration
 public class SecurityConfiguration {
 
-    private static final String H_2_CONSOLEPATH = "/h2-console";
+    private static final String H_2_CONSOLE_PATH = "/h2-console";
     @Autowired
     private CustomOAuth2UserService oauthUserService;
+
+    @Autowired
+    private UserService userService;
 
     @Configuration
     public class OAuth2LoginConfig {
@@ -26,8 +30,7 @@ public class SecurityConfiguration {
         @Bean
         public SecurityFilterChain filterChain(final HttpSecurity http) throws Exception {
             http.authorizeHttpRequests(authorize -> {
-                authorize.antMatchers(H_2_CONSOLEPATH + "/**").permitAll();
-
+                authorize.antMatchers(H_2_CONSOLE_PATH + "/**").permitAll();
                 authorize.anyRequest().authenticated();
             }).oauth2Login(settings -> settings.successHandler(successHandler())
                                                .userInfoEndpoint(config -> config.userService(oauthUserService)));
@@ -43,7 +46,7 @@ public class SecurityConfiguration {
 
         @Bean
         public SimpleUrlAuthenticationSuccessHandler successHandler() {
-            return new CustomAuthenticationSuccessHandler();
+            return new CustomAuthenticationSuccessHandler(userService);
         }
 
         private ClientRegistration gitLabClientRegistration() {

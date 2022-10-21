@@ -18,18 +18,16 @@ import java.util.List;
 public class RepositoryServiceImpl implements RepositoryService {
 
     public static final Logger LOGGER = LoggerFactory.getLogger(RepositoryServiceImpl.class);
-
     private final GitHubAPI gitHubAPI;
-
     private final GitLabAPI gitLabAPI;
 
-    public RepositoryServiceImpl(GitHubAPI gitHubAPI, GitLabAPI gitLabAPI) {
+    public RepositoryServiceImpl(final GitHubAPI gitHubAPI, final GitLabAPI gitLabAPI) {
         this.gitHubAPI = gitHubAPI;
         this.gitLabAPI = gitLabAPI;
     }
 
     @Override
-    public List<RepositoryDTO> getAllRepositories(OAuth2AuthorizedClient client) {
+    public List<RepositoryDTO> getAllRepositories(final OAuth2AuthorizedClient client) {
         LOGGER.info("RepositoryServiceImpl: getAllRepositories");
 
         List<RepositoryDTO> allRepos;
@@ -44,7 +42,22 @@ public class RepositoryServiceImpl implements RepositoryService {
         return allRepos;
     }
 
-    private GitAPI getAPI(OAuth2AuthorizedClient client) {
+    @Override
+    public RepositoryDTO getRepositoryById(final OAuth2AuthorizedClient client, final long id) {
+        LOGGER.info("RepositoryServiceImpl: getRepositoryById " + id);
+
+        RepositoryDTO repo;
+
+        try {
+            GitAPI gitAPI = getAPI(client);
+            repo = gitAPI.getRepositoryById(client.getAccessToken().getTokenValue(), id);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return repo;
+    }
+
+    private GitAPI getAPI(final OAuth2AuthorizedClient client) {
         return switch (client.getClientRegistration().getClientName()) {
             case GitHubOAuthProviderProperties.CLIENT_NAME -> gitHubAPI;
             case GitLabOAuthProviderProperties.CLIENT_NAME -> gitLabAPI;

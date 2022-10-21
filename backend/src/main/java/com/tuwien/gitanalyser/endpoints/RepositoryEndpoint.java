@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.annotation.RegisteredOAuth2AuthorizedClient;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -16,7 +17,7 @@ import java.util.List;
 @RequestMapping("/repository")
 public class RepositoryEndpoint {
 
-    Logger LOGGER = LoggerFactory.getLogger(RepositoryEndpoint.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(RepositoryEndpoint.class);
 
     private final RepositoryService repositoryService;
 
@@ -25,8 +26,17 @@ public class RepositoryEndpoint {
     }
 
     @GetMapping
-    public List<RepositoryDTO> getAllRepositories(@RegisteredOAuth2AuthorizedClient OAuth2AuthorizedClient client) {
+    public List<RepositoryDTO> getAllRepositories(
+        final @RegisteredOAuth2AuthorizedClient OAuth2AuthorizedClient client) {
         LOGGER.info("GET /repository -  get all repositories");
         return repositoryService.getAllRepositories(client);
+    }
+
+    @GetMapping("/{id}")
+    public RepositoryDTO getRepositoryById(
+        final @RegisteredOAuth2AuthorizedClient OAuth2AuthorizedClient client,
+        final @PathVariable Long id) {
+        LOGGER.info("GET /repository/{id} -  get repository by id");
+        return repositoryService.getRepositoryById(client, id);
     }
 }

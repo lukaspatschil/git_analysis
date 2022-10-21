@@ -1,6 +1,5 @@
-package com.tuwien.gitanalyser.e2e;
+package com.tuwien.gitanalyser.integrationTests;
 
-import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -18,7 +17,6 @@ public class UserControllerTest {
     private MockMvc mvc;
     private static final String USER_ENDPOINT = "/user";
 
-    @Test
     public void getAllPersons() throws Exception {
         mvc.perform(MockMvcRequestBuilders.get(USER_ENDPOINT).accept(MediaType.APPLICATION_JSON))
            .andExpect(status().isOk());

@@ -4,7 +4,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class GitanalyserApplication {
+public class GitAnalyserApplication {
 
     /**
      * starts the application.
@@ -12,7 +12,7 @@ public class GitanalyserApplication {
      * @param args arguments
      */
     public static void main(final String[] args) {
-        SpringApplication.run(GitanalyserApplication.class, args);
+        SpringApplication.run(GitAnalyserApplication.class, args);
     }
 
 }

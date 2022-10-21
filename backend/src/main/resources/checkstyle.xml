@@ -52,8 +52,8 @@
     <!-- https://checkstyle.org/config_filters.html#SuppressionFilter -->
     <module name="SuppressionFilter">
         <property name="file" value="${org.checkstyle.sun.suppressionfilter.config}"
-                  default="checkstyle-suppressions.xml" />
-        <property name="optional" value="true"/>
+                  default="./src/main/resources/checkstyle-suppressions.xml" />
+        <property name="optional" value="false"/>
     </module>
 
     <!-- Checks whether files end with a new line.                        -->

@@ -4,7 +4,6 @@ import com.tuwien.gitanalyser.security.OAuth2.BasicAuth2User;
 import com.tuwien.gitanalyser.security.OAuth2.GitHubOAuth2User;
 import com.tuwien.gitanalyser.security.OAuth2.GitLabOAuth2User;
 import com.tuwien.gitanalyser.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
@@ -18,8 +17,11 @@ import java.io.IOException;
 @Configuration
 public class CustomAuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
+
+    public CustomAuthenticationSuccessHandler(final UserService userService) {
+        this.userService = userService;
+    }
 
     @Override
     public void onAuthenticationSuccess(final HttpServletRequest request, final HttpServletResponse response,

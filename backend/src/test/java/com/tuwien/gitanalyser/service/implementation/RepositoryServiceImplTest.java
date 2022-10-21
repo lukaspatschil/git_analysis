@@ -16,13 +16,16 @@ import java.time.Instant;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-class RepositoryServiceImplTest extends ServiceImplementationBaseTest{
+class RepositoryServiceImplTest extends ServiceImplementationBaseTest {
 
+    private static final int ONE_HOUR_IN_SECONDS = 3600;
     private RepositoryServiceImpl sut;
     private GitHubAPI gitHubAPI;
     private GitLabAPI gitLabAPI;
     private OAuth2AccessToken accessToken;
+    private String exceptionString;
 
     @BeforeEach
     void setUp() {
@@ -30,7 +33,8 @@ class RepositoryServiceImplTest extends ServiceImplementationBaseTest{
         gitLabAPI = mock(GitLabAPI.class);
         sut = new RepositoryServiceImpl(gitHubAPI, gitLabAPI);
         accessToken = new OAuth2AccessToken(OAuth2AccessToken.TokenType.BEARER, Randoms.alpha(), Instant.now(),
-                                            Instant.now().plusSeconds(3600));
+                                            Instant.now().plusSeconds(ONE_HOUR_IN_SECONDS));
+        exceptionString = "testException";
     }
 
     @Test
@@ -47,7 +51,7 @@ class RepositoryServiceImplTest extends ServiceImplementationBaseTest{
     }
 
     @Test
-    void getAllRepositories_GitHubAuthorization_shouldCallGitLabAPI() throws IOException {
+    void getAllRepositories_GitHubAuthorization_shouldCallGitHubAPI() throws IOException {
         // Given
         OAuth2AuthorizedClient client = new OAuth2AuthorizedClient(ClientRegistrations.gitHubClientRegistration(),
                                                                    Randoms.alpha(), accessToken);
@@ -60,6 +64,31 @@ class RepositoryServiceImplTest extends ServiceImplementationBaseTest{
     }
 
     @Test
+    void getAllRepositories_GitLabAuthorizationThrowsException_shouldThrowRuntimeException() throws GitLabApiException {
+        // Given
+        OAuth2AuthorizedClient client = new OAuth2AuthorizedClient(ClientRegistrations.gitLabClientRegistration(),
+                                                                   Randoms.alpha(), accessToken);
+
+        when(gitLabAPI.getAllRepositories(client.getAccessToken().getTokenValue())).thenThrow(
+            new GitLabApiException(exceptionString));
+
+        // When + Then
+        assertThrows(RuntimeException.class, () -> sut.getAllRepositories(client), exceptionString);
+    }
+
+    @Test
+    void getAllRepositories_GitHubAuthorizationThrowsException_shouldThrowException() throws IOException {
+        // Given
+        OAuth2AuthorizedClient client = new OAuth2AuthorizedClient(ClientRegistrations.gitHubClientRegistration(),
+                                                                   Randoms.alpha(), accessToken);
+        when(gitHubAPI.getAllRepositories(client.getAccessToken().getTokenValue())).thenThrow(
+            new IOException(exceptionString));
+
+        // When + Then
+        assertThrows(RuntimeException.class, () -> sut.getAllRepositories(client), exceptionString);
+    }
+
+    @Test
     void getAllRepositories_randomAuthorization_shouldThrowException() {
         // Given
         OAuth2AuthorizedClient client = new OAuth2AuthorizedClient(getRandomAuthorization(), Randoms.alpha(),
@@ -67,5 +96,44 @@ class RepositoryServiceImplTest extends ServiceImplementationBaseTest{
 
         // When + Then
         assertThrows(RuntimeException.class, () -> sut.getAllRepositories(client));
+    }
+
+    @Test
+    void getRepositoryById_GitLabAuthorization_shouldCallGitLabAPI() throws GitLabApiException {
+        // Given
+        OAuth2AuthorizedClient client = new OAuth2AuthorizedClient(ClientRegistrations.gitLabClientRegistration(),
+                                                                   Randoms.alpha(), accessToken);
+        long id = Randoms.getLong();
+
+        // When
+        sut.getRepositoryById(client, id);
+
+        // Then
+        verify(gitLabAPI).getRepositoryById(client.getAccessToken().getTokenValue(), id);
+    }
+
+    @Test
+    void getRepositoryById_GitHubAuthorization_shouldCallGitHubAPI() throws IOException {
+        // Given
+        OAuth2AuthorizedClient client = new OAuth2AuthorizedClient(ClientRegistrations.gitHubClientRegistration(),
+                                                                   Randoms.alpha(), accessToken);
+        long id = Randoms.getLong();
+
+        // When
+        sut.getRepositoryById(client, id);
+
+        // Then
+        verify(gitHubAPI).getRepositoryById(client.getAccessToken().getTokenValue(), id);
+    }
+
+    @Test
+    void getRepositoryById_randomAuthorization_shouldThrowException() {
+        // Given
+        OAuth2AuthorizedClient client = new OAuth2AuthorizedClient(getRandomAuthorization(), Randoms.alpha(),
+                                                                   accessToken);
+        long id = Randoms.getLong();
+
+        // When + Then
+        assertThrows(RuntimeException.class, () -> sut.getRepositoryById(client, id));
     }
 }
