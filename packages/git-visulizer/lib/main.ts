@@ -1,1 +1,1 @@
-import './participationChart'
+import './participationChart';
