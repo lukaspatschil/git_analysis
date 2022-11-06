@@ -21,6 +21,9 @@
         <checkstyle.maven.plugin.version>3.2.0</checkstyle.maven.plugin.version>
         <jacoco.version>0.8.8</jacoco.version>
         <spring.boot.starter.graphql.version>2.7.4</spring.boot.starter.graphql.version>
+        <libvcs4j.version>1.8.0</libvcs4j.version>
+        <oauth2.client.version>2.7.5</oauth2.client.version>
+        <spring.boot.starter.web.version>2.7.5</spring.boot.starter.web.version>
     </properties>
 
     <dependencies>
@@ -52,6 +55,7 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
+            <version>${spring.boot.starter.web.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -93,6 +97,7 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-oauth2-client</artifactId>
+            <version>${oauth2.client.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -118,6 +123,13 @@
             <groupId>org.jacoco</groupId>
             <artifactId>jacoco-maven-plugin</artifactId>
             <version>${jacoco.version}</version>
+        </dependency>
+
+        <!-- https://github.com/uni-bremen-agst/libvcs4j -->
+        <dependency>
+            <groupId>de.uni-bremen.informatik.st</groupId>
+            <artifactId>libvcs4j-api</artifactId>
+            <version>${libvcs4j.version}</version>
         </dependency>
     </dependencies>
 
