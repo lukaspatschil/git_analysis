@@ -125,12 +125,24 @@
             <version>${jacoco.version}</version>
         </dependency>
 
-        <!-- https://github.com/uni-bremen-agst/libvcs4j -->
+        <dependency>
+            <groupId>de.uni-bremen.informatik.st</groupId>
+            <artifactId>libvcs4j</artifactId>
+            <version>1.8.0</version>
+        </dependency>
+
         <dependency>
             <groupId>de.uni-bremen.informatik.st</groupId>
             <artifactId>libvcs4j-api</artifactId>
-            <version>${libvcs4j.version}</version>
+            <version>1.8.0</version>
         </dependency>
+
+        <dependency>
+            <groupId>de.uni-bremen.informatik.st</groupId>
+            <artifactId>libvcs4j-tools</artifactId>
+            <version>1.8.0</version>
+        </dependency>
+
     </dependencies>
 
     <build>

@@ -17,7 +17,11 @@ public class GitHubAPI implements GitAPI {
 
         GitHub github = getGitHub(accessToken);
         github.getMyself().getAllRepositories().values()
-              .forEach(repo -> allRepos.add(new RepositoryDTO(repo.getId(), repo.getName())));
+              .forEach(repo -> allRepos.add(new RepositoryDTO(repo.getId(),
+                                                              repo.getName(),
+                                                              repo.getHttpTransportUrl())
+                       )
+              );
 
         return allRepos;
     }
@@ -26,7 +30,7 @@ public class GitHubAPI implements GitAPI {
     public RepositoryDTO getRepositoryById(final String tokenValue, final long id) throws IOException {
         GitHub github = getGitHub(tokenValue);
         GHRepository repository = github.getRepositoryById(id);
-        return new RepositoryDTO(repository.getId(), repository.getName());
+        return new RepositoryDTO(repository.getId(), repository.getName(), repository.getHttpTransportUrl());
     }
 
     private static GitHub getGitHub(final String accessToken) throws IOException {

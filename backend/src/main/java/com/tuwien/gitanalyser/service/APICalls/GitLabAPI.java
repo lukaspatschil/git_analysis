@@ -37,7 +37,7 @@ public class GitLabAPI implements GitAPI {
         GitLabApi gitLabAPI = getGitLabApi(tokenValue);
         Project project = gitLabAPI.getProjectApi().getProject(id);
 
-        return new RepositoryDTO(project.getId(), project.getName());
+        return new RepositoryDTO(project.getId(), project.getName(), project.getHttpUrlToRepo());
     }
 
     private static GitLabApi getGitLabApi(final String tokenValue) {
@@ -46,13 +46,15 @@ public class GitLabAPI implements GitAPI {
 
     private static List<RepositoryDTO> getOwnedProjects(final GitLabApi gitLabApi) throws GitLabApiException {
         return gitLabApi.getProjectApi().getOwnedProjects().stream()
-                        .map(project -> new RepositoryDTO(project.getId(), project.getName()))
+                        .map(project ->
+                                 new RepositoryDTO(project.getId(), project.getName(), project.getHttpUrlToRepo()))
                         .collect(Collectors.toList());
     }
 
     private static List<RepositoryDTO> getMemberProjects(final GitLabApi gitLabApi) throws GitLabApiException {
         return gitLabApi.getProjectApi().getMemberProjects().stream()
-                        .map(project -> new RepositoryDTO(project.getId(), project.getName()))
+                        .map(project ->
+                                 new RepositoryDTO(project.getId(), project.getName(), project.getHttpUrlToRepo()))
                         .collect(Collectors.toList());
     }
 }
