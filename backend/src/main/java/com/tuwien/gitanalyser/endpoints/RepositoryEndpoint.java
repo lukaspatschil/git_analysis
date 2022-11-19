@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController()
-@RequestMapping("/repository")
+@RequestMapping("/apiV1/repository")
 public class RepositoryEndpoint {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RepositoryEndpoint.class);

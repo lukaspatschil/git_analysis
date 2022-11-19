@@ -37,7 +37,6 @@ public class CustomAuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
         userService.processOAuthPostLogin(oauthUser);
 
-        response.sendRedirect("/");
+        response.sendRedirect("/apiV1/repository");
     }
-
 }
