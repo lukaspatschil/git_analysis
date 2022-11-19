@@ -22,13 +22,20 @@ jobs:
       - uses: nrwl/nx-set-shas@v3
       - run: npm ci
 
-      - run: nx workspace-lint
-      - run: nx affected --target=lint --parallel=3
-      - run: nx affected --target=test --parallel=3
-      - run: nx affected --target=build --parallel=3
+      - run: npm run nx:workspace-lint
+      
+      - name: Lint
+        run: npm run nx:lint
+
+      - name: Test
+        run: npm run nx:test
+
+      - name: Build
+        run: npm run nx:build
+
       - name: Release
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           GIT_AUTHOR_NAME: '@semantic-release-bot'
-        run: npx semantic-release
+        run: npm run semantic-release

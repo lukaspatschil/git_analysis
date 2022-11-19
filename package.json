@@ -41,7 +41,11 @@
     "@nxrocks/nx-spring-boot": "^6.0.0"
   },
   "scripts": {
-    "semantic-release": "semantic-release"
+    "semantic-release": "semantic-release",
+    "nx:workspace-lint": "nx workspace-lint",
+    "nx:lint": "nx affected --target=lint --parallel=3",
+    "nx:test": "nx affected --target=test --parallel=3",
+    "nx:build": "nx affected --target=build --parallel=3"
   },
   "publishConfig": {
     "access": "restricted"
