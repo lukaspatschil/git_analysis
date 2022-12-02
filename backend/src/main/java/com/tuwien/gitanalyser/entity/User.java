@@ -49,5 +49,11 @@ public class User {
     @Column(name = "platformId")
     private Integer platformId;
 
+    @Column(name = "accessToken")
+    private String accessToken;
+
+    @Column(name = "refreshToken")
+    private String refreshToken;
+
 }
 

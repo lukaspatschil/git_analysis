@@ -32,6 +32,10 @@ public class SecurityConfiguration {
 
         @Bean
         public SecurityFilterChain filterChain(final HttpSecurity http) throws Exception {
+
+            /*http.cors().and().csrf().disable();
+            http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);*/
+
             http
                 .authorizeHttpRequests(authorize -> authorize
                                                         .mvcMatchers("/login/oauth2/code/**").permitAll()
@@ -49,6 +53,20 @@ public class SecurityConfiguration {
                                // Spring Security should completely ignore URLs starting with /resources/
                                .antMatchers(H_2_CONSOLE_PATH + "/**");
         }
+
+        // Used by spring security if CORS is enabled.
+        /*@Bean
+        public CorsFilter corsFilter() {
+            UrlBasedCorsConfigurationSource source =
+                new UrlBasedCorsConfigurationSource();
+            CorsConfiguration config = new CorsConfiguration();
+            config.setAllowCredentials(true);
+            config.addAllowedOrigin("*");
+            config.addAllowedHeader("*");
+            config.addAllowedMethod("*");
+            source.registerCorsConfiguration("/**", config);
+            return new CorsFilter(source);
+        }*/
 
         @Bean
         public ClientRegistrationRepository clientRegistrationRepository() {

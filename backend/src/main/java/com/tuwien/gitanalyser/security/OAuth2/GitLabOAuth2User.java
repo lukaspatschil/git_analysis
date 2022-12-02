@@ -39,6 +39,16 @@ public class GitLabOAuth2User implements BasicAuth2User {
     }
 
     @Override
+    public String getAccessToken() {
+        return oauth2User.getAttribute("access_token");
+    }
+
+    @Override
+    public String getRefreshToken() {
+        return oauth2User.getAttribute("refresh_token");
+    }
+
+    @Override
     public boolean equals(final Object o) {
         if (this == o) {
             return true;
