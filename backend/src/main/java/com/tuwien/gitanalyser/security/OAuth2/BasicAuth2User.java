@@ -9,4 +9,7 @@ public interface BasicAuth2User extends OAuth2User {
 
     Integer getPlatformId();
 
+    String getAccessToken();
+
+    String getRefreshToken();
 }

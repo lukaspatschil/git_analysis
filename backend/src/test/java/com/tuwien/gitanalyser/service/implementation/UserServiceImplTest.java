@@ -73,7 +73,7 @@ class UserServiceImplTest extends ServiceImplementationBaseTest {
     public void getById_existingId_returnsUser() {
         // Given
         User expectedUser = new User(EXISTING_USER_ID, "John Doe", "john.doe@github.com", AuthenticationProvider.GITHUB,
-                                     Randoms.integer());
+                                     Randoms.integer(), Randoms.alpha(), Randoms.alpha());
 
         when(userRepository.findById(EXISTING_USER_ID)).thenReturn(Optional.of(expectedUser));
 

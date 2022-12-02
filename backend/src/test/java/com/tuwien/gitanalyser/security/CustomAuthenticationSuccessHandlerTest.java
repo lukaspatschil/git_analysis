@@ -52,7 +52,7 @@ class CustomAuthenticationSuccessHandlerTest {
         sut.onAuthenticationSuccess(request, response, gitLabAuthentication);
 
         // Then
-        verify(response).sendRedirect("/");
+        verify(response).sendRedirect("/apiV1/repository");
     }
 
     @Test
@@ -63,7 +63,7 @@ class CustomAuthenticationSuccessHandlerTest {
         sut.onAuthenticationSuccess(request, response, gitHubAuthentication);
 
         // Then
-        verify(response).sendRedirect("/");
+        verify(response).sendRedirect("/apiV1/repository");
     }
 
     @Test

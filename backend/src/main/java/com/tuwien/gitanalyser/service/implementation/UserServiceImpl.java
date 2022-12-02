@@ -57,6 +57,8 @@ public class UserServiceImpl implements UserService {
             newUser.setUsername(user.getName());
             newUser.setPlatformId(user.getPlatformId());
             newUser.setAuthenticationProvider(user.getAuthenticationProvider());
+            newUser.setAccessToken(user.getAccessToken());
+            newUser.setRefreshToken(user.getRefreshToken());
 
             userRepository.save(newUser);
         }
