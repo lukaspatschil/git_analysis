@@ -39,9 +39,9 @@ class CustomAuthenticationSuccessHandlerTest {
         var gitLabOAuth2User = new GitLabOAuth2User(oAuth2User);
 
         gitLabAuthentication = new OAuth2AuthenticationToken(gitLabOAuth2User, null,
-                                                             GitLabOAuthProviderProperties.REGISTRATION_ID);
+                                                             AuthenticationConstants.GITLAB_REGISTRATION_ID);
         gitHubAuthentication = new OAuth2AuthenticationToken(gitHubOAuth2User, null,
-                                                             GitHubOAuthProviderProperties.REGISTRATION_ID);
+                                                             AuthenticationConstants.GITHUB_REGISTRATION_ID);
     }
 
     @Test
