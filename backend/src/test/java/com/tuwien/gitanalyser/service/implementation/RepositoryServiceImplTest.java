@@ -1,6 +1,5 @@
 package com.tuwien.gitanalyser.service.implementation;
 
-import com.tuwien.gitanalyser.security.ClientRegistrations;
 import com.tuwien.gitanalyser.service.APICalls.GitHubAPI;
 import com.tuwien.gitanalyser.service.APICalls.GitLabAPI;
 import org.gitlab4j.api.GitLabApiException;
@@ -8,6 +7,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
+import utils.ClientRegistrations;
 import utils.Randoms;
 
 import java.io.IOException;

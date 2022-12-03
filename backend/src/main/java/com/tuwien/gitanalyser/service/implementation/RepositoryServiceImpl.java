@@ -1,8 +1,7 @@
 package com.tuwien.gitanalyser.service.implementation;
 
 import com.tuwien.gitanalyser.endpoints.DTOs.RepositoryDTO;
-import com.tuwien.gitanalyser.security.GitHubOAuthProviderProperties;
-import com.tuwien.gitanalyser.security.GitLabOAuthProviderProperties;
+import com.tuwien.gitanalyser.security.AuthenticationConstants;
 import com.tuwien.gitanalyser.service.APICalls.GitAPI;
 import com.tuwien.gitanalyser.service.APICalls.GitHubAPI;
 import com.tuwien.gitanalyser.service.APICalls.GitLabAPI;
@@ -59,8 +58,8 @@ public class RepositoryServiceImpl implements RepositoryService {
 
     private GitAPI getAPI(final OAuth2AuthorizedClient client) {
         return switch (client.getClientRegistration().getClientName()) {
-            case GitHubOAuthProviderProperties.CLIENT_NAME -> gitHubAPI;
-            case GitLabOAuthProviderProperties.CLIENT_NAME -> gitLabAPI;
+            case AuthenticationConstants.GITHUB_CLIENT_NAME -> gitHubAPI;
+            case AuthenticationConstants.GITLAB_CLIENT_NAME -> gitLabAPI;
             default -> throw new RuntimeException("No API for this client");
         };
     }

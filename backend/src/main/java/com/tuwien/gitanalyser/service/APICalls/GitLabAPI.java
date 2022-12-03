@@ -1,7 +1,7 @@
 package com.tuwien.gitanalyser.service.APICalls;
 
 import com.tuwien.gitanalyser.endpoints.DTOs.RepositoryDTO;
-import com.tuwien.gitanalyser.security.GitLabOAuthProviderProperties;
+import com.tuwien.gitanalyser.security.AuthenticationConstants;
 import org.gitlab4j.api.Constants;
 import org.gitlab4j.api.GitLabApi;
 import org.gitlab4j.api.GitLabApiException;
@@ -41,7 +41,7 @@ public class GitLabAPI implements GitAPI {
     }
 
     private static GitLabApi getGitLabApi(final String tokenValue) {
-        return new GitLabApi(GitLabOAuthProviderProperties.CLIENT_URL, Constants.TokenType.OAUTH2_ACCESS, tokenValue);
+        return new GitLabApi(AuthenticationConstants.GITLAB_CLIENT_URL, Constants.TokenType.OAUTH2_ACCESS, tokenValue);
     }
 
     private static List<RepositoryDTO> getOwnedProjects(final GitLabApi gitLabApi) throws GitLabApiException {
