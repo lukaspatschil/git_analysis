@@ -5,8 +5,11 @@ import com.tuwien.gitanalyser.security.OAuth2.GitHubOAuth2User;
 import com.tuwien.gitanalyser.security.OAuth2.GitLabOAuth2User;
 import com.tuwien.gitanalyser.service.UserService;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 
@@ -19,24 +22,42 @@ public class CustomAuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
     private final UserService userService;
 
-    public CustomAuthenticationSuccessHandler(final UserService userService) {
+    private final OAuth2AuthorizedClientRepository authorizedClientRepository;
+
+    public CustomAuthenticationSuccessHandler(final UserService userService,
+                                              @Lazy final OAuth2AuthorizedClientRepository authorizedClientRepository) {
         this.userService = userService;
+        this.authorizedClientRepository = authorizedClientRepository;
     }
 
     @Override
-    public void onAuthenticationSuccess(final HttpServletRequest request, final HttpServletResponse response,
+    public void onAuthenticationSuccess(final HttpServletRequest request,
+                                        final HttpServletResponse response,
                                         final Authentication authentication) throws IOException {
 
-        BasicAuth2User oauthUser;
+        BasicAuth2User oauthUser = getAuth2User(authentication);
 
-        if (((OAuth2AuthenticationToken) authentication).getAuthorizedClientRegistrationId().equals("github")) {
+        OAuth2AuthenticationToken authenticationToken = (OAuth2AuthenticationToken) authentication;
+
+        OAuth2AuthorizedClient authorizedClient =
+            authorizedClientRepository.loadAuthorizedClient(authenticationToken.getAuthorizedClientRegistrationId(),
+                                                            authentication,
+                                                            request);
+
+        userService.processOAuthPostLogin(oauthUser, authorizedClient.getAccessToken().getTokenValue());
+
+        response.sendRedirect("/apiV1/repository");
+    }
+
+    private static BasicAuth2User getAuth2User(final Authentication authentication) {
+        BasicAuth2User oauthUser;
+        OAuth2AuthenticationToken authenticationToken = (OAuth2AuthenticationToken) authentication;
+
+        if (authenticationToken.getAuthorizedClientRegistrationId().equals("github")) {
             oauthUser = new GitHubOAuth2User((OAuth2User) authentication.getPrincipal());
         } else {
             oauthUser = new GitLabOAuth2User((OAuth2User) authentication.getPrincipal());
         }
-
-        userService.processOAuthPostLogin(oauthUser);
-
-        response.sendRedirect("/apiV1/repository");
+        return oauthUser;
     }
 }
