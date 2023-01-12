@@ -10,5 +10,5 @@ public interface UserService {
 
     List<User> getAll();
 
-    void processOAuthPostLogin(BasicAuth2User gitlabOAuth2User);
+    void processOAuthPostLogin(BasicAuth2User gitlabOAuth2User, String accessToken);
 }

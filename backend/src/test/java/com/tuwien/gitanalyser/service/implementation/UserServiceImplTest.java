@@ -132,7 +132,7 @@ class UserServiceImplTest extends ServiceImplementationBaseTest {
         when(userRepository.findByPlatformAndPlatformId(authenticationProvider, platformId)).thenReturn(List.of());
 
         // When
-        sut.processOAuthPostLogin(createAuth2User(authenticationProvider, platformId, username));
+        sut.processOAuthPostLogin(createAuth2User(authenticationProvider, platformId, username),null);
 
         // Then
         verify(userRepository).save(expectedUser);

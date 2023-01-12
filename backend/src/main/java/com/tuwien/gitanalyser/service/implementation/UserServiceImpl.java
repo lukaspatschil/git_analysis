@@ -47,7 +47,8 @@ public class UserServiceImpl implements UserService {
         return userRepository.findAll();
     }
 
-    public void processOAuthPostLogin(final BasicAuth2User user) {
+    @Override
+    public void processOAuthPostLogin(final BasicAuth2User user, final String accessToken) {
         List<User> existUser = userRepository.findByPlatformAndPlatformId(
             user.getAuthenticationProvider(),
             user.getPlatformId());
@@ -57,8 +58,7 @@ public class UserServiceImpl implements UserService {
             newUser.setUsername(user.getName());
             newUser.setPlatformId(user.getPlatformId());
             newUser.setAuthenticationProvider(user.getAuthenticationProvider());
-            newUser.setAccessToken(user.getAccessToken());
-            newUser.setRefreshToken(user.getRefreshToken());
+            newUser.setAccessToken(accessToken);
 
             userRepository.save(newUser);
         }

@@ -20,10 +20,15 @@
         <spring.framework.data.version>2.7.5</spring.framework.data.version>
         <checkstyle.maven.plugin.version>3.2.0</checkstyle.maven.plugin.version>
         <jacoco.version>0.8.8</jacoco.version>
-        <spring.boot.starter.graphql.version>2.7.4</spring.boot.starter.graphql.version>
+        <spring.boot.starter.graphql.version>3.0.0</spring.boot.starter.graphql.version>
         <libvcs4j.version>1.8.0</libvcs4j.version>
         <oauth2.client.version>2.7.5</oauth2.client.version>
-        <spring.boot.starter.web.version>2.7.5</spring.boot.starter.web.version>
+        <spring.boot.starter.web.version>3.0.0</spring.boot.starter.web.version>
+        <h2.version>2.1.214</h2.version>
+        <spring.boot.starter.security.version>3.0.0</spring.boot.starter.security.version>
+        <spring.security.jwt.version>1.1.1.RELEASE</spring.security.jwt.version>
+        <spring.security.oauth2.resource.server.verision>6.0.1</spring.security.oauth2.resource.server.verision>
+        <spring.security.oauth2.jose>6.0.1</spring.security.oauth2.jose>
     </properties>
 
     <dependencies>
@@ -32,76 +37,92 @@
             <artifactId>spring-boot-starter-graphql</artifactId>
             <version>${spring.boot.starter.graphql.version}</version>
         </dependency>
+
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <optional>true</optional>
         </dependency>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-webflux</artifactId>
             <scope>test</scope>
         </dependency>
+
         <dependency>
             <groupId>org.springframework.graphql</groupId>
             <artifactId>spring-graphql-test</artifactId>
             <scope>test</scope>
         </dependency>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
             <version>${spring.boot.starter.web.version}</version>
         </dependency>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
+
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
             <scope>runtime</scope>
+            <version>${h2.version}</version>
         </dependency>
+
         <!-- mapstruct -->
         <dependency>
             <groupId>org.mapstruct</groupId>
             <artifactId>mapstruct</artifactId>
             <version>${mapstruct.version}</version>
         </dependency>
+
         <!-- jackson json mapper -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
             <version>${jackson.version}</version>
         </dependency>
+
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <scope>test</scope>
         </dependency>
+
         <dependency>
             <groupId>org.springframework.data</groupId>
             <artifactId>spring-data-jpa</artifactId>
             <version>${spring.framework.data.version}</version>
         </dependency>
+
         <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-checkstyle-plugin -->
         <dependency>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-checkstyle-plugin</artifactId>
             <version>${checkstyle.maven.plugin.version}</version>
         </dependency>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-oauth2-client</artifactId>
             <version>${oauth2.client.version}</version>
         </dependency>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
+            <version>${spring.boot.starter.security.version}</version>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/org.kohsuke/github-api -->
@@ -142,6 +163,20 @@
             <artifactId>libvcs4j-tools</artifactId>
             <version>1.8.0</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-jwt</artifactId>
+            <version>${spring.security.jwt.version}</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.springframework.security/spring-security-oauth2-jose -->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-oauth2-jose</artifactId>
+            <version>${spring.security.oauth2.jose}</version>
+        </dependency>
+
 
     </dependencies>
 
