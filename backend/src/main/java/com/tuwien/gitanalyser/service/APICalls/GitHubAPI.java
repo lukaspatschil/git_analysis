@@ -6,34 +6,30 @@ import org.kohsuke.github.GitHub;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class GitHubAPI implements GitAPI {
 
+    private final GitHubAPIFactory gitHubAPIFactory;
+
+    public GitHubAPI(final GitHubAPIFactory gitHubAPIFactory) {
+        this.gitHubAPIFactory = gitHubAPIFactory;
+    }
+
     public List<RepositoryDTO> getAllRepositories(final String accessToken) throws IOException {
-        List<RepositoryDTO> allRepos = new ArrayList<>();
 
-        GitHub github = getGitHub(accessToken);
-        github.getMyself().getAllRepositories().values()
-              .forEach(repo -> allRepos.add(new RepositoryDTO(repo.getId(),
-                                                              repo.getName(),
-                                                              repo.getHttpTransportUrl())
-                       )
-              );
-
-        return allRepos;
+        GitHub github = gitHubAPIFactory.createObject(accessToken);
+        return github.getMyself().getAllRepositories().values().stream()
+                     .map(repo -> new RepositoryDTO(repo.getId(), repo.getName(), repo.getHttpTransportUrl()))
+                     .collect(Collectors.toList());
     }
 
     @Override
-    public RepositoryDTO getRepositoryById(final String tokenValue, final long id) throws IOException {
-        GitHub github = getGitHub(tokenValue);
-        GHRepository repository = github.getRepositoryById(id);
+    public RepositoryDTO getRepositoryById(final String accessToken, final long plattformId) throws IOException {
+        GitHub github = gitHubAPIFactory.createObject(accessToken);
+        GHRepository repository = github.getRepositoryById(plattformId);
         return new RepositoryDTO(repository.getId(), repository.getName(), repository.getHttpTransportUrl());
-    }
-
-    private static GitHub getGitHub(final String accessToken) throws IOException {
-        return GitHub.connectUsingOAuth(accessToken);
     }
 }

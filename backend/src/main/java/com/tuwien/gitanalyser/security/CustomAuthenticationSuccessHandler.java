@@ -1,8 +1,10 @@
 package com.tuwien.gitanalyser.security;
 
+import com.tuwien.gitanalyser.entity.User;
 import com.tuwien.gitanalyser.security.OAuth2.BasicAuth2User;
 import com.tuwien.gitanalyser.security.OAuth2.GitHubOAuth2User;
 import com.tuwien.gitanalyser.security.OAuth2.GitLabOAuth2User;
+import com.tuwien.gitanalyser.security.jwt.JWTTokenProvider;
 import com.tuwien.gitanalyser.service.UserService;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
@@ -24,10 +26,26 @@ public class CustomAuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
     private final OAuth2AuthorizedClientRepository authorizedClientRepository;
 
+    private final JWTTokenProvider jwtTokenProviderImpl;
+
     public CustomAuthenticationSuccessHandler(final UserService userService,
-                                              @Lazy final OAuth2AuthorizedClientRepository authorizedClientRepository) {
+                                              @Lazy final OAuth2AuthorizedClientRepository authorizedClientRepository,
+                                              final JWTTokenProvider jwtTokenProviderImpl) {
         this.userService = userService;
         this.authorizedClientRepository = authorizedClientRepository;
+        this.jwtTokenProviderImpl = jwtTokenProviderImpl;
+    }
+
+    private static BasicAuth2User getAuth2User(final Authentication authentication) {
+        BasicAuth2User oauthUser;
+        OAuth2AuthenticationToken authenticationToken = (OAuth2AuthenticationToken) authentication;
+
+        if (authenticationToken.getAuthorizedClientRegistrationId().equals("github")) {
+            oauthUser = new GitHubOAuth2User((OAuth2User) authentication.getPrincipal());
+        } else {
+            oauthUser = new GitLabOAuth2User((OAuth2User) authentication.getPrincipal());
+        }
+        return oauthUser;
     }
 
     @Override
@@ -44,20 +62,12 @@ public class CustomAuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                                                             authentication,
                                                             request);
 
-        userService.processOAuthPostLogin(oauthUser, authorizedClient.getAccessToken().getTokenValue());
+        // TODO get refresh token
 
-        response.sendRedirect("/apiV1/repository");
-    }
+        User user = userService.processOAuthPostLogin(oauthUser, authorizedClient.getAccessToken().getTokenValue());
 
-    private static BasicAuth2User getAuth2User(final Authentication authentication) {
-        BasicAuth2User oauthUser;
-        OAuth2AuthenticationToken authenticationToken = (OAuth2AuthenticationToken) authentication;
-
-        if (authenticationToken.getAuthorizedClientRegistrationId().equals("github")) {
-            oauthUser = new GitHubOAuth2User((OAuth2User) authentication.getPrincipal());
-        } else {
-            oauthUser = new GitLabOAuth2User((OAuth2User) authentication.getPrincipal());
-        }
-        return oauthUser;
+        response.sendRedirect(AuthenticationConstants.FRONTEND_REDIRECT_AFTER_LOGIN_URL
+                                  + "#"
+                                  + jwtTokenProviderImpl.createToken(user.getId()));
     }
 }

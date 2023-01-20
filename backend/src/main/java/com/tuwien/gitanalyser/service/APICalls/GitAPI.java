@@ -9,5 +9,5 @@ import java.util.List;
 public interface GitAPI {
     List<RepositoryDTO> getAllRepositories(String tokenValue) throws Exception;
 
-    RepositoryDTO getRepositoryById(String tokenValue, long id) throws GitLabApiException, IOException;
+    RepositoryDTO getRepositoryById(String accessToken, long id) throws GitLabApiException, IOException;
 }

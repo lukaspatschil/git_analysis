@@ -36,10 +36,10 @@ public class User {
     private Long id;
 
     @Column
+    @NotNull
     private String username;
 
     @Column
-    @NotNull
     private String email;
 
     @Enumerated(EnumType.STRING)

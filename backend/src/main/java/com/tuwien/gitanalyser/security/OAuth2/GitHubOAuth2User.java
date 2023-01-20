@@ -50,6 +50,16 @@ public class GitHubOAuth2User implements BasicAuth2User {
     }
 
     @Override
+    public String getEmail() {
+        return oauth2User.getAttribute("email");
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(oauth2User);
+    }
+
+    @Override
     public boolean equals(final Object o) {
         if (this == o) {
             return true;
@@ -59,10 +69,5 @@ public class GitHubOAuth2User implements BasicAuth2User {
         }
         GitHubOAuth2User that = (GitHubOAuth2User) o;
         return Objects.equals(oauth2User, that.oauth2User);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(oauth2User);
     }
 }
