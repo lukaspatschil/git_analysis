@@ -70,7 +70,7 @@ class UserServiceImplTest extends ServiceImplementationBaseTest {
     }
 
     @Test
-    public void getById_existingId_returnsUser() {
+    public void getById_existingId_returnsUser() throws NotFoundException {
         // Given
         User expectedUser = new User(EXISTING_USER_ID, "John Doe", "john.doe@github.com", AuthenticationProvider.GITHUB,
                                      Randoms.integer(), Randoms.alpha(), Randoms.alpha());

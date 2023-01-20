@@ -4,8 +4,7 @@ import com.tuwien.gitanalyser.endpoints.DTOs.RepositoryDTO;
 import com.tuwien.gitanalyser.service.RepositoryService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
-import org.springframework.security.oauth2.client.annotation.RegisteredOAuth2AuthorizedClient;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -26,17 +25,16 @@ public class RepositoryEndpoint {
     }
 
     @GetMapping
-    public List<RepositoryDTO> getAllRepositories(
-        final @RegisteredOAuth2AuthorizedClient OAuth2AuthorizedClient client) {
+    public List<RepositoryDTO> getAllRepositories(final Authentication authentication) {
         LOGGER.info("GET /repository -  get all repositories");
-        return repositoryService.getAllRepositories(client);
+        return repositoryService.getAllRepositories(Long.parseLong(authentication.getName()));
     }
 
     @GetMapping("/{id}")
     public RepositoryDTO getRepositoryById(
-        final @RegisteredOAuth2AuthorizedClient OAuth2AuthorizedClient client,
+        final Authentication authentication,
         final @PathVariable Long id) {
         LOGGER.info("GET /repository/{id} -  get repository by id");
-        return repositoryService.getRepositoryById(client, id);
+        return repositoryService.getRepositoryById(Long.parseLong(authentication.getName()), id);
     }
 }

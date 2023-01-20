@@ -49,6 +49,11 @@ public class GitLabOAuth2User implements BasicAuth2User {
     }
 
     @Override
+    public String getEmail() {
+        return oauth2User.getAttribute("email");
+    }
+
+    @Override
     public boolean equals(final Object o) {
         if (this == o) {
             return true;

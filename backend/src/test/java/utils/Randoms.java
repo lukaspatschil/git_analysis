@@ -32,7 +32,11 @@ public class Randoms {
 
     public static long getLong(){
         Random random = new Random();
-        return random.nextLong();
+        long value = random.nextLong();
+        if(value < 0){
+            value = value * -1;
+        }
+        return value;
     }
 
     public static long getLong(int min, int max){

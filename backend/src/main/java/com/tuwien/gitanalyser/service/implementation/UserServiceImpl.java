@@ -30,10 +30,10 @@ public class UserServiceImpl implements UserService {
      * @return single user
      */
     @Override
-    public User getUser(final @NotNull Long id) {
+    public User getUser(final @NotNull Long id) throws NotFoundException {
         return userRepository.findById(id).orElseThrow(() -> {
-            LOGGER.error("User: Could not find event with id " + id);
-            return new NotFoundException();
+            LOGGER.error("User: Could not find user with id " + id);
+            return new NotFoundException("User: Could not find user with id " + id);
         });
     }
 
@@ -48,20 +48,28 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void processOAuthPostLogin(final BasicAuth2User user, final String accessToken) {
-        List<User> existUser = userRepository.findByPlatformAndPlatformId(
-            user.getAuthenticationProvider(),
-            user.getPlatformId());
+    public User processOAuthPostLogin(final BasicAuth2User auth2User, final String accessToken) {
+        User userWithDatabaseId;
 
-        if (existUser.size() == 0) {
+        List<User> existUsers = userRepository.findByPlatformAndPlatformId(
+            auth2User.getAuthenticationProvider(),
+            auth2User.getPlatformId());
+
+        if (existUsers.size() == 0) {
+            // create new user
             User newUser = new User();
-            newUser.setUsername(user.getName());
-            newUser.setPlatformId(user.getPlatformId());
-            newUser.setAuthenticationProvider(user.getAuthenticationProvider());
+            newUser.setEmail(auth2User.getEmail());
+            newUser.setUsername(auth2User.getName());
+            newUser.setPlatformId(auth2User.getPlatformId());
+            newUser.setAuthenticationProvider(auth2User.getAuthenticationProvider());
             newUser.setAccessToken(accessToken);
 
-            userRepository.save(newUser);
+            userWithDatabaseId = userRepository.save(newUser);
+        } else {
+            userWithDatabaseId = existUsers.get(0);
         }
+
+        return userWithDatabaseId;
 
     }
 }

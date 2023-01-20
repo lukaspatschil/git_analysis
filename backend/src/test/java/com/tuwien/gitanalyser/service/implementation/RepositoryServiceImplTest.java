@@ -1,17 +1,17 @@
 package com.tuwien.gitanalyser.service.implementation;
 
+import com.tuwien.gitanalyser.entity.User;
+import com.tuwien.gitanalyser.entity.utils.AuthenticationProvider;
+import com.tuwien.gitanalyser.exception.NotFoundException;
 import com.tuwien.gitanalyser.service.APICalls.GitHubAPI;
 import com.tuwien.gitanalyser.service.APICalls.GitLabAPI;
+import com.tuwien.gitanalyser.service.UserService;
 import org.gitlab4j.api.GitLabApiException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
-import org.springframework.security.oauth2.core.OAuth2AccessToken;
-import utils.ClientRegistrations;
 import utils.Randoms;
 
 import java.io.IOException;
-import java.time.Instant;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
@@ -20,120 +20,146 @@ import static org.mockito.Mockito.when;
 
 class RepositoryServiceImplTest extends ServiceImplementationBaseTest {
 
-    private static final int ONE_HOUR_IN_SECONDS = 3600;
     private RepositoryServiceImpl sut;
+
+    private UserService userService;
     private GitHubAPI gitHubAPI;
     private GitLabAPI gitLabAPI;
-    private OAuth2AccessToken accessToken;
     private String exceptionString;
 
     @BeforeEach
     void setUp() {
         gitHubAPI = mock(GitHubAPI.class);
         gitLabAPI = mock(GitLabAPI.class);
-        sut = new RepositoryServiceImpl(gitHubAPI, gitLabAPI);
-        accessToken = new OAuth2AccessToken(OAuth2AccessToken.TokenType.BEARER, Randoms.alpha(), Instant.now(),
-                                            Instant.now().plusSeconds(ONE_HOUR_IN_SECONDS));
+        userService = mock(UserService.class);
+        sut = new RepositoryServiceImpl(userService, gitHubAPI, gitLabAPI);
         exceptionString = "testException";
     }
 
     @Test
-    void getAllRepositories_GitLabAuthorization_shouldCallGitLabAPI() throws GitLabApiException {
+    void getAllRepositories_GitLabAuthorization_shouldCallGitLabAPI() throws GitLabApiException, NotFoundException {
         // Given
-        OAuth2AuthorizedClient client = new OAuth2AuthorizedClient(ClientRegistrations.gitLabClientRegistration(),
-                                                                   Randoms.alpha(), accessToken);
+        Long userId = Randoms.getLong();
+        User user = mock(User.class);
+
+        String accessToken = prepareUsreService(userId, user, AuthenticationProvider.GITLAB);
 
         // When
-        sut.getAllRepositories(client);
+        sut.getAllRepositories(userId);
 
         // Then
-        verify(gitLabAPI).getAllRepositories(client.getAccessToken().getTokenValue());
+        verify(gitLabAPI).getAllRepositories(accessToken);
     }
 
     @Test
-    void getAllRepositories_GitHubAuthorization_shouldCallGitHubAPI() throws IOException {
+    void getAllRepositories_GitHubAuthorization_shouldCallGitHubAPI() throws IOException, NotFoundException {
         // Given
-        OAuth2AuthorizedClient client = new OAuth2AuthorizedClient(ClientRegistrations.gitHubClientRegistration(),
-                                                                   Randoms.alpha(), accessToken);
+        Long userId = Randoms.getLong();
+        User user = mock(User.class);
+
+        String accessToken = prepareUsreService(userId, user, AuthenticationProvider.GITHUB);
 
         // When
-        sut.getAllRepositories(client);
+        sut.getAllRepositories(userId);
 
         // Then
-        verify(gitHubAPI).getAllRepositories(client.getAccessToken().getTokenValue());
+        verify(gitHubAPI).getAllRepositories(accessToken);
     }
 
     @Test
-    void getAllRepositories_GitLabAuthorizationThrowsException_shouldThrowRuntimeException() throws GitLabApiException {
+    void getAllRepositories_GitLabAuthorizationThrowsException_shouldThrowRuntimeException() throws GitLabApiException, NotFoundException {
         // Given
-        OAuth2AuthorizedClient client = new OAuth2AuthorizedClient(ClientRegistrations.gitLabClientRegistration(),
-                                                                   Randoms.alpha(), accessToken);
+        Long userId = Randoms.getLong();
+        User user = mock(User.class);
 
-        when(gitLabAPI.getAllRepositories(client.getAccessToken().getTokenValue())).thenThrow(
+        String accessToken = prepareUsreService(userId, user, AuthenticationProvider.GITLAB);
+
+        when(gitLabAPI.getAllRepositories(accessToken)).thenThrow(
             new GitLabApiException(exceptionString));
 
         // When + Then
-        assertThrows(RuntimeException.class, () -> sut.getAllRepositories(client), exceptionString);
+        assertThrows(RuntimeException.class, () -> sut.getAllRepositories(userId), exceptionString);
     }
 
     @Test
-    void getAllRepositories_GitHubAuthorizationThrowsException_shouldThrowException() throws IOException {
+    void getAllRepositories_GitHubAuthorizationThrowsException_shouldThrowException() throws IOException,
+                                                                                                 NotFoundException {
         // Given
-        OAuth2AuthorizedClient client = new OAuth2AuthorizedClient(ClientRegistrations.gitHubClientRegistration(),
-                                                                   Randoms.alpha(), accessToken);
-        when(gitHubAPI.getAllRepositories(client.getAccessToken().getTokenValue())).thenThrow(
+        Long userId = Randoms.getLong();
+        User user = mock(User.class);
+
+        String accessToken = prepareUsreService(userId, user, AuthenticationProvider.GITHUB);
+
+        when(gitHubAPI.getAllRepositories(accessToken)).thenThrow(
             new IOException(exceptionString));
 
         // When + Then
-        assertThrows(RuntimeException.class, () -> sut.getAllRepositories(client), exceptionString);
+        assertThrows(RuntimeException.class, () -> sut.getAllRepositories(userId), exceptionString);
     }
 
     @Test
     void getAllRepositories_randomAuthorization_shouldThrowException() {
         // Given
-        OAuth2AuthorizedClient client = new OAuth2AuthorizedClient(getRandomAuthorization(), Randoms.alpha(),
-                                                                   accessToken);
 
         // When + Then
-        assertThrows(RuntimeException.class, () -> sut.getAllRepositories(client));
+        assertThrows(RuntimeException.class, () -> sut.getAllRepositories(Randoms.getLong()));
     }
 
     @Test
-    void getRepositoryById_GitLabAuthorization_shouldCallGitLabAPI() throws GitLabApiException {
+    void getRepositoryById_GitLabAuthorization_shouldCallGitLabAPI() throws GitLabApiException, NotFoundException {
         // Given
-        OAuth2AuthorizedClient client = new OAuth2AuthorizedClient(ClientRegistrations.gitLabClientRegistration(),
-                                                                   Randoms.alpha(), accessToken);
-        long id = Randoms.getLong();
+        long repositoryId = Randoms.getLong();
+
+        Long userId = Randoms.getLong();
+        User user = mock(User.class);
+
+        String accessToken = prepareUsreService(userId, user, AuthenticationProvider.GITLAB);
 
         // When
-        sut.getRepositoryById(client, id);
+        sut.getRepositoryById(userId, repositoryId);
 
         // Then
-        verify(gitLabAPI).getRepositoryById(client.getAccessToken().getTokenValue(), id);
+        verify(gitLabAPI).getRepositoryById(accessToken, repositoryId);
     }
 
     @Test
-    void getRepositoryById_GitHubAuthorization_shouldCallGitHubAPI() throws IOException {
+    void getRepositoryById_GitHubAuthorization_shouldCallGitHubAPI() throws IOException, NotFoundException {
         // Given
-        OAuth2AuthorizedClient client = new OAuth2AuthorizedClient(ClientRegistrations.gitHubClientRegistration(),
-                                                                   Randoms.alpha(), accessToken);
-        long id = Randoms.getLong();
+        long repositoryId = Randoms.getLong();
+
+        Long userId = Randoms.getLong();
+        User user = mock(User.class);
+
+        String accessToken = prepareUsreService(userId, user, AuthenticationProvider.GITHUB);
 
         // When
-        sut.getRepositoryById(client, id);
+        sut.getRepositoryById(userId, repositoryId);
 
         // Then
-        verify(gitHubAPI).getRepositoryById(client.getAccessToken().getTokenValue(), id);
+        verify(gitHubAPI).getRepositoryById(accessToken, repositoryId);
+    }
+
+    private String prepareUsreService(Long userId, User user, AuthenticationProvider github) throws NotFoundException {
+        String accessToken = Randoms.alpha();
+        when(userService.getUser(userId)).thenReturn(user);
+        when(user.getAccessToken()).thenReturn(accessToken);
+        when(user.getAuthenticationProvider()).thenReturn(github);
+        return accessToken;
     }
 
     @Test
-    void getRepositoryById_randomAuthorization_shouldThrowException() {
+    void getRepositoryById_randomAuthorization_shouldThrowException() throws NotFoundException {
         // Given
-        OAuth2AuthorizedClient client = new OAuth2AuthorizedClient(getRandomAuthorization(), Randoms.alpha(),
-                                                                   accessToken);
-        long id = Randoms.getLong();
+        long repositoryId = Randoms.getLong();
+
+        Long userId = Randoms.getLong();
+        User user = mock(User.class);
+
+        String accessToken = Randoms.alpha();
+        when(userService.getUser(userId)).thenReturn(user);
+        when(user.getAccessToken()).thenReturn(accessToken);
 
         // When + Then
-        assertThrows(RuntimeException.class, () -> sut.getRepositoryById(client, id));
+        assertThrows(RuntimeException.class, () -> sut.getRepositoryById(userId, repositoryId));
     }
 }

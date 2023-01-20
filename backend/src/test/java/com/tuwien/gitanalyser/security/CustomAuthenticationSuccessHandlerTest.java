@@ -1,7 +1,9 @@
 package com.tuwien.gitanalyser.security;
 
+import com.tuwien.gitanalyser.entity.User;
 import com.tuwien.gitanalyser.security.OAuth2.GitHubOAuth2User;
 import com.tuwien.gitanalyser.security.OAuth2.GitLabOAuth2User;
+import com.tuwien.gitanalyser.security.jwt.JWTTokenProvider;
 import com.tuwien.gitanalyser.service.UserService;
 import org.apache.catalina.connector.Request;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,6 +16,7 @@ import utils.Randoms;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Date;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -23,6 +26,7 @@ import static org.mockito.Mockito.when;
 
 class CustomAuthenticationSuccessHandlerTest {
 
+    private static final Date DATE = new Date();
     private CustomAuthenticationSuccessHandler sut;
     private Request request;
     private HttpServletResponse response;
@@ -32,13 +36,15 @@ class CustomAuthenticationSuccessHandlerTest {
     private OAuth2AuthorizedClientRepository authorizedClientRepository;
 
     private UserService userService;
+    private JWTTokenProvider jwtTokenProvider;
 
     @BeforeEach
     void setUp() {
         userService = mock(UserService.class);
         authorizedClientRepository = mock(OAuth2AuthorizedClientRepository.class);
+        jwtTokenProvider = mock(JWTTokenProvider.class);
 
-        sut = new CustomAuthenticationSuccessHandler(userService, authorizedClientRepository);
+        sut = new CustomAuthenticationSuccessHandler(userService, authorizedClientRepository, jwtTokenProvider);
 
         request = mock(Request.class);
         response = mock(HttpServletResponse.class);
@@ -59,24 +65,26 @@ class CustomAuthenticationSuccessHandlerTest {
     public void onAuthenticationSuccess_gitLabAuthentication_redirectsToStartPage() throws IOException {
         // Given
         prepareAuthorizedClientRepository(gitLabAuthentication);
+        String bearerToken = setUpJwtTokenProvider();
 
         // When
         sut.onAuthenticationSuccess(request, response, gitLabAuthentication);
 
         // Then
-        verify(response).sendRedirect("/apiV1/repository");
+        verify(response).sendRedirect(AuthenticationConstants.FRONTEND_REDIRECT_AFTER_LOGIN_URL + "#" + bearerToken);
     }
 
     @Test
     public void onAuthenticationSuccess_gitHubAuthentication_redirectsToStartPage() throws IOException {
         // Given
         prepareAuthorizedClientRepository(gitHubAuthentication);
+        String bearerToken = setUpJwtTokenProvider();
 
         // When
         sut.onAuthenticationSuccess(request, response, gitHubAuthentication);
 
         // Then
-        verify(response).sendRedirect("/apiV1/repository");
+        verify(response).sendRedirect(AuthenticationConstants.FRONTEND_REDIRECT_AFTER_LOGIN_URL + "#" + bearerToken);
     }
 
     @Test
@@ -111,12 +119,31 @@ class CustomAuthenticationSuccessHandlerTest {
 
         when(authorizedClientRepository.loadAuthorizedClient(authenticationProvider.getAuthorizedClientRegistrationId(),
                                                              authenticationProvider,
-                                                             request)).thenReturn(auth2User);
+                                                             request))
+            .thenReturn(auth2User);
+
+        String accessToken = mockAccessToken(auth2User);
+
+        User user = mock(User.class);
+        when(userService.processOAuthPostLogin(any(), eq(accessToken)))
+            .thenReturn(user);
+
+        return accessToken;
+    }
+
+    private static String mockAccessToken(OAuth2AuthorizedClient auth2User) {
         OAuth2AccessToken oAuth2AccessToken = mock(OAuth2AccessToken.class);
-        when(auth2User.getAccessToken()).thenReturn(
-            oAuth2AccessToken);
-        String tokenValue = Randoms.alpha();
-        when(oAuth2AccessToken.getTokenValue()).thenReturn(tokenValue);
-        return tokenValue;
+        when(auth2User.getAccessToken())
+            .thenReturn(oAuth2AccessToken);
+
+        String accessToken = Randoms.alpha();
+        when(oAuth2AccessToken.getTokenValue()).thenReturn(accessToken);
+        return accessToken;
+    }
+
+    private String setUpJwtTokenProvider() {
+        String bearerToken = Randoms.alpha();
+        when(jwtTokenProvider.createToken(any(Long.class))).thenReturn(bearerToken);
+        return bearerToken;
     }
 }

@@ -176,7 +176,11 @@
             <artifactId>spring-security-oauth2-jose</artifactId>
             <version>${spring.security.oauth2.jose}</version>
         </dependency>
-
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt</artifactId>
+            <version>0.9.1</version>
+        </dependency>
 
     </dependencies>
 
