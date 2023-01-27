@@ -1,6 +1,6 @@
 package com.tuwien.gitanalyser.service.APICalls;
 
-import com.tuwien.gitanalyser.endpoints.DTOs.RepositoryDTO;
+import com.tuwien.gitanalyser.entity.Repository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -133,7 +133,7 @@ class GitHubAPITest {
         when(gitHub.getRepositoryById(queryRepositoryId)).thenReturn(firstRepository);
 
         // When
-        RepositoryDTO result = sut.getRepositoryById(accessToken, queryRepositoryId);
+        Repository result = sut.getRepositoryById(accessToken, queryRepositoryId);
 
         // Then
         assertThat(result, hasProperty("id", is(queryRepositoryId)));

@@ -37,12 +37,13 @@ class RepositoryServiceImplTest extends ServiceImplementationBaseTest {
     }
 
     @Test
-    void getAllRepositories_GitLabAuthorization_shouldCallGitLabAPI() throws GitLabApiException, NotFoundException {
+    void getAllRepositories_GitLabAuthorization_shouldCallGitLabAPI()
+        throws GitLabApiException, NotFoundException, IOException {
         // Given
         Long userId = Randoms.getLong();
         User user = mock(User.class);
 
-        String accessToken = prepareUsreService(userId, user, AuthenticationProvider.GITLAB);
+        String accessToken = prepareUserService(userId, user, AuthenticationProvider.GITLAB);
 
         // When
         sut.getAllRepositories(userId);
@@ -57,7 +58,7 @@ class RepositoryServiceImplTest extends ServiceImplementationBaseTest {
         Long userId = Randoms.getLong();
         User user = mock(User.class);
 
-        String accessToken = prepareUsreService(userId, user, AuthenticationProvider.GITHUB);
+        String accessToken = prepareUserService(userId, user, AuthenticationProvider.GITHUB);
 
         // When
         sut.getAllRepositories(userId);
@@ -67,12 +68,13 @@ class RepositoryServiceImplTest extends ServiceImplementationBaseTest {
     }
 
     @Test
-    void getAllRepositories_GitLabAuthorizationThrowsException_shouldThrowRuntimeException() throws GitLabApiException, NotFoundException {
+    void getAllRepositories_GitLabAuthorizationThrowsException_shouldThrowRuntimeException()
+        throws GitLabApiException, NotFoundException, IOException {
         // Given
         Long userId = Randoms.getLong();
         User user = mock(User.class);
 
-        String accessToken = prepareUsreService(userId, user, AuthenticationProvider.GITLAB);
+        String accessToken = prepareUserService(userId, user, AuthenticationProvider.GITLAB);
 
         when(gitLabAPI.getAllRepositories(accessToken)).thenThrow(
             new GitLabApiException(exceptionString));
@@ -82,13 +84,13 @@ class RepositoryServiceImplTest extends ServiceImplementationBaseTest {
     }
 
     @Test
-    void getAllRepositories_GitHubAuthorizationThrowsException_shouldThrowException() throws IOException,
-                                                                                                 NotFoundException {
+    void getAllRepositories_GitHubAuthorizationThrowsException_shouldThrowException()
+        throws IOException, NotFoundException {
         // Given
         Long userId = Randoms.getLong();
         User user = mock(User.class);
 
-        String accessToken = prepareUsreService(userId, user, AuthenticationProvider.GITHUB);
+        String accessToken = prepareUserService(userId, user, AuthenticationProvider.GITHUB);
 
         when(gitHubAPI.getAllRepositories(accessToken)).thenThrow(
             new IOException(exceptionString));
@@ -106,14 +108,14 @@ class RepositoryServiceImplTest extends ServiceImplementationBaseTest {
     }
 
     @Test
-    void getRepositoryById_GitLabAuthorization_shouldCallGitLabAPI() throws GitLabApiException, NotFoundException {
+    void getRepositoryById_GitLabAuthorization_shouldCallGitLabAPI() throws GitLabApiException, NotFoundException, IOException {
         // Given
         long repositoryId = Randoms.getLong();
 
         Long userId = Randoms.getLong();
         User user = mock(User.class);
 
-        String accessToken = prepareUsreService(userId, user, AuthenticationProvider.GITLAB);
+        String accessToken = prepareUserService(userId, user, AuthenticationProvider.GITLAB);
 
         // When
         sut.getRepositoryById(userId, repositoryId);
@@ -130,7 +132,7 @@ class RepositoryServiceImplTest extends ServiceImplementationBaseTest {
         Long userId = Randoms.getLong();
         User user = mock(User.class);
 
-        String accessToken = prepareUsreService(userId, user, AuthenticationProvider.GITHUB);
+        String accessToken = prepareUserService(userId, user, AuthenticationProvider.GITHUB);
 
         // When
         sut.getRepositoryById(userId, repositoryId);
@@ -139,7 +141,7 @@ class RepositoryServiceImplTest extends ServiceImplementationBaseTest {
         verify(gitHubAPI).getRepositoryById(accessToken, repositoryId);
     }
 
-    private String prepareUsreService(Long userId, User user, AuthenticationProvider github) throws NotFoundException {
+    private String prepareUserService(Long userId, User user, AuthenticationProvider github) throws NotFoundException {
         String accessToken = Randoms.alpha();
         when(userService.getUser(userId)).thenReturn(user);
         when(user.getAccessToken()).thenReturn(accessToken);

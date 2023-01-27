@@ -1,6 +1,8 @@
 package com.tuwien.gitanalyser.endpoints;
 
 import com.tuwien.gitanalyser.endpoints.DTOs.RepositoryDTO;
+import com.tuwien.gitanalyser.entity.Repository;
+import com.tuwien.gitanalyser.entity.mapper.RepositoryMapper;
 import com.tuwien.gitanalyser.service.RepositoryService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,16 +20,25 @@ import static org.mockito.Mockito.when;
 
 class RepositoryEndpointTest {
 
-    private static final RepositoryDTO REPOSITORY_1 = mock(RepositoryDTO.class);
-    private static final RepositoryDTO REPOSITORY_2 = mock(RepositoryDTO.class);
-    private static final RepositoryDTO REPOSITORY_3 = mock(RepositoryDTO.class);
+    private static final Repository REPOSITORY_1 = new Repository(Randoms.getLong(), Randoms.alpha(), Randoms.alpha());
+    private static final Repository REPOSITORY_2 = new Repository(Randoms.getLong(), Randoms.alpha(), Randoms.alpha());
+    private static final Repository REPOSITORY_3 = new Repository(Randoms.getLong(), Randoms.alpha(), Randoms.alpha());
+    private static final RepositoryDTO REPOSITORY_DTO_1 =
+        new RepositoryDTO(REPOSITORY_1.getId(), REPOSITORY_1.getName(), REPOSITORY_1.getUrl());
+    private static final RepositoryDTO REPOSITORY_DTO_2 =
+        new RepositoryDTO(REPOSITORY_2.getId(), REPOSITORY_2.getName(), REPOSITORY_2.getUrl());
+    private static final RepositoryDTO REPOSITORY_DTO_3 =
+        new RepositoryDTO(REPOSITORY_3.getId(), REPOSITORY_3.getName(), REPOSITORY_3.getUrl());
     private RepositoryService repositoryService;
+    private RepositoryMapper repositoryMapper;
+
     private RepositoryEndpoint sut;
 
     @BeforeEach
     void setUp() {
         repositoryService = mock(RepositoryService.class);
-        sut = new RepositoryEndpoint(repositoryService);
+        repositoryMapper = mock(RepositoryMapper.class);
+        sut = new RepositoryEndpoint(repositoryService, repositoryMapper);
     }
 
     @Test
@@ -51,12 +62,14 @@ class RepositoryEndpointTest {
 
         when(repositoryService.getAllRepositories(Long.parseLong(authentication.getName())))
             .thenReturn(List.of(REPOSITORY_1, REPOSITORY_2, REPOSITORY_3));
+        when(repositoryMapper.entitiesToDTOs(List.of(REPOSITORY_1, REPOSITORY_2, REPOSITORY_3)))
+            .thenReturn(List.of(REPOSITORY_DTO_1, REPOSITORY_DTO_2, REPOSITORY_DTO_3));
 
         // When
         List<RepositoryDTO> repositoryList = sut.getAllRepositories(authentication);
 
         // Then
-        assertThat(repositoryList, containsInAnyOrder(REPOSITORY_1, REPOSITORY_2, REPOSITORY_3));
+        assertThat(repositoryList, containsInAnyOrder(REPOSITORY_DTO_1, REPOSITORY_DTO_2, REPOSITORY_DTO_3));
     }
 
     @Test
@@ -96,11 +109,12 @@ class RepositoryEndpointTest {
 
         when(repositoryService.getRepositoryById(Long.parseLong(authentication.getName()), 1L))
             .thenReturn(REPOSITORY_1);
+        when(repositoryMapper.entityToDTO(REPOSITORY_1)).thenReturn(REPOSITORY_DTO_1);
 
         // When
         RepositoryDTO repository = sut.getRepositoryById(authentication, 1L);
 
         // Then
-        assertThat(repository, equalTo(REPOSITORY_1));
+        assertThat(repository, equalTo(REPOSITORY_DTO_1));
     }
 }

@@ -1,6 +1,6 @@
 package com.tuwien.gitanalyser.service.APICalls;
 
-import com.tuwien.gitanalyser.endpoints.DTOs.RepositoryDTO;
+import com.tuwien.gitanalyser.entity.Repository;
 import org.gitlab4j.api.GitLabApi;
 import org.gitlab4j.api.GitLabApiException;
 import org.gitlab4j.api.ProjectApi;
@@ -9,6 +9,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import utils.Randoms;
 
+import java.io.IOException;
 import java.util.List;
 
 import static java.util.Collections.emptyList;
@@ -45,7 +46,7 @@ class GitLabAPITest {
     }
 
     @Test
-    void getAllRepositories_noRepositoriesAvailable_returnEmptyList() throws GitLabApiException {
+    void getAllRepositories_noRepositoriesAvailable_returnEmptyList() throws GitLabApiException, IOException {
         // Given
         mockApi(emptyList(), emptyList());
 
@@ -57,7 +58,7 @@ class GitLabAPITest {
     }
 
     @Test
-    void getAllRepositories_OneOwnedProject_singleItemAsList() throws GitLabApiException {
+    void getAllRepositories_OneOwnedProject_singleItemAsList() throws GitLabApiException, IOException {
         // Given
         mockApi(List.of(FIRST_PROJECT), emptyList());
 
@@ -71,7 +72,7 @@ class GitLabAPITest {
     }
 
     @Test
-    void getAllRepositories_OneMembershipProject_singleItemAsList() throws GitLabApiException {
+    void getAllRepositories_OneMembershipProject_singleItemAsList() throws GitLabApiException, IOException {
         // Given
         mockApi(emptyList(), List.of(THIRD_PROJECT));
 
@@ -85,7 +86,8 @@ class GitLabAPITest {
     }
 
     @Test
-    void getAllRepositories_OneOwnedProjectAndOneMembershipProject_twoItemInList() throws GitLabApiException {
+    void getAllRepositories_OneOwnedProjectAndOneMembershipProject_twoItemInList() throws GitLabApiException,
+                                                                                              IOException {
         // Given
         mockApi(List.of(FIRST_PROJECT), List.of(THIRD_PROJECT));
 
@@ -100,7 +102,8 @@ class GitLabAPITest {
     }
 
     @Test
-    void getAllRepositories_TwoOwnedProjectAndTWOMembershipProject_fourItemInList() throws GitLabApiException {
+    void getAllRepositories_TwoOwnedProjectAndTWOMembershipProject_fourItemInList() throws GitLabApiException,
+                                                                                               IOException {
         // Given
         mockApi(List.of(FIRST_PROJECT, SECOND_PROJECT), List.of(THIRD_PROJECT, FOURTH_PROJECT));
 
@@ -130,7 +133,8 @@ class GitLabAPITest {
     }
 
     @Test
-    void getRepositoryById_gitlabLibraryReturnsOneRepository_sutReturnsRepository() throws GitLabApiException {
+    void getRepositoryById_gitlabLibraryReturnsOneRepository_sutReturnsRepository()
+        throws GitLabApiException, IOException {
         // Given
         Long existingRepositoryId = Randoms.getLong();
 
@@ -142,8 +146,8 @@ class GitLabAPITest {
         when(projectApi.getProject(existingRepositoryId)).thenReturn(project);
 
         // When
-        RepositoryDTO result = sut.getRepositoryById(accessToken,
-                                                     existingRepositoryId);
+        Repository result = sut.getRepositoryById(accessToken,
+                                                  existingRepositoryId);
 
         // Then
         assertThat(result, hasProperty("id", is(existingRepositoryId)));
