@@ -19,7 +19,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Date;
 import java.util.List;
@@ -46,11 +45,6 @@ public class JWTTokenProviderImpl implements JWTTokenProvider {
         this.dateService = dateService;
 
         validityInMilliseconds = AuthenticationConstants.JWT_VALIDITY_IN_MILLISECONDS;
-    }
-
-    @PostConstruct
-    protected void init() {
-
     }
 
     public String createToken(final Long id) {
@@ -116,7 +110,7 @@ public class JWTTokenProviderImpl implements JWTTokenProvider {
             Jwts.parser().setSigningKey(AuthenticationConstants.JWT_SECRET_KEY).parseClaimsJws(token);
             return true;
         } catch (JwtException | IllegalArgumentException e) {
-            throw new AuthenticationException("Expired or invalid JWT token");
+            return false;
         }
     }
 

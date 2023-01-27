@@ -1,6 +1,6 @@
 package com.tuwien.gitanalyser.service.implementation;
 
-import com.tuwien.gitanalyser.endpoints.DTOs.RepositoryDTO;
+import com.tuwien.gitanalyser.entity.Repository;
 import com.tuwien.gitanalyser.entity.User;
 import com.tuwien.gitanalyser.exception.NotFoundException;
 import com.tuwien.gitanalyser.security.AuthenticationConstants;
@@ -30,10 +30,10 @@ public class RepositoryServiceImpl implements RepositoryService {
     }
 
     @Override
-    public List<RepositoryDTO> getAllRepositories(final Long userId) {
+    public List<Repository> getAllRepositories(final Long userId) {
         LOGGER.info("RepositoryServiceImpl: getAllRepositories for user " + userId);
 
-        List<RepositoryDTO> allRepos;
+        List<Repository> allRepos;
 
         try {
             GitAPI gitAPI = getAPI(userId);
@@ -46,10 +46,10 @@ public class RepositoryServiceImpl implements RepositoryService {
     }
 
     @Override
-    public RepositoryDTO getRepositoryById(final Long userId, final Long id) {
+    public Repository getRepositoryById(final Long userId, final Long id) {
         LOGGER.info("RepositoryServiceImpl: getRepositoryById with Id {} for user {}", id, userId);
 
-        RepositoryDTO repo;
+        Repository repo;
 
         try {
             GitAPI gitAPI = getAPI(userId);

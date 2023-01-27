@@ -2,7 +2,7 @@ package com.tuwien.gitanalyser.service.APICalls;
 
 import java.io.IOException;
 
-public interface GitAPIFactory {
+public interface GitAPIFactory<T> {
 
-    Object createObject(String accessToken) throws IOException;
+    T createObject(String accessToken) throws IOException;
 }

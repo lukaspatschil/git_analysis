@@ -1,6 +1,7 @@
 package com.tuwien.gitanalyser.endpoints;
 
 import com.tuwien.gitanalyser.endpoints.DTOs.RepositoryDTO;
+import com.tuwien.gitanalyser.entity.mapper.RepositoryMapper;
 import com.tuwien.gitanalyser.service.RepositoryService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,14 +21,19 @@ public class RepositoryEndpoint {
 
     private final RepositoryService repositoryService;
 
-    public RepositoryEndpoint(final RepositoryService repositoryService) {
+    private final RepositoryMapper repositoryMapper;
+
+    public RepositoryEndpoint(final RepositoryService repositoryService, final RepositoryMapper repositoryMapper) {
         this.repositoryService = repositoryService;
+        this.repositoryMapper = repositoryMapper;
     }
 
     @GetMapping
     public List<RepositoryDTO> getAllRepositories(final Authentication authentication) {
         LOGGER.info("GET /repository -  get all repositories");
-        return repositoryService.getAllRepositories(Long.parseLong(authentication.getName()));
+        return repositoryMapper.entitiesToDTOs(
+            repositoryService.getAllRepositories(Long.parseLong(authentication.getName()))
+        );
     }
 
     @GetMapping("/{id}")
@@ -35,6 +41,8 @@ public class RepositoryEndpoint {
         final Authentication authentication,
         final @PathVariable Long id) {
         LOGGER.info("GET /repository/{id} -  get repository by id");
-        return repositoryService.getRepositoryById(Long.parseLong(authentication.getName()), id);
+        return repositoryMapper.entityToDTO(
+            repositoryService.getRepositoryById(Long.parseLong(authentication.getName()), id)
+        );
     }
 }

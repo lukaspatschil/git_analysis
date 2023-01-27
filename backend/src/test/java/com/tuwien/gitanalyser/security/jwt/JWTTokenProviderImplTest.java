@@ -87,7 +87,7 @@ class JWTTokenProviderImplTest {
 
         String accessToken = createToken(userId, new Date());
 
-        when(userService.getUser(userId)).thenThrow(new NotFoundException());
+        when(userService.getUser(userId)).thenThrow(new NotFoundException("random NotFoundException"));
 
         // When + Then
         assertThrows(AuthenticationException.class, () -> sut.getAuthentication(accessToken));
@@ -104,6 +104,30 @@ class JWTTokenProviderImplTest {
 
         // When + Then
         assertThrows(AuthenticationException.class, () -> sut.getAuthentication(accessToken));
+    }
+
+    @Test
+    void validate_randomToken_shouldThrowAuthenticationException() {
+        // Given
+        String token = Randoms.alpha();
+
+        // When
+        boolean result = sut.validateToken(token);
+        // Then
+        assertThat(result, equalTo(false));
+    }
+
+    @Test
+    void validate_correctToken_shouldReturnTrue() {
+        // Given
+        String token = createToken(Randoms.getLong(), new Date());
+
+        // When
+        boolean result = sut.validateToken(token);
+
+        // Then
+        assertThat(result, equalTo(true));
+
     }
 
     public String createToken(final Long id, final Date now) {

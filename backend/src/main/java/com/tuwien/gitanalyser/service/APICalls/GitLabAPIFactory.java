@@ -6,7 +6,7 @@ import org.gitlab4j.api.GitLabApi;
 import org.springframework.stereotype.Service;
 
 @Service
-public class GitLabAPIFactory {
+public class GitLabAPIFactory implements GitAPIFactory<GitLabApi> {
 
     public GitLabApi createObject(final String accessToken) {
         return new GitLabApi(AuthenticationConstants.GITLAB_CLIENT_URL, Constants.TokenType.OAUTH2_ACCESS, accessToken);

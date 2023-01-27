@@ -26,8 +26,11 @@ public class SecurityConfiguration {
 
     private static final String H_2_CONSOLE_PATH = "/h2-console";
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
+
+    public SecurityConfiguration(final UserService userService) {
+        this.userService = userService;
+    }
 
     @Configuration
     @EnableWebSecurity
