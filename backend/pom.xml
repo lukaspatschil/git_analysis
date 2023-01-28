@@ -30,6 +30,7 @@
         <spring.security.oauth2.resource.server.verision>6.0.1</spring.security.oauth2.resource.server.verision>
         <spring.security.oauth2.jose>6.0.1</spring.security.oauth2.jose>
         <rest-assured.version>5.3.0</rest-assured.version>
+        <pitest.version>1.10.4</pitest.version>
     </properties>
 
     <dependencies>
@@ -197,6 +198,13 @@
             <scope>test</scope>
         </dependency>
 
+        <dependency>
+            <groupId>org.pitest</groupId>
+            <artifactId>pitest-parent</artifactId>
+            <version>${pitest.version}</version>
+            <type>pom</type>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -278,6 +286,11 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.pitest</groupId>
+                <artifactId>pitest-maven</artifactId>
+                <version>${pitest.version}</version>
             </plugin>
         </plugins>
     </build>

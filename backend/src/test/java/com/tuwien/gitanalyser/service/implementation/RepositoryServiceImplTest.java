@@ -1,5 +1,6 @@
 package com.tuwien.gitanalyser.service.implementation;
 
+import com.tuwien.gitanalyser.entity.Repository;
 import com.tuwien.gitanalyser.entity.User;
 import com.tuwien.gitanalyser.entity.utils.AuthenticationProvider;
 import com.tuwien.gitanalyser.exception.NotFoundException;
@@ -13,6 +14,8 @@ import utils.Randoms;
 
 import java.io.IOException;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -21,7 +24,6 @@ import static org.mockito.Mockito.when;
 class RepositoryServiceImplTest extends ServiceImplementationBaseTest {
 
     private RepositoryServiceImpl sut;
-
     private UserService userService;
     private GitHubAPI gitHubAPI;
     private GitLabAPI gitLabAPI;
@@ -163,5 +165,25 @@ class RepositoryServiceImplTest extends ServiceImplementationBaseTest {
 
         // When + Then
         assertThrows(RuntimeException.class, () -> sut.getRepositoryById(userId, repositoryId));
+    }
+
+    @Test
+    void getRepositoryById_GitHubAuthorization_shouldReturnRepository() throws IOException, NotFoundException {
+        // Given
+        long repositoryId = Randoms.getLong();
+
+        Long userId = Randoms.getLong();
+        User user = mock(User.class);
+
+        String accessToken = prepareUserService(userId, user, AuthenticationProvider.GITHUB);
+        Repository repository = new Repository(repositoryId, Randoms.alpha(), Randoms.alpha());
+
+        when(gitHubAPI.getRepositoryById(accessToken, repositoryId)).thenReturn(repository);
+
+        // When
+        Repository result = sut.getRepositoryById(userId, repositoryId);
+
+        // Then
+        assertThat(result, equalTo(repository));
     }
 }
