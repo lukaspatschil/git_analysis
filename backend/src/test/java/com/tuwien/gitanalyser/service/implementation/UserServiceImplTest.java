@@ -7,6 +7,7 @@ import com.tuwien.gitanalyser.repository.UserRepository;
 import com.tuwien.gitanalyser.security.OAuth2.BasicAuth2User;
 import com.tuwien.gitanalyser.security.OAuth2.GitHubOAuth2User;
 import com.tuwien.gitanalyser.security.OAuth2.GitLabOAuth2User;
+import com.tuwien.gitanalyser.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -32,7 +33,7 @@ class UserServiceImplTest extends ServiceImplementationBaseTest {
     private static final User USER_1 = mock(User.class);
     private static final User USER_2 = mock(User.class);
     private static final User USER_3 = mock(User.class);
-    private UserServiceImpl sut;
+    private UserService sut;
     private UserRepository userRepository;
 
     private static User createUser(AuthenticationProvider authenticationProvider, int platformId, String username) {
