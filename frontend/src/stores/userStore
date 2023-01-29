@@ -1,0 +1,7 @@
+import { create } from 'zustand';
+
+export const userStore = create(set => ({
+  user: null,
+  loginUser: token => set(() => ({user: 'this was set'})),
+  logoutUser: () => set(() => ({user: 'this was reset'}))
+}));
