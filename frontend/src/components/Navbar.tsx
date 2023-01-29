@@ -4,6 +4,9 @@ import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import LoginDropDown from './login/LoginDropDown';
 import ProfileDropDown from './profile/ProfileDropDown';
+import { authStore } from '../stores/authStore';
+import ProfileFull from './profile/ProfileFull';
+import LoginFull from './login/LoginFull';
 
 const user = {
   name: 'Tom Cook',
@@ -25,6 +28,7 @@ function classNames(...classes: any[]) {
 }
 
 export default function Navbar() {
+  const { token } = authStore();
   const { pathname } = useLocation();
   const navigate = useNavigate();
 
@@ -67,10 +71,7 @@ export default function Navbar() {
                 </div>
                 <div className="hidden md:block">
                   <div className="ml-4 flex items-center md:ml-6">
-                    {/* Profile dropdown */}
-                    <ProfileDropDown />
-                    {/* Login drop down */}
-                    <LoginDropDown />
+                    {token ? <ProfileDropDown /> : <LoginDropDown />}
                   </div>
                 </div>
                 <div className="-mr-2 flex md:hidden">
@@ -104,29 +105,7 @@ export default function Navbar() {
                   </Disclosure.Button>
                 ))}
               </div>
-              <div className="border-t border-gray-700 pt-4 pb-3">
-                <div className="flex items-center px-5">
-                  <div className="flex-shrink-0">
-                    <img className="h-10 w-10 rounded-full" src={user.imageUrl} alt="" />
-                  </div>
-                  <div className="ml-3">
-                    <div className="text-base font-medium leading-none text-white">{user.name}</div>
-                    <div className="text-sm font-medium leading-none text-gray-400">{user.email}</div>
-                  </div>
-                </div>
-                <div className="mt-3 space-y-1 px-2">
-                  {userNavigation.map((item) => (
-                    <Disclosure.Button
-                      key={item.name}
-                      as="a"
-                      href={item.href}
-                      className="block rounded-md px-3 py-2 text-base font-medium text-gray-400 hover:bg-gray-700 hover:text-white"
-                    >
-                      {item.name}
-                    </Disclosure.Button>
-                  ))}
-                </div>
-              </div>
+              {token ? <ProfileFull /> : <LoginFull />}
             </Disclosure.Panel>
           </>
         )}

@@ -1,6 +1,8 @@
 import { Fragment } from 'react';
 import { Menu, Transition } from '@headlessui/react';
 import { Link } from 'react-router-dom';
+import { authStore } from '../../stores/authStore';
+import { userNavigation } from './userNavigation';
 
 const user = {
   name: 'Tom Cook',
@@ -8,16 +10,13 @@ const user = {
   imageUrl:
     'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
 };
-const userNavigation = [
-  { name: 'Settings', href: '/settings' },
-  { name: 'Sign out', href: '/signOut' },
-];
 
 function classNames(...classes: any[]) {
   return classes.filter(Boolean).join(' ');
 }
 
 export default function ProfileDropDown() {
+  const { deleteToken } = authStore();
   return <Menu as="div" className="relative ml-3">
     <div>
       <Menu.Button className="flex max-w-xs items-center rounded-full bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800">
@@ -50,6 +49,19 @@ export default function ProfileDropDown() {
             )}
           </Menu.Item>
         ))}
+        <Menu.Item>
+          {({ active }) => (
+            <button
+              onClick={deleteToken}
+              className={classNames(
+                active ? 'bg-gray-100' : '',
+                'block px-4 py-2 text-sm text-gray-700 w-full text-start'
+              )}
+            >
+              Sign out
+            </button>
+          )}
+        </Menu.Item>
       </Menu.Items>
     </Transition>
   </Menu>;
