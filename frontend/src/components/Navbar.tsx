@@ -4,7 +4,7 @@ import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import LoginDropDown from './login/LoginDropDown';
 import ProfileDropDown from './profile/ProfileDropDown';
-import { authStore } from '../stores/authStore';
+import { useAuthStore } from '../stores/useAuthStore';
 import ProfileFull from './profile/ProfileFull';
 import LoginFull from './login/LoginFull';
 
@@ -28,7 +28,7 @@ function classNames(...classes: any[]) {
 }
 
 export default function Navbar() {
-  const { token } = authStore();
+  const { token } = useAuthStore();
   const { pathname } = useLocation();
   const navigate = useNavigate();
 

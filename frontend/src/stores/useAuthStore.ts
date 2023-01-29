@@ -6,7 +6,7 @@ type State = {
   deleteToken: () => void
 }
 
-export const authStore = create<State>(set => ({
+export const useAuthStore = create<State>(set => ({
   token: null,
   setToken: (token: string) => set(() => ({token: `Bearer ${token}`})),
   deleteToken: () => set(() => ({token: null}))
