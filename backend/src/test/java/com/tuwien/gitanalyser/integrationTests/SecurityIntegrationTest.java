@@ -1,11 +1,15 @@
 package com.tuwien.gitanalyser.integrationTests;
 
+import com.tuwien.gitanalyser.endpoints.DTOs.RepositoryDTO;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import org.hamcrest.Matchers;
 import org.junit.Test;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+
+import java.io.IOException;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -87,5 +91,27 @@ public class SecurityIntegrationTest extends BaseIntegrationTest {
                                 .then().extract().response();
 
         assertThat(response.getStatusCode(), equalTo(HttpStatus.UNAUTHORIZED.value()));
+    }
+
+    @Test
+    public void queryAllRepositories_withAuthentication_shouldEnableCors() throws IOException {
+        // Given
+        gitHubMockAPI();
+
+        // When
+        Response response = RestAssured
+                                .given()
+                                .log().all()
+                                .contentType(ContentType.JSON)
+                                .header(HttpHeaders.AUTHORIZATION, gitHubUserToken)
+                                .header(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, "GET")
+                                .header(HttpHeaders.ORIGIN, "http://www.someurl.com")
+                                .when().get(REPOSITORY_ENDPOINT)
+                                .then().extract().response();
+
+        // Then
+        assertThat(response.as(RepositoryDTO[].class).length, is(0));
+        assertThat(response.getHeaders().hasHeaderWithName(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN),
+                   equalTo(true));
     }
 }
