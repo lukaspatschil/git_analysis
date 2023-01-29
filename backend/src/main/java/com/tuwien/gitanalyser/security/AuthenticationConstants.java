@@ -30,7 +30,7 @@ public class AuthenticationConstants {
     public static final String GITLAB_AUTHORIZATION_URI = "https://gitlab.com/oauth/authorize";
     public static final String GITLAB_TOKEN_URI = "https://gitlab.com/oauth/token";
     public static final String GITLAB_USER_INFO_URI = "https://gitlab.com/api/v4/user";
-    public static final String FRONTEND_REDIRECT_AFTER_LOGIN_URL = "https://www.whatEverURLYouLike.at"; // change to
+    public static final String FRONTEND_REDIRECT_AFTER_LOGIN_URL = "http://localhost:5173/"; // change to
     // redirect
     public static final long JWT_VALIDITY_IN_MILLISECONDS = 3600000; // 1h
     private static final String JWT_SECRET_KEY_PLAIN = "mySecretKey";
