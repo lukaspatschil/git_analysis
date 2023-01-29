@@ -1,5 +1,5 @@
 import { Disclosure } from '@headlessui/react';
-import { authStore } from '../../stores/authStore';
+import { useAuthStore } from '../../stores/useAuthStore';
 import { userNavigation } from './userNavigation';
 
 const user = {
@@ -10,7 +10,7 @@ const user = {
 };
 
 export default function ProfileFull() {
-  const { deleteToken } = authStore();
+  const { deleteToken } = useAuthStore();
 
   return <div className="border-t border-gray-700 pt-4 pb-3">
     <div className="flex items-center px-5">

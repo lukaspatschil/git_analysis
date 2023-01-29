@@ -3,10 +3,10 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import Body from '../components/Body';
 import Navbar from '../components/Navbar';
 import Wrapper from '../components/Wrapper';
-import { authStore } from '../stores/authStore';
+import { useAuthStore } from '../stores/useAuthStore';
 
 export default function Login() {
-  const { setToken } = authStore();
+  const { setToken } = useAuthStore();
   const location = useLocation();
   const navigate = useNavigate();
 
