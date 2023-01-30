@@ -38,15 +38,11 @@ public class UserServiceImpl implements UserService {
     }
 
     /**
-     * get all users.
-     *
-     * @return list of users
+     * create new user if the user does not exist yet - otherwise creates it.
+     * @param auth2User basic oauth2 user
+     * @param accessToken access token
+     * @return user with database id
      */
-    @Override
-    public List<User> getAll() {
-        return userRepository.findAll();
-    }
-
     @Override
     public User processOAuthPostLogin(final BasicAuth2User auth2User, final String accessToken) {
         User userWithDatabaseId;
@@ -63,6 +59,7 @@ public class UserServiceImpl implements UserService {
             newUser.setPlatformId(auth2User.getPlatformId());
             newUser.setAuthenticationProvider(auth2User.getAuthenticationProvider());
             newUser.setAccessToken(accessToken);
+            newUser.setPictureUrl(auth2User.getPictureUrl());
 
             userWithDatabaseId = userRepository.save(newUser);
         } else {

@@ -48,7 +48,7 @@ public abstract class BaseIntegrationTest {
     protected String gitLabUserToken;
     protected String gitLabAccessToken;
     @Autowired
-    private UserRepository userRepository;
+    protected UserRepository userRepository;
     @Autowired
     private JWTTokenProvider jwtTokenProvider;
     @LocalServerPort
@@ -58,6 +58,8 @@ public abstract class BaseIntegrationTest {
 
     @Autowired
     protected GitLabAPIFactory gitLabAPIFactory;
+    protected User gitLabUser;
+    protected User gitHubUser;
 
     @Before
     public void beforeBase() {
@@ -69,14 +71,14 @@ public abstract class BaseIntegrationTest {
         gitHubAccessToken = "JohnsRandomAccessToken";
         gitLabAccessToken = "TomsRandomAccessToken";
 
-        User gitHubUser = createUser("John", "john@random.com", gitHubAccessToken, Randoms.integer(),
-                                     AuthenticationProvider.GITHUB);
+        gitHubUser = createUser("John", "john@random.com", gitHubAccessToken, Randoms.integer(),
+                                     AuthenticationProvider.GITHUB, "https://github.com/pictureURL");
         gitHubUserToken = Strings.join(AuthenticationConstants.TOKEN_PREFIX,
                                        jwtTokenProvider.createToken(gitHubUser.getId()))
                                  .with(" ");
 
-        User gitLabUser = createUser("Tom", "tom@random.com", gitLabAccessToken, Randoms.integer(),
-                                     AuthenticationProvider.GITLAB);
+        gitLabUser = createUser("Tom", "tom@random.com", gitLabAccessToken, Randoms.integer(),
+                                     AuthenticationProvider.GITLAB, "https://gitlab.com/pictureURL");
         gitLabUserToken = Strings.join(AuthenticationConstants.TOKEN_PREFIX,
                                        jwtTokenProvider.createToken(gitLabUser.getId()))
                                  .with(" ");
@@ -84,13 +86,14 @@ public abstract class BaseIntegrationTest {
     }
 
     private User createUser(String username, String email, String accessToken, Integer platformId,
-                            AuthenticationProvider authenticationProvider) {
+                            AuthenticationProvider authenticationProvider, String pictureUrl) {
         User gitLabUser = User.builder()
                               .username(username)
                               .email(email)
                               .accessToken(accessToken)
                               .platformId(platformId)
                               .authenticationProvider(authenticationProvider)
+                              .pictureUrl(pictureUrl)
                               .build();
 
         if (gitLabUser.getId() == null) {
@@ -112,14 +115,14 @@ public abstract class BaseIntegrationTest {
         when(githubObject.getMyself()).thenReturn(ghMyself);
     }
 
-    protected GitLabApi gitLabMockApi() {
+    protected GitLabApi gitLabMockAPI() {
         GitLabApi gitLabApi = mock(GitLabApi.class);
         when(gitLabAPIFactory.createObject(gitLabAccessToken)).thenReturn(gitLabApi);
         return gitLabApi;
     }
 
     protected ProjectApi gitLabMockProjectApi() {
-        GitLabApi gitLabApi = gitLabMockApi();
+        GitLabApi gitLabApi = gitLabMockAPI();
         ProjectApi projectApi = mock(ProjectApi.class);
         when(gitLabApi.getProjectApi()).thenReturn(projectApi);
         return projectApi;

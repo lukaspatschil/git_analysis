@@ -38,4 +38,10 @@ public interface BasicAuth2User extends OAuth2User {
      * @return email
      */
     String getEmail();
+
+    /**
+     * Returns the url of the picture of the user.
+     * @return url
+     */
+    String getPictureUrl();
 }

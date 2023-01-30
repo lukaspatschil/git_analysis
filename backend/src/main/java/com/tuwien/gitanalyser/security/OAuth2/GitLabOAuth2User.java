@@ -54,6 +54,11 @@ public class GitLabOAuth2User implements BasicAuth2User {
     }
 
     @Override
+    public String getPictureUrl() {
+        return oauth2User.getAttribute("avatar_url");
+    }
+
+    @Override
     public boolean equals(final Object o) {
         if (this == o) {
             return true;
