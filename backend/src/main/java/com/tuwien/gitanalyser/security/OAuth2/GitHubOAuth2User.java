@@ -55,6 +55,11 @@ public class GitHubOAuth2User implements BasicAuth2User {
     }
 
     @Override
+    public String getPictureUrl() {
+        return oauth2User.getAttribute("avatar_url");
+    }
+
+    @Override
     public int hashCode() {
         return Objects.hash(oauth2User);
     }
