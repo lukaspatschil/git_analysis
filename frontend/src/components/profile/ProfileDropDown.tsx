@@ -4,24 +4,17 @@ import { Link } from 'react-router-dom';
 import { useAuthStore } from '../../stores/useAuthStore';
 import { userNavigation } from './userNavigation';
 
-const user = {
-  name: 'Tom Cook',
-  email: 'tom@example.com',
-  imageUrl:
-    'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
-};
-
 function classNames(...classes: any[]) {
   return classes.filter(Boolean).join(' ');
 }
 
 export default function ProfileDropDown() {
-  const { deleteToken } = useAuthStore();
+  const { user, deleteToken } = useAuthStore();
   return <Menu as="div" className="relative ml-3">
     <div>
       <Menu.Button className="flex max-w-xs items-center rounded-full bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800">
         <span className="sr-only">Open user menu</span>
-        <img className="h-8 w-8 rounded-full" src={user.imageUrl} alt="" />
+        <img className="h-8 w-8 rounded-full" src={user?.pictureUrl} alt="" />
       </Menu.Button>
     </div>
     <Transition
