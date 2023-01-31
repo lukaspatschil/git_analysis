@@ -28,9 +28,10 @@ public class UserEndpoint {
 
     @GetMapping()
     public UserDTO getLoggedInUser(final Authentication authentication) throws NotFoundException {
-        LOGGER.info("GET /user -  get data of the logged in user");
+        long userId = Long.parseLong(authentication.getName());
+        LOGGER.info("GET /user -  get data of the logged in user with id: {}", userId);
         return userMapper.entityToDTO(
-            userService.getUser(Long.parseLong(authentication.getName()))
+            userService.getUser(userId)
         );
     }
 }
