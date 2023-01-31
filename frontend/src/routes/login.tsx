@@ -12,10 +12,7 @@ export default function Login() {
 
   useEffect(() => {
     const token = location.hash.substring(1);
-    setToken(token);
-    // Get user from token
-
-    navigate('/');
+    setToken(token).then(() => navigate('/'));
   }, []);
 
   return (

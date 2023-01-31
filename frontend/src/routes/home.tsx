@@ -6,6 +6,15 @@ import { useAuthStore } from '../stores/useAuthStore';
 import useSWR from 'swr';
 import Loading from '../components/Loading';
 import Errortext from '../components/Errortext';
+import { z } from 'zod';
+
+const repositorySchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  url: z.string().url()
+});
+
+const repositoryArraySchema = z.array(repositorySchema);
 
 export default function Home() {
   const { token } = useAuthStore();
@@ -19,7 +28,8 @@ export default function Home() {
         Authorization: token
       }
     })
-      .then(res => res.json());
+      .then(res => res.json())
+      .then(maybeRepos => repositoryArraySchema.parse(maybeRepos));
   });
 
   return (
@@ -32,7 +42,7 @@ export default function Home() {
               {Boolean(error) && <Errortext>{error.toString()}</Errortext>}
               {isLoading && <Loading />}
               {Boolean(data) &&<ul className='p-6'>
-                {data.map((repo: any) => <li className='grid grid-cols-2'>
+                {data?.map((repo: any) => <li className='grid grid-cols-2' key={repo.id}>
                     <div>{repo.name}</div>
                     <Link className='hover:underline' to={repo.url}>{repo.url}</Link>
                   </li>)}
