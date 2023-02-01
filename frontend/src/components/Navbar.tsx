@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { Disclosure } from '@headlessui/react';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import { Link, useLocation } from 'react-router-dom';
@@ -8,22 +8,20 @@ import { useAuthStore } from '../stores/useAuthStore';
 import ProfileFull from './profile/ProfileFull';
 import LoginFull from './login/LoginFull';
 
+const navigation = [
+  { name: 'Dashboard', href: '/dashboard', current: true },
+  { name: 'Stats', href: '/stats', currrent: false }
+];
+
 function classNames(...classes: any[]) {
   return classes.filter(Boolean).join(' ');
 }
 
 export default function Navbar() {
-  const [ navigation, setNavigation ] = useState([
-    { name: 'Dashboard', href: '/dashboard', current: true },
-    { name: 'Stats', href: '/stats', currrent: false }
-  ]);
   const { token } = useAuthStore();
   const { pathname } = useLocation();
 
-  useEffect(() => setNavigation(oldNavigation => oldNavigation.map(navigation => {
-      navigation.current = navigation.href === pathname ? true : false;
-      return navigation;
-    })), [navigation]);
+  useEffect(() => navigation.forEach(nav => (nav.current = nav.href === pathname ? true : false)), []);
 
   return (
     <>
