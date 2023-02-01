@@ -10,7 +10,7 @@ export default function ProtectedRoute({children}: {children: ReactNode}) {
     if (!token) {
       navigate('/');
     }
-  }, []);
+  }, [token]);
 
   return <>{children}</>;
 }
