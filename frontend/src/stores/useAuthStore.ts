@@ -20,7 +20,7 @@ export const useAuthStore = create<State>(set => ({
   user: null,
   setToken: async (token: string) => {
     const fullToken = `Bearer ${token}`;
-    const user = await fetch('http://localhost:8080/apiV1/user', {
+    const user = await fetch(`${import.meta.env.VITE_BASE_API_URL}apiV1/user`, {
       headers: {
         Authorization: fullToken
       }

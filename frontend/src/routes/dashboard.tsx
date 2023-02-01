@@ -18,7 +18,7 @@ const repositoryArraySchema = z.array(repositorySchema);
 
 export default function Dashboard() {
   const { token } = useAuthStore();
-  const { data, error, isLoading } = useSWR('http://localhost:8080/apiV1/repository', (url) => {
+  const { data, error, isLoading } = useSWR(`${import.meta.env.VITE_BASE_API_URL}apiV1/repository`, (url) => {
     if (!token) {
       throw new Error('Token is not set');
     }
