@@ -33,7 +33,7 @@ export default function LoginDropDown() {
         <Menu.Item>
           {({ active }) => (
               <Link
-              to={{ pathname: "http://localhost:8080/oauth2/authorization/github" }}
+              to={{ pathname: `${import.meta.env.VITE_BASE_API_URL}oauth2/authorization/github` }}
                 className={classNames(
                   active ? 'bg-gray-100' : '',
                   'block px-4 py-2 text-sm text-gray-700'
@@ -46,7 +46,7 @@ export default function LoginDropDown() {
         <Menu.Item>
           {({ active }) => (
               <Link
-              to={{ pathname: "http://localhost:8080/oauth2/authorization/gitlab" }}
+              to={{ pathname: `${import.meta.env.VITE_BASE_API_URL}oauth2/authorization/gitlab` }}
                 className={classNames(
                   active ? 'bg-gray-100' : '',
                   'block px-4 py-2 text-sm text-gray-700'
