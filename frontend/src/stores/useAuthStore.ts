@@ -11,7 +11,8 @@ type State = {
 const userSchema = z.object({
   id: z.number(),
   username: z.string(),
-  pictureUrl: z.string()
+  pictureUrl: z.string().url(),
+  email: z.string().email().optional()
 });
 
 export const useAuthStore = create<State>(set => ({

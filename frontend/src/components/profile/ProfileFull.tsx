@@ -12,7 +12,7 @@ export default function ProfileFull() {
       </div>
       <div className="ml-3">
         <div className="text-base font-medium leading-none text-white">{user?.username}</div>
-        {/* <div className="text-sm font-medium leading-none text-gray-400">{user.email}</div> */}
+        <div className="text-sm font-medium leading-none text-gray-400">{user?.email}</div>
       </div>
     </div>
     <div className="mt-3 space-y-1 px-2">
