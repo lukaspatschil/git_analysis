@@ -29,5 +29,8 @@ export const useAuthStore = create<State>(set => ({
 
     set({token: fullToken, user});
   },
-  deleteToken: () => set({token: null})
+  deleteToken: () => {
+    set({token: null});
+    location.href = '/';
+  }
 }));

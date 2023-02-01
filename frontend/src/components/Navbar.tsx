@@ -1,38 +1,29 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Disclosure } from '@headlessui/react';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import LoginDropDown from './login/LoginDropDown';
 import ProfileDropDown from './profile/ProfileDropDown';
 import { useAuthStore } from '../stores/useAuthStore';
 import ProfileFull from './profile/ProfileFull';
 import LoginFull from './login/LoginFull';
 
-const user = {
-  name: 'Tom Cook',
-  email: 'tom@example.com',
-  imageUrl:
-    'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
-};
-const navigation = [
-  { name: 'Dashboard', href: '/', current: true },
-  { name: 'Stats', href: '/stats', currrent: false }
-];
-const userNavigation = [
-  { name: 'Settings', href: '/settings' },
-  { name: 'Sign out', href: '/signOut' },
-];
-
 function classNames(...classes: any[]) {
   return classes.filter(Boolean).join(' ');
 }
 
 export default function Navbar() {
+  const [ navigation, setNavigation ] = useState([
+    { name: 'Dashboard', href: '/dashboard', current: true },
+    { name: 'Stats', href: '/stats', currrent: false }
+  ]);
   const { token } = useAuthStore();
   const { pathname } = useLocation();
-  const navigate = useNavigate();
 
-  useEffect(() => navigation.forEach(path => path.href === pathname ? path.current = true : path.current = false), []);
+  useEffect(() => setNavigation(oldNavigation => oldNavigation.map(navigation => {
+      navigation.current = navigation.href === pathname ? true : false;
+      return navigation;
+    })), [navigation]);
 
   return (
     <>
@@ -51,7 +42,7 @@ export default function Navbar() {
                   </div>
                   <div className="hidden md:block">
                     <div className="ml-10 flex items-baseline space-x-4">
-                      {navigation.map((item) => (
+                      {token && navigation.map((item) => (
                         <Link
                           key={item.name}
                           to={item.href}
@@ -90,7 +81,7 @@ export default function Navbar() {
 
             <Disclosure.Panel className="md:hidden">
               <div className="space-y-1 px-2 pt-2 pb-3 sm:px-3">
-                {navigation.map((item) => (
+                {token && navigation.map((item) => (
                   <Disclosure.Button
                     key={item.name}
                     as="a"
