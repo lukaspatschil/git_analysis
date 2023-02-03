@@ -1,6 +1,6 @@
 package com.tuwien.gitanalyser.service.APICalls;
 
-import com.tuwien.gitanalyser.entity.Repository;
+import com.tuwien.gitanalyser.endpoints.DTOs.internal.NotSavedRepositoryInternalDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -81,7 +81,7 @@ class GitHubAPITest {
 
     @Disabled
     @Test
-    void getAllRepositories_twoProjects_return2ElementList() throws IOException {
+    void getAllRepositories_twoProjects_return2ItemsList() throws IOException {
         // Given
         GitHub gitHub = mockFactory();
         GHMyself ghMyself = mockMySelf(gitHub);
@@ -133,11 +133,29 @@ class GitHubAPITest {
         when(gitHub.getRepositoryById(queryRepositoryId)).thenReturn(firstRepository);
 
         // When
-        Repository result = sut.getRepositoryById(accessToken, queryRepositoryId);
+        NotSavedRepositoryInternalDTO result = sut.getRepositoryById(accessToken, queryRepositoryId);
 
         // Then
         assertThat(result, hasProperty("id", is(queryRepositoryId)));
     }
+
+    @Test
+    void getAllBranches_noBranchAvailable_returnEmptyList() throws IOException {
+        // Given
+        long repositoryId = Randoms.getLong();
+
+        GitHub gitHub = mockFactory();
+        GHRepository ghRepository = mock(GHRepository.class);
+        when(gitHub.getRepositoryById(repositoryId)).thenReturn(ghRepository);
+        when(ghRepository.getBranches()).thenReturn(Map.of());
+
+        // When
+        var result = sut.getAllBranches(accessToken, repositoryId);
+
+        // Then
+        assertThat(result, is(empty()));
+    }
+
 
     private GitHub mockFactory() throws IOException {
         GitHub github = mock(GitHub.class);

@@ -1,11 +1,8 @@
 package com.tuwien.gitanalyser.integrationTests;
 
 import com.tuwien.gitanalyser.endpoints.DTOs.UserDTO;
-import io.restassured.RestAssured;
-import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import org.junit.Test;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -21,12 +18,7 @@ public class UserIntegrationTest extends BaseIntegrationTest {
         // Given
 
         // When
-        Response response = RestAssured
-                                .given()
-                                .contentType(ContentType.JSON)
-                                .header(HttpHeaders.AUTHORIZATION, gitHubUserToken)
-                                .when().get(USER_ENDPOINT)
-                                .then().extract().response();
+        Response response = callRestEndpoint(gitHubUserToken, USER_ENDPOINT);
 
         // Then
         assertThat(response.getStatusCode(), is(HttpStatus.OK.value()));
@@ -37,12 +29,7 @@ public class UserIntegrationTest extends BaseIntegrationTest {
         // Given
 
         // When
-        Response response = RestAssured
-                                .given()
-                                .contentType(ContentType.JSON)
-                                .header(HttpHeaders.AUTHORIZATION, gitLabUserToken)
-                                .when().get(USER_ENDPOINT)
-                                .then().extract().response();
+        Response response = callRestEndpoint(gitLabUserToken, USER_ENDPOINT);
 
         // Then
         assertThat(response.getStatusCode(), is(HttpStatus.OK.value()));
@@ -55,12 +42,7 @@ public class UserIntegrationTest extends BaseIntegrationTest {
                                            gitHubUser.getEmail(), gitHubUser.getPictureUrl());
 
         // When
-        Response response = RestAssured
-                                .given()
-                                .contentType(ContentType.JSON)
-                                .header(HttpHeaders.AUTHORIZATION, gitHubUserToken)
-                                .when().get(USER_ENDPOINT)
-                                .then().extract().response();
+        Response response = callRestEndpoint(gitHubUserToken, USER_ENDPOINT);
 
         // Then
         assertThat(response.getStatusCode(), is(HttpStatus.OK.value()));
@@ -74,12 +56,7 @@ public class UserIntegrationTest extends BaseIntegrationTest {
                                            gitLabUser.getEmail(), gitLabUser.getPictureUrl());
 
         // When
-        Response response = RestAssured
-                                .given()
-                                .contentType(ContentType.JSON)
-                                .header(HttpHeaders.AUTHORIZATION, gitLabUserToken)
-                                .when().get(USER_ENDPOINT)
-                                .then().extract().response();
+        Response response = callRestEndpoint(gitLabUserToken, USER_ENDPOINT);
 
         // Then
         assertThat(response.getStatusCode(), is(HttpStatus.OK.value()));

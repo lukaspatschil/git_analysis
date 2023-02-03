@@ -32,7 +32,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public User getUser(final @NotNull Long id) throws NotFoundException {
         return userRepository.findById(id).orElseThrow(() -> {
-            LOGGER.error("User: Could not find user with id " + id);
+            LOGGER.error("User: Could not find user with id {}", id);
             return new NotFoundException("User: Could not find user with id " + id);
         });
     }
