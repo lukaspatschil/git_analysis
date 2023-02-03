@@ -50,11 +50,12 @@ class UserEndpointTest {
     void getUser_serviceReturnsUser_callsMapper(AuthenticationProvider authenticationProvider) throws NotFoundException {
         // Given
         Authentication authentication = mock(Authentication.class);
-        when(authentication.getName()).thenReturn(String.valueOf(Randoms.getLong()));
         User user = new User(Randoms.getLong(), Randoms.alpha(), Randoms.alpha(), Randoms.alpha(),
-                              authenticationProvider, Randoms.integer(), Randoms.alpha(), Randoms.alpha());
-        when(userService.getUser(Long.parseLong(authentication.getName())))
-            .thenReturn(user);
+                             authenticationProvider, Randoms.integer(), Randoms.alpha(), Randoms.alpha());
+        long userId = Randoms.getLong();
+
+        when(authentication.getName()).thenReturn(String.valueOf(userId));
+        when(userService.getUser(userId)).thenReturn(user);
 
         // When
         sut.getLoggedInUser(authentication);
@@ -68,14 +69,14 @@ class UserEndpointTest {
     void getUser_serviceReturnsUser_returnsValueFromMapper(AuthenticationProvider authenticationProvider) throws NotFoundException {
         // Given
         Authentication authentication = mock(Authentication.class);
-        when(authentication.getName()).thenReturn(String.valueOf(Randoms.getLong()));
+        long userId = Randoms.getLong();
         User user = new User(Randoms.getLong(), Randoms.alpha(), Randoms.alpha(), Randoms.alpha(),
                              authenticationProvider, Randoms.integer(), Randoms.alpha(), Randoms.alpha());
-
         UserDTO userDTO = new UserDTO(user.getId(), user.getUsername(),user.getEmail(), user.getPictureUrl());
 
-        when(userService.getUser(Long.parseLong(authentication.getName())))
-            .thenReturn(user);
+
+        when(authentication.getName()).thenReturn(String.valueOf(userId));
+        when(userService.getUser(userId)).thenReturn(user);
         when(userMapper.entityToDTO(user)).thenReturn(userDTO);
 
         // When

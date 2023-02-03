@@ -1,14 +1,12 @@
 package com.tuwien.gitanalyser.entity.mapper;
 
 import com.tuwien.gitanalyser.endpoints.DTOs.RepositoryDTO;
-import com.tuwien.gitanalyser.entity.Repository;
+import com.tuwien.gitanalyser.entity.SavedRepository;
 import org.mapstruct.Mapper;
-
-import java.util.List;
+import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface RepositoryMapper {
-    RepositoryDTO entityToDTO(Repository repository);
-
-    List<RepositoryDTO> entitiesToDTOs(List<Repository> repositoryDTO);
+    @Mapping(source = "platformId", target = "id")
+    RepositoryDTO entityToDTO(SavedRepository savedRepository);
 }

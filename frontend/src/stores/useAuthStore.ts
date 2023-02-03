@@ -3,10 +3,12 @@ import { create } from 'zustand';
 
 type State = {
   token: string | null,
-  user: z.infer<typeof userSchema> | null,
+  user: User | null,
   setToken: (token: string) => Promise<void>,
   deleteToken: () => void
 }
+
+type User = z.infer<typeof userSchema>;
 
 const userSchema = z.object({
   id: z.number(),

@@ -24,39 +24,12 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class UserServiceImplTest extends ServiceImplementationBaseTest {
+class UserServiceImplTest {
 
     private static final Long EXISTING_USER_ID = 1L;
     private static final Long NON_EXISTING_USER_ID = -1L;
     private UserService sut;
     private UserRepository userRepository;
-
-    private static User createUser(AuthenticationProvider authenticationProvider, int platformId, String username) {
-        User expectedUser = new User();
-        expectedUser.setUsername(username);
-        expectedUser.setPlatformId(platformId);
-        expectedUser.setAuthenticationProvider(authenticationProvider);
-        return expectedUser;
-    }
-
-    private static BasicAuth2User createAuth2User(AuthenticationProvider authenticationProvider, int platformId,
-                                                  String username) {
-        BasicAuth2User auth2User;
-
-        if (authenticationProvider.equals(AuthenticationProvider.GITHUB)) {
-            auth2User = mock(GitHubOAuth2User.class);
-            when(auth2User.getAuthenticationProvider()).thenReturn(AuthenticationProvider.GITHUB);
-        } else {
-            auth2User = mock(GitLabOAuth2User.class);
-            when(auth2User.getAuthenticationProvider()).thenReturn(AuthenticationProvider.GITLAB);
-        }
-
-        when(auth2User.getPlatformId()).thenReturn(platformId);
-        when(auth2User.getName()).thenReturn(username);
-
-        return auth2User;
-
-    }
 
     @BeforeEach
     void setUp() {
@@ -111,5 +84,32 @@ class UserServiceImplTest extends ServiceImplementationBaseTest {
 
         // Then
         verify(userRepository).save(expectedUser);
+    }
+
+    private BasicAuth2User createAuth2User(AuthenticationProvider authenticationProvider, int platformId,
+                                           String username) {
+        BasicAuth2User auth2User;
+
+        if (authenticationProvider.equals(AuthenticationProvider.GITHUB)) {
+            auth2User = mock(GitHubOAuth2User.class);
+            when(auth2User.getAuthenticationProvider()).thenReturn(AuthenticationProvider.GITHUB);
+        } else {
+            auth2User = mock(GitLabOAuth2User.class);
+            when(auth2User.getAuthenticationProvider()).thenReturn(AuthenticationProvider.GITLAB);
+        }
+
+        when(auth2User.getPlatformId()).thenReturn(platformId);
+        when(auth2User.getName()).thenReturn(username);
+
+        return auth2User;
+
+    }
+
+    private User createUser(AuthenticationProvider authenticationProvider, int platformId, String username) {
+        User expectedUser = new User();
+        expectedUser.setUsername(username);
+        expectedUser.setPlatformId(platformId);
+        expectedUser.setAuthenticationProvider(authenticationProvider);
+        return expectedUser;
     }
 }

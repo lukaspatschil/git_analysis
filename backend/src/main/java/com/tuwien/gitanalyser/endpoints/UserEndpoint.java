@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController()
 @RequestMapping("/apiV1/user")
-public class UserEndpoint {
+public class UserEndpoint extends BaseEndpoint {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(UserEndpoint.class);
 
@@ -28,7 +28,7 @@ public class UserEndpoint {
 
     @GetMapping()
     public UserDTO getLoggedInUser(final Authentication authentication) throws NotFoundException {
-        long userId = Long.parseLong(authentication.getName());
+        long userId = getUserId(authentication);
         LOGGER.info("GET /user -  get data of the logged in user with id: {}", userId);
         return userMapper.entityToDTO(
             userService.getUser(userId)

@@ -1,6 +1,6 @@
 package com.tuwien.gitanalyser.service.APICalls;
 
-import com.tuwien.gitanalyser.entity.Repository;
+import com.tuwien.gitanalyser.endpoints.DTOs.internal.NotSavedRepositoryInternalDTO;
 import org.gitlab4j.api.GitLabApi;
 import org.gitlab4j.api.GitLabApiException;
 import org.gitlab4j.api.ProjectApi;
@@ -67,7 +67,7 @@ class GitLabAPITest {
 
         // Then
         assertThat(result, contains(
-            hasProperty("id", is(1L))
+            hasProperty("platformId", is(1L))
         ));
     }
 
@@ -81,7 +81,7 @@ class GitLabAPITest {
 
         // Then
         assertThat(result, contains(
-            hasProperty("id", is(3L))
+            hasProperty("platformId", is(3L))
         ));
     }
 
@@ -96,8 +96,8 @@ class GitLabAPITest {
 
         // Then
         assertThat(result, contains(
-            hasProperty("id", is(1L)),
-            hasProperty("id", is(3L))
+            hasProperty("platformId", is(1L)),
+            hasProperty("platformId", is(3L))
         ));
     }
 
@@ -112,10 +112,10 @@ class GitLabAPITest {
 
         // Then
         assertThat(result, contains(
-            hasProperty("id", is(1L)),
-            hasProperty("id", is(2L)),
-            hasProperty("id", is(3L)),
-            hasProperty("id", is(4L))
+            hasProperty("platformId", is(1L)),
+            hasProperty("platformId", is(2L)),
+            hasProperty("platformId", is(3L)),
+            hasProperty("platformId", is(4L))
         ));
     }
 
@@ -146,11 +146,11 @@ class GitLabAPITest {
         when(projectApi.getProject(existingRepositoryId)).thenReturn(project);
 
         // When
-        Repository result = sut.getRepositoryById(accessToken,
-                                                  existingRepositoryId);
+        NotSavedRepositoryInternalDTO result = sut.getRepositoryById(accessToken,
+                                                                     existingRepositoryId);
 
         // Then
-        assertThat(result, hasProperty("id", is(existingRepositoryId)));
+        assertThat(result, hasProperty("platformId", is(existingRepositoryId)));
     }
 
     private void mockApi(List<Project> ownedProjects,

@@ -1,4 +1,4 @@
-package com.tuwien.gitanalyser.entity;
+package com.tuwien.gitanalyser.endpoints.DTOs;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -6,6 +6,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 @Getter
 @Setter
@@ -13,7 +14,8 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode
-public class Repository {
+@ToString
+public class NotSavedRepositoryDTO {
     private Long id;
     private String name;
     private String url;

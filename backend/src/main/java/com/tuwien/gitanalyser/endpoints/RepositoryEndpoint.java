@@ -1,6 +1,10 @@
 package com.tuwien.gitanalyser.endpoints;
 
+import com.tuwien.gitanalyser.endpoints.DTOs.BranchDTO;
+import com.tuwien.gitanalyser.endpoints.DTOs.NotSavedRepositoryDTO;
 import com.tuwien.gitanalyser.endpoints.DTOs.RepositoryDTO;
+import com.tuwien.gitanalyser.entity.mapper.BranchMapper;
+import com.tuwien.gitanalyser.entity.mapper.NotSavedRepositoryMapper;
 import com.tuwien.gitanalyser.entity.mapper.RepositoryMapper;
 import com.tuwien.gitanalyser.service.RepositoryService;
 import org.slf4j.Logger;
@@ -15,7 +19,7 @@ import java.util.List;
 
 @RestController()
 @RequestMapping("/apiV1/repository")
-public class RepositoryEndpoint {
+public class RepositoryEndpoint extends BaseEndpoint {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RepositoryEndpoint.class);
 
@@ -23,16 +27,25 @@ public class RepositoryEndpoint {
 
     private final RepositoryMapper repositoryMapper;
 
-    public RepositoryEndpoint(final RepositoryService repositoryService, final RepositoryMapper repositoryMapper) {
+    private final NotSavedRepositoryMapper notSavedRepositoryMapper;
+
+    private final BranchMapper branchMapper;
+
+    public RepositoryEndpoint(final RepositoryService repositoryService,
+                              final RepositoryMapper repositoryMapper,
+                              final NotSavedRepositoryMapper notSavedRepositoryMapper,
+                              final BranchMapper branchMapper) {
         this.repositoryService = repositoryService;
         this.repositoryMapper = repositoryMapper;
+        this.notSavedRepositoryMapper = notSavedRepositoryMapper;
+        this.branchMapper = branchMapper;
     }
 
     @GetMapping
-    public List<RepositoryDTO> getAllRepositories(final Authentication authentication) {
-        LOGGER.info("GET /repository -  get all repositories");
-        return repositoryMapper.entitiesToDTOs(
-            repositoryService.getAllRepositories(Long.parseLong(authentication.getName()))
+    public List<NotSavedRepositoryDTO> getAllRepositories(final Authentication authentication) {
+        LOGGER.info("GET /repository - get all repositories");
+        return notSavedRepositoryMapper.dtosToDTOs(
+            repositoryService.getAllRepositories(getUserId(authentication))
         );
     }
 
@@ -40,9 +53,17 @@ public class RepositoryEndpoint {
     public RepositoryDTO getRepositoryById(
         final Authentication authentication,
         final @PathVariable Long id) {
-        LOGGER.info("GET /repository/{id} -  get repository by id");
+        LOGGER.info("GET /repository/{id} - get repository by platform id {}", id);
         return repositoryMapper.entityToDTO(
-            repositoryService.getRepositoryById(Long.parseLong(authentication.getName()), id)
+            repositoryService.getRepositoryById(getUserId(authentication), id)
         );
+    }
+
+    @GetMapping("/{id}/branch")
+    public List<BranchDTO> getBranchesByRepositoryId(
+        final Authentication authentication,
+        final @PathVariable Long id) {
+        LOGGER.info("GET /repository/{id}/branch - get repository by platform id {}", id);
+        return branchMapper.dtosToDTOs(repositoryService.getAllBranches(getUserId(authentication), id));
     }
 }
