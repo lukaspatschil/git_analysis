@@ -1,6 +1,8 @@
 package com.tuwien.gitanalyser.security.oauth2;
 
 import com.tuwien.gitanalyser.entity.utils.AuthenticationProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
@@ -10,6 +12,8 @@ import java.util.Objects;
 
 public class GitLabOAuth2User implements BasicAuth2User {
     private final OAuth2User oauth2User;
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(GitLabOAuth2User.class);
 
     public GitLabOAuth2User(final OAuth2User oauth2User) {
         this.oauth2User = oauth2User;
@@ -50,7 +54,9 @@ public class GitLabOAuth2User implements BasicAuth2User {
 
     @Override
     public String getEmail() {
-        return oauth2User.getAttribute("email");
+        String email = oauth2User.getAttribute("email");
+        LOGGER.info("Email: {}", email);
+        return email;
     }
 
     @Override
