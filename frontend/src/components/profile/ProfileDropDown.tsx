@@ -3,6 +3,7 @@ import { Menu, Transition } from '@headlessui/react';
 import { Link } from 'react-router-dom';
 import { useAuthStore } from '../../stores/useAuthStore';
 import { userNavigation } from './userNavigation';
+import { LOGIN_PROVIDER_KEY } from '../ProtectedRoute';
 
 function classNames(...classes: any[]) {
   return classes.filter(Boolean).join(' ');
@@ -10,6 +11,12 @@ function classNames(...classes: any[]) {
 
 export default function ProfileDropDown() {
   const { user, deleteToken } = useAuthStore();
+
+  function handleSignOut() {
+    localStorage.removeItem(LOGIN_PROVIDER_KEY);
+    deleteToken();
+  }
+
   return <Menu as="div" className="relative ml-3">
     <div>
       <Menu.Button className="flex max-w-xs items-center rounded-full bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800">
@@ -45,7 +52,7 @@ export default function ProfileDropDown() {
         <Menu.Item>
           {({ active }) => (
             <button
-              onClick={deleteToken}
+              onClick={handleSignOut}
               className={classNames(
                 active ? 'bg-gray-100' : '',
                 'block px-4 py-2 text-sm text-gray-700 w-full text-start'

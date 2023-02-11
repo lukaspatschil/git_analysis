@@ -1,9 +1,15 @@
 import { Disclosure } from '@headlessui/react';
 import { useAuthStore } from '../../stores/useAuthStore';
+import { LOGIN_PROVIDER_KEY } from '../ProtectedRoute';
 import { userNavigation } from './userNavigation';
 
 export default function ProfileFull() {
   const { user, deleteToken } = useAuthStore();
+
+  function handleSignOut() {
+    localStorage.removeItem(LOGIN_PROVIDER_KEY);
+    deleteToken();
+  }
 
   return <div className="border-t border-gray-700 pt-4 pb-3">
     <div className="flex items-center px-5">
@@ -28,7 +34,7 @@ export default function ProfileFull() {
       ))}
         <Disclosure.Button
           as="a"
-          onClick={deleteToken}
+          onClick={handleSignOut}
           className="block rounded-md px-3 py-2 text-base font-medium text-gray-400 hover:bg-gray-700 hover:text-white"
         >
           Sign out

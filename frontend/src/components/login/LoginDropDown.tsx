@@ -1,13 +1,18 @@
 import { Fragment } from 'react';
 import { Menu, Transition } from '@headlessui/react';
 import { ChevronDownIcon } from '@heroicons/react/24/outline';
-import { Link } from 'react-router-dom';
+import { LOGIN_PROVIDER_KEY } from '../ProtectedRoute';
 
 function classNames(...classes: any[]) {
   return classes.filter(Boolean).join(' ');
 }
 
 export default function LoginDropDown() {
+  function handleLoginClick(loginProvider: string) {
+    localStorage.setItem(LOGIN_PROVIDER_KEY, loginProvider);
+    window.location.href = `${import.meta.env.VITE_BASE_API_URL}oauth2/authorization/${loginProvider}`;
+  }
+  
   return <Menu as="div" className="relative ml-3">
     <div>
       <Menu.Button className="flex max-w-xs items-center rounded-full bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800">
@@ -32,28 +37,28 @@ export default function LoginDropDown() {
       <Menu.Items className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
         <Menu.Item>
           {({ active }) => (
-              <Link
-              to={{ pathname: `${import.meta.env.VITE_BASE_API_URL}oauth2/authorization/github` }}
+              <a
+                onClick={() => handleLoginClick('github')}
                 className={classNames(
                   active ? 'bg-gray-100' : '',
                   'block px-4 py-2 text-sm text-gray-700'
                 )}
               >
                 Use GitHub
-              </Link>
+              </a>
             )}
         </Menu.Item>
         <Menu.Item>
           {({ active }) => (
-              <Link
-              to={{ pathname: `${import.meta.env.VITE_BASE_API_URL}oauth2/authorization/gitlab` }}
+              <a
+                onClick={() => handleLoginClick('gitlab')}
                 className={classNames(
                   active ? 'bg-gray-100' : '',
                   'block px-4 py-2 text-sm text-gray-700'
                 )}
               >
                 Use GitLab
-              </Link>
+              </a>
             )}
         </Menu.Item>
       </Menu.Items>
