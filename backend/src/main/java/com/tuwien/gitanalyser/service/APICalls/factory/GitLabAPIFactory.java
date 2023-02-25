@@ -1,6 +1,7 @@
-package com.tuwien.gitanalyser.service.APICalls;
+package com.tuwien.gitanalyser.service.APICalls.factory;
 
 import com.tuwien.gitanalyser.security.AuthenticationConstants;
+import com.tuwien.gitanalyser.service.GitAPIFactory;
 import org.gitlab4j.api.Constants;
 import org.gitlab4j.api.GitLabApi;
 import org.springframework.stereotype.Service;

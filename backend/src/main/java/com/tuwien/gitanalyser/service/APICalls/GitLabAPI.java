@@ -1,10 +1,14 @@
 package com.tuwien.gitanalyser.service.APICalls;
 
-import com.tuwien.gitanalyser.endpoints.DTOs.internal.BranchInternalDTO;
-import com.tuwien.gitanalyser.endpoints.DTOs.internal.NotSavedRepositoryInternalDTO;
+import com.tuwien.gitanalyser.endpoints.dtos.internal.BranchInternalDTO;
+import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitInternalDTO;
+import com.tuwien.gitanalyser.endpoints.dtos.internal.NotSavedRepositoryInternalDTO;
+import com.tuwien.gitanalyser.service.GitAPI;
+import com.tuwien.gitanalyser.service.GitAPIFactory;
 import org.gitlab4j.api.GitLabApi;
 import org.gitlab4j.api.GitLabApiException;
 import org.gitlab4j.api.models.Branch;
+import org.gitlab4j.api.models.Commit;
 import org.gitlab4j.api.models.Project;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +33,7 @@ public class GitLabAPI implements GitAPI {
     @Override
     public List<NotSavedRepositoryInternalDTO> getAllRepositories(
         final String accessToken) throws GitLabApiException, IOException {
-        LOGGER.info("GitLabAPI: getAllRepositories");
+        LOGGER.info("getAllRepositories");
 
         List<NotSavedRepositoryInternalDTO> allRepos = new ArrayList<>();
 
@@ -38,18 +42,20 @@ public class GitLabAPI implements GitAPI {
         allRepos.addAll(getOwnedProjects(gitLabApi));
         allRepos.addAll(getMemberProjects(gitLabApi));
 
+        LOGGER.info("getAllRepositories finished: " + allRepos.size());
+
         return allRepos;
     }
 
     @Override
     public NotSavedRepositoryInternalDTO getRepositoryById(final String accessToken, final long platformId)
         throws GitLabApiException, IOException {
-        LOGGER.info("GitLabAPI: getRepositoryById: " + platformId);
+        LOGGER.info("getRepositoryById: " + platformId);
 
         GitLabApi gitLabAPI = gitLabAPIFactory.createObject(accessToken);
         Project project = gitLabAPI.getProjectApi().getProject(platformId);
 
-        LOGGER.info("GitLabAPI: getRepositoryById: " + project);
+        LOGGER.info("getRepositoryById: " + project);
 
         return NotSavedRepositoryInternalDTO.builder()
                                             .platformId(project.getId())
@@ -61,7 +67,7 @@ public class GitLabAPI implements GitAPI {
     @Override
     public List<BranchInternalDTO> getAllBranches(final String accessToken, final Long platformId)
         throws IOException, GitLabApiException {
-        LOGGER.info("GitLabAPI: getAllBranches for platformId {}", platformId);
+        LOGGER.info("getAllBranches for platformId {}", platformId);
 
         GitLabApi gitLabAPI = gitLabAPIFactory.createObject(accessToken);
         List<Branch> branches = gitLabAPI.getRepositoryApi().getBranches(platformId);
@@ -71,6 +77,25 @@ public class GitLabAPI implements GitAPI {
                                                   .name(x.getName())
                                                   .build())
                        .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<CommitInternalDTO> getAllCommits(final String accessToken, final long id, final String branchName)
+        throws IOException, GitLabApiException {
+        LOGGER.info("getAllCommits for platformId {} and branch {}", id, branchName);
+
+        List<CommitInternalDTO> result;
+
+        GitLabApi gitLabAPI = gitLabAPIFactory.createObject(accessToken);
+        List<Commit> commits = gitLabAPI.getCommitsApi().getCommits(id, branchName, null, null, null, true, true,
+                                                                    null);
+        result = commits.stream()
+                        .map(this::mapCommitsToInternalDTO)
+                        .collect(Collectors.toList());
+
+        LOGGER.info("getAllCommits finished for platformId {} and branch {}", id, branchName);
+
+        return result;
     }
 
     private List<NotSavedRepositoryInternalDTO> convertToRepository(final List<Project> projects) {
@@ -90,6 +115,19 @@ public class GitLabAPI implements GitAPI {
 
     private List<NotSavedRepositoryInternalDTO> getMemberProjects(final GitLabApi gitLabApi) throws GitLabApiException {
         return convertToRepository(gitLabApi.getProjectApi().getMemberProjects());
+    }
+
+    private CommitInternalDTO mapCommitsToInternalDTO(final Commit commit) {
+        return CommitInternalDTO.builder()
+                                .id(commit.getId())
+                                .author(commit.getAuthorName())
+                                .timestamp(commit.getCommittedDate())
+                                .message(commit.getMessage())
+                                .parentIds(commit.getParentIds())
+                                .isMergeCommit(commit.getParentIds().size() > 1)
+                                .additions(commit.getStats().getAdditions())
+                                .deletions(commit.getStats().getDeletions())
+                                .build();
     }
 }
 

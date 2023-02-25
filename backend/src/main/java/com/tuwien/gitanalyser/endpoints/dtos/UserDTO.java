@@ -1,7 +1,6 @@
-package com.tuwien.gitanalyser.endpoints.DTOs;
+package com.tuwien.gitanalyser.endpoints.dtos;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,11 +9,13 @@ import lombok.ToString;
 
 @Getter
 @Setter
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode
 @ToString
-public class BranchDTO {
-    private String name;
+public class UserDTO {
+    private Long id;
+    private String username;
+    private String email;
+    private String pictureUrl;
 }

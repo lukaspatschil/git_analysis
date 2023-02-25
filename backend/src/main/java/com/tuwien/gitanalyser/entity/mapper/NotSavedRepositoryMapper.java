@@ -1,7 +1,7 @@
 package com.tuwien.gitanalyser.entity.mapper;
 
-import com.tuwien.gitanalyser.endpoints.DTOs.NotSavedRepositoryDTO;
-import com.tuwien.gitanalyser.endpoints.DTOs.internal.NotSavedRepositoryInternalDTO;
+import com.tuwien.gitanalyser.endpoints.dtos.NotSavedRepositoryDTO;
+import com.tuwien.gitanalyser.endpoints.dtos.internal.NotSavedRepositoryInternalDTO;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 

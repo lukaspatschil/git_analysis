@@ -38,9 +38,4 @@ public class Randoms {
         }
         return value;
     }
-
-    public static long getLong(int min, int max){
-        Random random = new Random();
-        return random.nextLong(min, max);
-    }
 }
