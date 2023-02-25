@@ -1,5 +1,6 @@
-package com.tuwien.gitanalyser.service.APICalls;
+package com.tuwien.gitanalyser.service.APICalls.factory;
 
+import com.tuwien.gitanalyser.service.GitAPIFactory;
 import org.kohsuke.github.GitHub;
 import org.springframework.stereotype.Service;
 

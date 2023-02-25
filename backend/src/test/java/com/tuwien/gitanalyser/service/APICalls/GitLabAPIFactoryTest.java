@@ -1,5 +1,6 @@
 package com.tuwien.gitanalyser.service.APICalls;
 
+import com.tuwien.gitanalyser.service.APICalls.factory.GitLabAPIFactory;
 import org.gitlab4j.api.GitLabApi;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

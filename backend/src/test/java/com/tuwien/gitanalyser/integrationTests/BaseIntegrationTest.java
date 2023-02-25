@@ -2,21 +2,21 @@ package com.tuwien.gitanalyser.integrationTests;
 
 import com.tuwien.gitanalyser.entity.User;
 import com.tuwien.gitanalyser.entity.utils.AuthenticationProvider;
-import com.tuwien.gitanalyser.repository.RepositoryRepository;
 import com.tuwien.gitanalyser.repository.UserRepository;
 import com.tuwien.gitanalyser.security.AuthenticationConstants;
 import com.tuwien.gitanalyser.security.jwt.JWTTokenProvider;
-import com.tuwien.gitanalyser.service.APICalls.GitHubAPIFactory;
-import com.tuwien.gitanalyser.service.APICalls.GitLabAPIFactory;
-import com.tuwien.gitanalyser.service.JGit;
+import com.tuwien.gitanalyser.service.APICalls.factory.GitHubAPIFactory;
+import com.tuwien.gitanalyser.service.APICalls.factory.GitLabAPIFactory;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import org.assertj.core.util.Strings;
+import org.gitlab4j.api.CommitsApi;
 import org.gitlab4j.api.GitLabApi;
 import org.gitlab4j.api.GitLabApiException;
 import org.gitlab4j.api.ProjectApi;
 import org.gitlab4j.api.RepositoryApi;
+import org.gitlab4j.api.models.Commit;
 import org.gitlab4j.api.models.Project;
 import org.junit.After;
 import org.junit.Before;
@@ -57,19 +57,23 @@ public abstract class BaseIntegrationTest {
     @Autowired
     protected UserRepository userRepository;
     @Autowired
-    protected RepositoryRepository repositoryRepository;
-    @Autowired
-    private JWTTokenProvider jwtTokenProvider;
-    @Autowired
-    protected JGit jGit;
-    @LocalServerPort
-    private int port;
-    @Autowired
     protected GitHubAPIFactory gitHubAPIFactory;
     @Autowired
     protected GitLabAPIFactory gitLabAPIFactory;
     protected User gitLabUser;
     protected User gitHubUser;
+    @Autowired
+    private JWTTokenProvider jwtTokenProvider;
+    @LocalServerPort
+    private int port;
+
+    protected static Project gitLabCreateRandomProject() {
+        Project ownedProject = new Project();
+        ownedProject.setId(Randoms.getLong());
+        ownedProject.setHttpUrlToRepo(Randoms.alpha());
+        ownedProject.setName(Randoms.alpha());
+        return ownedProject;
+    }
 
     @Before
     public void beforeBase() {
@@ -82,13 +86,13 @@ public abstract class BaseIntegrationTest {
         gitLabAccessToken = "TomsRandomAccessToken";
 
         gitHubUser = createUser("John", "john@random.com", gitHubAccessToken, Randoms.integer(),
-                                     AuthenticationProvider.GITHUB, "https://github.com/pictureURL");
+                                AuthenticationProvider.GITHUB, "https://github.com/pictureURL");
         gitHubUserToken = Strings.join(AuthenticationConstants.TOKEN_PREFIX,
                                        jwtTokenProvider.createToken(gitHubUser.getId()))
                                  .with(" ");
 
         gitLabUser = createUser("Tom", "tom@random.com", gitLabAccessToken, Randoms.integer(),
-                                     AuthenticationProvider.GITLAB, "https://gitlab.com/pictureURL");
+                                AuthenticationProvider.GITLAB, "https://gitlab.com/pictureURL");
         gitLabUserToken = Strings.join(AuthenticationConstants.TOKEN_PREFIX,
                                        jwtTokenProvider.createToken(gitLabUser.getId()))
                                  .with(" ");
@@ -97,7 +101,6 @@ public abstract class BaseIntegrationTest {
 
     @After
     public void afterBase() {
-        repositoryRepository.deleteAll();
         userRepository.deleteAll();
     }
 
@@ -137,7 +140,7 @@ public abstract class BaseIntegrationTest {
         return gitLabApi;
     }
 
-    protected RepositoryApi gitLabMockRepositoryApi(GitLabApi gitLabApi){
+    protected RepositoryApi gitLabMockRepositoryApi(GitLabApi gitLabApi) {
         RepositoryApi repositoryApi = mock(RepositoryApi.class);
         when(gitLabApi.getRepositoryApi()).thenReturn(repositoryApi);
         return repositoryApi;
@@ -147,6 +150,12 @@ public abstract class BaseIntegrationTest {
         ProjectApi projectApi = mock(ProjectApi.class);
         when(gitLabApi.getProjectApi()).thenReturn(projectApi);
         return projectApi;
+    }
+
+    protected CommitsApi gitLabMockCommitsApi(GitLabApi gitLabApi) {
+        CommitsApi commitsApi = mock(CommitsApi.class);
+        when(gitLabApi.getCommitsApi()).thenReturn(commitsApi);
+        return commitsApi;
     }
 
     protected void gitHubMockBranches(GHRepository ghRepository) throws IOException {
@@ -171,12 +180,16 @@ public abstract class BaseIntegrationTest {
         when(projectApi.getOwnedProjects()).thenReturn(projects);
     }
 
-    protected static Project gitLabCreateRandomProject() {
-        Project ownedProject = new Project();
-        ownedProject.setId(Randoms.getLong());
-        ownedProject.setHttpUrlToRepo(Randoms.alpha());
-        ownedProject.setName(Randoms.alpha());
-        return ownedProject;
+    protected void gitLabMockGetCommits(CommitsApi commitsApi, Long repositoryId, String branch, Commit... commits)
+        throws GitLabApiException {
+        when(commitsApi.getCommits(repositoryId,
+                                   branch,
+                                   null,
+                                   null,
+                                   null,
+                                   true,
+                                   true,
+                                   null)).thenReturn(List.of(commits));
     }
 
     protected Response callRestEndpoint(String authorizationToken, String url) {
@@ -197,11 +210,6 @@ public abstract class BaseIntegrationTest {
         @Bean
         public GitLabAPIFactory gitLabAPIFactory() {
             return mock(GitLabAPIFactory.class);
-        }
-
-        @Bean
-        public JGit jGit() {
-            return mock(JGit.class);
         }
 
     }

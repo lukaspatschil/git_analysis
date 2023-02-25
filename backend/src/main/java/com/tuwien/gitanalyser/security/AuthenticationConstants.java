@@ -28,7 +28,7 @@ public class AuthenticationConstants {
     public static final String GITLAB_CLIENT_SECRET =
         System.getenv("GITLAB_CLIENT_SECRET") != null ? System.getenv("GITLAB_CLIENT_SECRET") : "GitLabSecret";
     public static final String GITLAB_REDIRECT_URI = "http://localhost:8080/login/oauth2/code/gitlab";
-    public static final String[] GITLAB_SCOPES = {"read_user", "read_repository", "read_api", "api"};
+    public static final String[] GITLAB_SCOPES = {"read_user", "read_repository", "read_api", "api", "email"};
     public static final String GITLAB_AUTHORIZATION_URI = "https://gitlab.com/oauth/authorize";
     public static final String GITLAB_TOKEN_URI = "https://gitlab.com/oauth/token";
     public static final String GITLAB_USER_INFO_URI = "https://gitlab.com/api/v4/user";

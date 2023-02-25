@@ -1,6 +1,6 @@
 package com.tuwien.gitanalyser.integrationTests;
 
-import com.tuwien.gitanalyser.endpoints.DTOs.UserDTO;
+import com.tuwien.gitanalyser.endpoints.dtos.UserDTO;
 import io.restassured.response.Response;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;

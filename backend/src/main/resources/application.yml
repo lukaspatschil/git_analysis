@@ -22,4 +22,4 @@ spring:
 logging:
   level:
     org.springframework.web: DEBUG
-    org.hibernate.type: TRACE
+    org.hibernate.type: DEBUG

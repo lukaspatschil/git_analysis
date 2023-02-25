@@ -1,4 +1,4 @@
-package com.tuwien.gitanalyser.endpoints.DTOs;
+package com.tuwien.gitanalyser.endpoints.dtos;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -16,7 +16,6 @@ import utils.Randoms;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Date;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -26,7 +25,6 @@ import static org.mockito.Mockito.when;
 
 class CustomAuthenticationSuccessHandlerTest {
 
-    private static final Date DATE = new Date();
     private CustomAuthenticationSuccessHandler sut;
     private Request request;
     private HttpServletResponse response;

@@ -18,11 +18,10 @@
         <mapstruct.version>1.5.3.Final</mapstruct.version>
         <jackson.version>2.14.0</jackson.version>
         <spring.framework.data.version>2.7.5</spring.framework.data.version>
-        <checkstyle.maven.plugin.version>3.2.0</checkstyle.maven.plugin.version>
+        <checkstyle.maven.plugin.version>3.2.1</checkstyle.maven.plugin.version>
         <jacoco.version>0.8.8</jacoco.version>
-        <spring.boot.starter.graphql.version>3.0.1</spring.boot.starter.graphql.version>
         <libvcs4j.version>1.8.0</libvcs4j.version>
-        <oauth2.client.version>3.0.1</oauth2.client.version>
+        <oauth2.client.version>3.0.3</oauth2.client.version>
         <spring.boot.starter.web.version>3.0.1</spring.boot.starter.web.version>
         <h2.version>2.1.214</h2.version>
         <spring.boot.starter.security.version>3.0.1</spring.boot.starter.security.version>
@@ -31,7 +30,7 @@
         <spring.security.oauth2.jose>6.0.1</spring.security.oauth2.jose>
         <rest-assured.version>5.3.0</rest-assured.version>
         <pitest.version>1.10.4</pitest.version>
-        <github.api.version>1.313</github.api.version>
+        <github.api.version>1.314</github.api.version>
         <junit.jupiter.engine.version>5.4.0</junit.jupiter.engine.version>
         <gitlab4j.api.version>5.0.1</gitlab4j.api.version>
         <io.jsonwebtoken.version>0.9.1</io.jsonwebtoken.version>
@@ -43,12 +42,6 @@
     </properties>
 
     <dependencies>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-graphql</artifactId>
-            <version>${spring.boot.starter.graphql.version}</version>
-        </dependency>
-
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>

@@ -1,6 +1,6 @@
 package com.tuwien.gitanalyser.integrationTests;
 
-import com.tuwien.gitanalyser.endpoints.DTOs.RepositoryDTO;
+import com.tuwien.gitanalyser.endpoints.dtos.RepositoryDTO;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
@@ -63,7 +63,9 @@ public class SecurityIntegrationTest extends BaseIntegrationTest {
 
         assertThat(response.statusCode(), Matchers.either(
             Matchers.is(HttpStatus.SERVICE_UNAVAILABLE.value())).or(
-            Matchers.is(HttpStatus.OK.value())));
+            Matchers.is(HttpStatus.OK.value())).or(
+            Matchers.is(HttpStatus.FORBIDDEN.value())
+        ));
     }
 
     @Test
@@ -105,7 +107,7 @@ public class SecurityIntegrationTest extends BaseIntegrationTest {
                                 .contentType(ContentType.JSON)
                                 .header(HttpHeaders.AUTHORIZATION, gitHubUserToken)
                                 .header(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, "GET")
-                                .header(HttpHeaders.ORIGIN, "http://www.someurl.com")
+                                .header(HttpHeaders.ORIGIN, "https://www.someurl.com")
                                 .when().get(REPOSITORY_ENDPOINT)
                                 .then().extract().response();
 

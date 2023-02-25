@@ -1,16 +1,14 @@
 package com.tuwien.gitanalyser.service.implementation;
 
-import com.tuwien.gitanalyser.endpoints.DTOs.internal.BranchInternalDTO;
-import com.tuwien.gitanalyser.endpoints.DTOs.internal.NotSavedRepositoryInternalDTO;
-import com.tuwien.gitanalyser.entity.SavedRepository;
+import com.tuwien.gitanalyser.endpoints.dtos.internal.BranchInternalDTO;
+import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitInternalDTO;
+import com.tuwien.gitanalyser.endpoints.dtos.internal.NotSavedRepositoryInternalDTO;
 import com.tuwien.gitanalyser.entity.User;
 import com.tuwien.gitanalyser.exception.NotFoundException;
-import com.tuwien.gitanalyser.repository.RepositoryRepository;
 import com.tuwien.gitanalyser.security.AuthenticationConstants;
-import com.tuwien.gitanalyser.service.APICalls.GitAPI;
 import com.tuwien.gitanalyser.service.APICalls.GitHubAPI;
 import com.tuwien.gitanalyser.service.APICalls.GitLabAPI;
-import com.tuwien.gitanalyser.service.JGit;
+import com.tuwien.gitanalyser.service.GitAPI;
 import com.tuwien.gitanalyser.service.RepositoryService;
 import com.tuwien.gitanalyser.service.UserService;
 import org.gitlab4j.api.GitLabApiException;
@@ -26,22 +24,16 @@ public class RepositoryServiceImpl implements RepositoryService {
 
     public static final Logger LOGGER = LoggerFactory.getLogger(RepositoryServiceImpl.class);
 
-    private final RepositoryRepository repositoryRepository;
     private final UserService userService;
     private final GitHubAPI gitHubAPI;
     private final GitLabAPI gitLabAPI;
-    private final JGit jGit;
 
     public RepositoryServiceImpl(final UserService userService,
                                  final GitHubAPI gitHubAPI,
-                                 final GitLabAPI gitLabAPI,
-                                 final RepositoryRepository repositoryRepository,
-                                 final JGit jGit) {
+                                 final GitLabAPI gitLabAPI) {
         this.userService = userService;
-        this.repositoryRepository = repositoryRepository;
         this.gitHubAPI = gitHubAPI;
         this.gitLabAPI = gitLabAPI;
-        this.jGit = jGit;
     }
 
     @Override
@@ -61,49 +53,40 @@ public class RepositoryServiceImpl implements RepositoryService {
     }
 
     @Override
-    public SavedRepository getRepositoryById(final Long userId, final Long id) {
-        LOGGER.info("RepositoryServiceImpl: getRepositoryById with Id {} for user {}", id, userId);
+    public List<BranchInternalDTO> getAllBranches(final Long userId, final Long platformId)
+        throws GitLabApiException, IOException {
+        LOGGER.info("getAllBranches for user {} and repository {}", userId, platformId);
 
-        User user = userService.getUser(userId);
-        SavedRepository savedRepo = new SavedRepository();
+        GitAPI gitAPI = getAPI(userId);
+        List<BranchInternalDTO> allBranches = gitAPI.getAllBranches(getAccessToken(userId), platformId);
 
-        try {
-            GitAPI gitAPI = getAPI(userId);
-            NotSavedRepositoryInternalDTO nSRIDTO = gitAPI.getRepositoryById(getAccessToken(userId), id);
-
-            SavedRepository savedRepository =
-                repositoryRepository.findByUserIdAndPlatformId(user.getId(), nSRIDTO.getPlatformId());
-
-            // save on first access
-            if (savedRepository == null) {
-                savedRepo.setPlatformId(nSRIDTO.getPlatformId());
-                savedRepo.setName(nSRIDTO.getName());
-                savedRepo.setUrl(nSRIDTO.getUrl());
-                savedRepo.setUser(user);
-                savedRepo = repositoryRepository.save(savedRepo);
-                jGit.cloneRepository(savedRepo.getUrl(), savedRepo.getId(), getAccessToken(userId));
-            } else {
-                savedRepo = savedRepository;
-            }
-        } catch (GitLabApiException | IOException e) {
-            throw new RuntimeException(e);
-        }
-        return savedRepo;
+        LOGGER.info("getAllBranches for user {} and repository {} finished", userId, platformId);
+        return allBranches;
     }
 
-    public List<BranchInternalDTO> getAllBranches(final Long userId, final Long id) {
-        LOGGER.info("RepositoryServiceImpl: getAllBranches for user {} and repository {}", userId, id);
+    @Override
+    public NotSavedRepositoryInternalDTO getRepositoryById(final Long userId, final Long platformId)
+        throws GitLabApiException, IOException {
+        LOGGER.info("getRepositoryById with Id {} for user {}", platformId, userId);
 
-        List<BranchInternalDTO> allBranches;
+        GitAPI gitAPI = getAPI(userId);
+        NotSavedRepositoryInternalDTO nSRIDTO = gitAPI.getRepositoryById(getAccessToken(userId), platformId);
 
-        try {
-            GitAPI gitAPI = getAPI(userId);
-            allBranches = gitAPI.getAllBranches(getAccessToken(userId), id);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        LOGGER.info("getRepositoryById with Id {} for user {} finished", platformId, userId);
+        return nSRIDTO;
+    }
 
-        return allBranches;
+    @Override
+    public List<CommitInternalDTO> getAllCommits(final long userId, final Long platformId, final String branch)
+        throws GitLabApiException, IOException {
+        LOGGER.info("getAllCommits for user {} and repository {} and branch {}", userId, platformId, branch);
+
+        GitAPI gitApi = getAPI(userId);
+        List<CommitInternalDTO> allCommits = gitApi.getAllCommits(getAccessToken(userId), platformId, branch);
+
+        LOGGER.info("getAllCommits for user {} and repository {} and branch {} finished with length {}", userId,
+                    platformId, branch, allCommits.size());
+        return allCommits;
     }
 
     private GitAPI getAPI(final Long userId) throws NotFoundException {

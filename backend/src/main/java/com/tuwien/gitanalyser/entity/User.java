@@ -16,11 +16,8 @@ import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
-import java.util.Collection;
-import java.util.Set;
 
 @Entity
 @Getter
@@ -53,25 +50,5 @@ public class User {
     private String accessToken;
     @Column(name = "refresh_token")
     private String refreshToken;
-    @OneToMany(mappedBy = "user")
-    private Collection<SavedRepository> repositories = Set.of();
-
-    public User(final Long id,
-                final String username,
-                final String email,
-                final String pictureUrl,
-                final AuthenticationProvider authenticationProvider,
-                final Integer platformId,
-                final String accessToken,
-                final String refreshToken) {
-        this.id = id;
-        this.username = username;
-        this.email = email;
-        this.pictureUrl = pictureUrl;
-        this.authenticationProvider = authenticationProvider;
-        this.platformId = platformId;
-        this.accessToken = accessToken;
-        this.refreshToken = refreshToken;
-    }
 }
 

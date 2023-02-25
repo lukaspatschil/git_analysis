@@ -1,4 +1,4 @@
-package com.tuwien.gitanalyser.service.APICalls;
+package com.tuwien.gitanalyser.service;
 
 import java.io.IOException;
 
