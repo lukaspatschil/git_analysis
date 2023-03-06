@@ -1,6 +1,7 @@
 package com.tuwien.gitanalyser.service.implementation;
 
 import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitInternalDTO;
+import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitterInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.NotSavedRepositoryInternalDTO;
 import com.tuwien.gitanalyser.entity.User;
 import com.tuwien.gitanalyser.entity.utils.AuthenticationProvider;
@@ -17,8 +18,10 @@ import utils.Randoms;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -253,7 +256,7 @@ class RepositoryServiceImplTest {
         long repositoryId = Randoms.getLong();
 
         String accessToken = prepareUserService(userId, AuthenticationProvider.GITHUB);
-        mockGitHubGetAllCommits(gitHubAPI, repositoryId, accessToken);
+        mockGitApiGetAllCommits(gitHubAPI, repositoryId, accessToken);
 
         // When
         List<CommitInternalDTO> allCommits = sut.getAllCommits(userId, repositoryId, defaultBranch);
@@ -271,7 +274,7 @@ class RepositoryServiceImplTest {
         CommitInternalDTO commit = mock(CommitInternalDTO.class);
 
         String accessToken = prepareUserService(userId, AuthenticationProvider.GITHUB);
-        mockGitHubGetAllCommits(gitHubAPI, repositoryId, accessToken, commit);
+        mockGitApiGetAllCommits(gitHubAPI, repositoryId, accessToken, commit);
 
         // When
         List<CommitInternalDTO> allCommits = sut.getAllCommits(userId, repositoryId, defaultBranch);
@@ -290,7 +293,7 @@ class RepositoryServiceImplTest {
         CommitInternalDTO commit2 = mock(CommitInternalDTO.class);
 
         String accessToken = prepareUserService(userId, AuthenticationProvider.GITHUB);
-        mockGitHubGetAllCommits(gitHubAPI, repositoryId, accessToken, commit1, commit2);
+        mockGitApiGetAllCommits(gitHubAPI, repositoryId, accessToken, commit1, commit2);
 
         // When
         List<CommitInternalDTO> allCommits = sut.getAllCommits(userId, repositoryId, defaultBranch);
@@ -323,7 +326,7 @@ class RepositoryServiceImplTest {
         long repositoryId = Randoms.getLong();
 
         String accessToken = prepareUserService(userId, AuthenticationProvider.GITLAB);
-        mockGitHubGetAllCommits(gitLabAPI, repositoryId, accessToken);
+        mockGitApiGetAllCommits(gitLabAPI, repositoryId, accessToken);
 
         // When
         List<CommitInternalDTO> allCommits = sut.getAllCommits(userId, repositoryId, defaultBranch);
@@ -341,7 +344,7 @@ class RepositoryServiceImplTest {
         CommitInternalDTO commit = mock(CommitInternalDTO.class);
 
         String accessToken = prepareUserService(userId, AuthenticationProvider.GITLAB);
-        mockGitHubGetAllCommits(gitLabAPI, repositoryId, accessToken, commit);
+        mockGitApiGetAllCommits(gitLabAPI, repositoryId, accessToken, commit);
 
         // When
         List<CommitInternalDTO> allCommits = sut.getAllCommits(userId, repositoryId, defaultBranch);
@@ -360,7 +363,7 @@ class RepositoryServiceImplTest {
         CommitInternalDTO commit2 = mock(CommitInternalDTO.class);
 
         String accessToken = prepareUserService(userId, AuthenticationProvider.GITLAB);
-        mockGitHubGetAllCommits(gitLabAPI, repositoryId, accessToken, commit1, commit2);
+        mockGitApiGetAllCommits(gitLabAPI, repositoryId, accessToken, commit1, commit2);
 
         // When
         List<CommitInternalDTO> allCommits = sut.getAllCommits(userId, repositoryId, defaultBranch);
@@ -369,9 +372,207 @@ class RepositoryServiceImplTest {
         assertThat(allCommits, equalTo(List.of(commit1, commit2)));
     }
 
+    @Test
+    void getAllCommitters_GitLabAuthorizationRepoExists_shouldCallGitLabApi()
+        throws NotFoundException, IOException, GitLabApiException {
+        // Given
+        long userId = Randoms.getLong();
+        long repositoryId = Randoms.getLong();
 
+        String accessToken = prepareUserService(userId, AuthenticationProvider.GITLAB);
 
-    private void mockGitHubGetAllCommits(GitAPI gitHubAPI, long repositoryId, String accessToken,
+        // When
+        sut.getAllCommits(userId, repositoryId, defaultBranch);
+
+        // Then
+        verify(gitLabAPI).getAllCommits(accessToken, repositoryId, defaultBranch);
+    }
+
+    @Test
+    void getAllCommitters_GitLabAuthorizationRepoExistsAndNoCommits_shouldReturnEmptyList()
+        throws NotFoundException, IOException, GitLabApiException {
+        // Given
+        long userId = Randoms.getLong();
+        long repositoryId = Randoms.getLong();
+
+        String accessToken = prepareUserService(userId, AuthenticationProvider.GITLAB);
+        mockGitApiGetAllCommits(gitLabAPI, repositoryId, accessToken);
+
+        // When
+        Set<CommitterInternalDTO> result = sut.getAllCommitters(userId, repositoryId, defaultBranch);
+
+        // Then
+        assertThat(result, empty());
+    }
+
+    @Test
+    void getAllCommitters_GitLabAuthorizationRepoExistsAndOneCommits_shouldReturnListWithOneItem()
+        throws NotFoundException, IOException, GitLabApiException {
+        // Given
+        long userId = Randoms.getLong();
+        long repositoryId = Randoms.getLong();
+        CommitInternalDTO commit = mockCommitInternalDTO();
+        CommitterInternalDTO committerInternalDTO = new CommitterInternalDTO(commit.getAuthor());
+
+        String accessToken = prepareUserService(userId, AuthenticationProvider.GITLAB);
+        mockGitApiGetAllCommits(gitLabAPI, repositoryId, accessToken, commit);
+
+        // When
+        Set<CommitterInternalDTO> result = sut.getAllCommitters(userId, repositoryId, defaultBranch);
+
+        // Then
+        assertThat(result, containsInAnyOrder(committerInternalDTO));
+    }
+
+    @Test
+    void getAllCommitters_GitLabAuthorizationRepoExistsAndTwoCommits_shouldReturnListWithTwoItems()
+        throws NotFoundException, IOException, GitLabApiException {
+        // Given
+        long userId = Randoms.getLong();
+        long repositoryId = Randoms.getLong();
+        CommitInternalDTO commit1 = mockCommitInternalDTO();
+        CommitInternalDTO commit2 = mockCommitInternalDTO();
+        CommitterInternalDTO committerInternalDTO1 = new CommitterInternalDTO(commit1.getAuthor());
+        CommitterInternalDTO committerInternalDTO2 = new CommitterInternalDTO(commit2.getAuthor());
+
+        String accessToken = prepareUserService(userId, AuthenticationProvider.GITLAB);
+        mockGitApiGetAllCommits(gitLabAPI, repositoryId, accessToken, commit1, commit2);
+
+        // When
+        Set<CommitterInternalDTO> result = sut.getAllCommitters(userId, repositoryId, defaultBranch);
+
+        // Then
+        assertThat(result, containsInAnyOrder(committerInternalDTO1, committerInternalDTO2));
+    }
+
+    @Test
+    void getAllCommitters_GitLabAuthorizationRepoExistsAndTwoCommitsWithSameCommitter_shouldReturnListWithOneItem()
+        throws NotFoundException, IOException, GitLabApiException {
+        // Given
+        long userId = Randoms.getLong();
+        long repositoryId = Randoms.getLong();
+        String name = Randoms.alpha();
+        CommitInternalDTO commit1 = mockCommitInternalDTO(name);
+        CommitInternalDTO commit2 = mockCommitInternalDTO(name);
+        CommitterInternalDTO committerInternalDTO1 = new CommitterInternalDTO(commit1.getAuthor());
+
+        String accessToken = prepareUserService(userId, AuthenticationProvider.GITLAB);
+        mockGitApiGetAllCommits(gitLabAPI, repositoryId, accessToken, commit1, commit2);
+
+        // When
+        Set<CommitterInternalDTO> result = sut.getAllCommitters(userId, repositoryId, defaultBranch);
+
+        // Then
+        assertThat(result, equalTo(Set.of(committerInternalDTO1)));
+    }
+
+    @Test
+    void getAllCommitters_GitHubAuthorizationRepoExists_shouldCallGitLabApi()
+        throws NotFoundException, IOException, GitLabApiException {
+        // Given
+        long userId = Randoms.getLong();
+        long repositoryId = Randoms.getLong();
+
+        String accessToken = prepareUserService(userId, AuthenticationProvider.GITHUB);
+
+        // When
+        sut.getAllCommits(userId, repositoryId, defaultBranch);
+
+        // Then
+        verify(gitHubAPI).getAllCommits(accessToken, repositoryId, defaultBranch);
+    }
+
+    @Test
+    void getAllCommitters_GitHubAuthorizationRepoExistsAndNoCommits_shouldReturnEmptyList()
+        throws NotFoundException, IOException, GitLabApiException {
+        // Given
+        long userId = Randoms.getLong();
+        long repositoryId = Randoms.getLong();
+
+        String accessToken = prepareUserService(userId, AuthenticationProvider.GITHUB);
+        mockGitApiGetAllCommits(gitHubAPI, repositoryId, accessToken);
+
+        // When
+        Set<CommitterInternalDTO> result = sut.getAllCommitters(userId, repositoryId, defaultBranch);
+
+        // Then
+        assertThat(result, empty());
+    }
+
+    @Test
+    void getAllCommitters_GitHubAuthorizationRepoExistsAndOneCommits_shouldReturnListWithOneItem()
+        throws NotFoundException, IOException, GitLabApiException {
+        // Given
+        long userId = Randoms.getLong();
+        long repositoryId = Randoms.getLong();
+        CommitInternalDTO commit = mockCommitInternalDTO();
+        CommitterInternalDTO committerInternalDTO = new CommitterInternalDTO(commit.getAuthor());
+
+        String accessToken = prepareUserService(userId, AuthenticationProvider.GITHUB);
+        mockGitApiGetAllCommits(gitHubAPI, repositoryId, accessToken, commit);
+
+        // When
+        Set<CommitterInternalDTO> result = sut.getAllCommitters(userId, repositoryId, defaultBranch);
+
+        // Then
+        assertThat(result, containsInAnyOrder(committerInternalDTO));
+    }
+
+    @Test
+    void getAllCommitters_GitHubAuthorizationRepoExistsAndTwoCommits_shouldReturnListWithTwoItems()
+        throws NotFoundException, IOException, GitLabApiException {
+        // Given
+        long userId = Randoms.getLong();
+        long repositoryId = Randoms.getLong();
+        CommitInternalDTO commit1 = mockCommitInternalDTO();
+        CommitInternalDTO commit2 = mockCommitInternalDTO();
+        CommitterInternalDTO committerInternalDTO1 = new CommitterInternalDTO(commit1.getAuthor());
+        CommitterInternalDTO committerInternalDTO2 = new CommitterInternalDTO(commit2.getAuthor());
+
+        String accessToken = prepareUserService(userId, AuthenticationProvider.GITHUB);
+        mockGitApiGetAllCommits(gitHubAPI, repositoryId, accessToken, commit1, commit2);
+
+        // When
+        Set<CommitterInternalDTO> result = sut.getAllCommitters(userId, repositoryId, defaultBranch);
+
+        // Then
+        assertThat(result, containsInAnyOrder(committerInternalDTO1, committerInternalDTO2));
+    }
+
+    @Test
+    void getAllCommitters_GitHubAuthorizationRepoExistsAndTwoCommitsWithSameCommitter_shouldReturnListWithOneItem()
+        throws NotFoundException, IOException, GitLabApiException {
+        // Given
+        long userId = Randoms.getLong();
+        long repositoryId = Randoms.getLong();
+        String name = Randoms.alpha();
+        CommitInternalDTO commit1 = mockCommitInternalDTO(name);
+        CommitInternalDTO commit2 = mockCommitInternalDTO(name);
+        CommitterInternalDTO committerInternalDTO1 = new CommitterInternalDTO(commit1.getAuthor());
+
+        String accessToken = prepareUserService(userId, AuthenticationProvider.GITHUB);
+        mockGitApiGetAllCommits(gitHubAPI, repositoryId, accessToken, commit1, commit2);
+
+        // When
+        Set<CommitterInternalDTO> result = sut.getAllCommitters(userId, repositoryId, defaultBranch);
+
+        // Then
+        assertThat(result, equalTo(Set.of(committerInternalDTO1)));
+    }
+
+    private CommitInternalDTO mockCommitInternalDTO(String name) {
+        CommitInternalDTO commit = mock(CommitInternalDTO.class);
+        when(commit.getAuthor()).thenReturn(name);
+        return commit;
+    }
+
+    private CommitInternalDTO mockCommitInternalDTO() {
+        CommitInternalDTO commit = mock(CommitInternalDTO.class);
+        when(commit.getAuthor()).thenReturn(Randoms.alpha());
+        return commit;
+    }
+
+    private void mockGitApiGetAllCommits(GitAPI gitHubAPI, long repositoryId, String accessToken,
                                          CommitInternalDTO... commits)
         throws IOException, GitLabApiException {
         when(gitHubAPI.getAllCommits(accessToken, repositoryId, defaultBranch))
@@ -396,9 +597,7 @@ class RepositoryServiceImplTest {
                                             .build();
     }
 
-    private void mockGitApiGetRepositoryById(GitAPI gitApi,
-                                             String accessToken,
-                                             long repositoryId,
+    private void mockGitApiGetRepositoryById(GitAPI gitApi, String accessToken, long repositoryId,
                                              NotSavedRepositoryInternalDTO notSavedRepositoryInternalDTO)
         throws GitLabApiException, IOException {
         when(gitApi.getRepositoryById(accessToken, repositoryId)).thenReturn(notSavedRepositoryInternalDTO);

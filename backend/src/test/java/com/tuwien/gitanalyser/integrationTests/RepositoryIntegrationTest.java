@@ -2,6 +2,7 @@ package com.tuwien.gitanalyser.integrationTests;
 
 import com.tuwien.gitanalyser.endpoints.dtos.BranchDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.CommitDTO;
+import com.tuwien.gitanalyser.endpoints.dtos.CommitterDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.NotSavedRepositoryDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.RepositoryDTO;
 import io.restassured.response.Response;
@@ -15,7 +16,6 @@ import org.gitlab4j.api.models.Commit;
 import org.gitlab4j.api.models.CommitStats;
 import org.gitlab4j.api.models.Project;
 import org.junit.Test;
-import org.junit.jupiter.api.Disabled;
 import org.kohsuke.github.GHCommitQueryBuilder;
 import org.kohsuke.github.GHRepository;
 import org.kohsuke.github.GitHub;
@@ -43,6 +43,8 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
     private static final String BRANCHES_ENDPOINT_EXTENSION = "branch";
 
     private static final String COMMITS_ENDPOINT_EXTENSION = "commit";
+
+    private static final String COMMITTER_ENDPOINT_EXTENSION = "committer";
 
     // TODO: positive test case for github
     @Test
@@ -187,6 +189,7 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         // Then
         assertThat(response.as(BranchDTO[].class).length, is(0));
     }
+
     @Test
     public void queryAllBranches_userLabUserExists_shouldSend200() throws GitLabApiException {
         // Given
@@ -341,7 +344,6 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         verify(gitHubApi).getRepositoryById(repositoryId);
     }
 
-    @Disabled
     @Test
     public void queryAllCommits_gitHubUserOneCommitExists_shouldReturnOneCommit() throws IOException {
         // Given
@@ -362,8 +364,149 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         assertThat(response.as(CommitDTO[].class).length, equalTo(0));
     }
 
-
     // TODO positive tests for get commits from github
+
+    @Test
+    public void queryAllCommitter_gitLabUser_shouldCallGitLabService() throws GitLabApiException {
+        // Given
+        long repositoryId = Randoms.getLong();
+        String branch = Randoms.alpha();
+
+        GitLabApi gitLabApi = gitLabMockFactory();
+        CommitsApi commitsApi = gitLabMockCommitsApi(gitLabApi);
+
+        Commit commit = mockCommit();
+        gitLabMockGetCommits(commitsApi, repositoryId, branch, commit);
+
+        // When
+        callRestEndpoint(gitLabUserToken,
+                         REPOSITORY_ENDPOINT + "/" + repositoryId + "/" + COMMITTER_ENDPOINT_EXTENSION
+                             + "?branch=" + branch);
+
+        // Then
+        verify(gitLabApi).getCommitsApi();
+    }
+
+    @Test
+    public void queryAllCommitter_gitLabUserAndOneCommitAvailable_shouldReturnCommitter() throws GitLabApiException {
+        // Given
+        long repositoryId = Randoms.getLong();
+        String branch = Randoms.alpha();
+
+        GitLabApi gitLabApi = gitLabMockFactory();
+        CommitsApi commitsApi = gitLabMockCommitsApi(gitLabApi);
+
+        Commit commit = mockCommit();
+        CommitterDTO committerDTO = mockCommitterDTO(commit);
+
+        gitLabMockGetCommits(commitsApi, repositoryId, branch, commit);
+
+        // When
+        Response response = callRestEndpoint(gitLabUserToken,
+                                             REPOSITORY_ENDPOINT + "/" + repositoryId + "/"
+                                                 + COMMITTER_ENDPOINT_EXTENSION + "?branch=" + branch);
+
+        // Then
+        assertThat(response.as(CommitterDTO[].class).length, equalTo(1));
+        CommitterDTO[] committers = response.as(CommitterDTO[].class);
+
+        assertThat(Arrays.asList(committers), containsInAnyOrder(equalTo(committerDTO)));
+    }
+
+    @Test
+    public void queryAllCommitter_gitLabUserAndTwoCommitsAvailableWithDifferentNames_shouldReturnTwoCommitters()
+        throws GitLabApiException {
+        // Given
+        long repositoryId = Randoms.getLong();
+        String branch = Randoms.alpha();
+
+        GitLabApi gitLabApi = gitLabMockFactory();
+        CommitsApi commitsApi = gitLabMockCommitsApi(gitLabApi);
+
+        Commit commit1 = mockCommit();
+        CommitterDTO committerDTO1 = mockCommitterDTO(commit1);
+        Commit commit2 = mockCommit();
+        CommitterDTO committerDTO2 = mockCommitterDTO(commit2);
+
+        gitLabMockGetCommits(commitsApi, repositoryId, branch, commit1, commit2);
+
+        // When
+        Response response = callRestEndpoint(gitLabUserToken,
+                                             REPOSITORY_ENDPOINT + "/" + repositoryId + "/"
+                                                 + COMMITTER_ENDPOINT_EXTENSION + "?branch=" + branch);
+
+        // Then
+        assertThat(response.as(CommitterDTO[].class).length, equalTo(2));
+        CommitterDTO[] committers = response.as(CommitterDTO[].class);
+
+        assertThat(Arrays.asList(committers), containsInAnyOrder(committerDTO1, committerDTO2));
+    }
+
+    @Test
+    public void queryAllCommitter_gitLabUserAndTwoCommitsAvailableWithSameName_shouldReturnOneCommitter()
+        throws GitLabApiException {
+        // Given
+        long repositoryId = Randoms.getLong();
+        String branch = Randoms.alpha();
+
+        GitLabApi gitLabApi = gitLabMockFactory();
+        CommitsApi commitsApi = gitLabMockCommitsApi(gitLabApi);
+
+        Commit commit1 = mockCommit();
+        CommitterDTO committerDTO = mockCommitterDTO(commit1);
+        Commit commit2 = mockCommit(commit1.getAuthorName());
+
+        gitLabMockGetCommits(commitsApi, repositoryId, branch, commit1, commit2);
+
+        // When
+        Response response = callRestEndpoint(gitLabUserToken,
+                                             REPOSITORY_ENDPOINT + "/" + repositoryId + "/"
+                                                 + COMMITTER_ENDPOINT_EXTENSION + "?branch=" + branch);
+
+        // Then
+        assertThat(response.as(CommitterDTO[].class).length, equalTo(1));
+        CommitterDTO[] committers = response.as(CommitterDTO[].class);
+
+        assertThat(Arrays.asList(committers), containsInAnyOrder(committerDTO));
+    }
+
+    @Test
+    public void queryAllCommitter_gitHubUser_shouldCallGitHubService() throws IOException {
+        // Given
+        long repositoryId = Randoms.getLong();
+        String branch = Randoms.alpha();
+
+        GitHub gitHubApi = gitHubMockFactory();
+        gitHubMockGHRepository(repositoryId, gitHubApi);
+
+        // When
+        callRestEndpoint(gitHubUserToken,
+                         REPOSITORY_ENDPOINT + "/" + repositoryId + "/" + COMMITTER_ENDPOINT_EXTENSION
+                             + "?branch=" + branch);
+
+        // Then
+        verify(gitHubApi).getRepositoryById(repositoryId);
+    }
+
+    @Test
+    public void queryAllCommitter_gitHubUserOneCommitExists_shouldReturnOneCommitter() throws IOException {
+        // Given
+        long repositoryId = Randoms.getLong();
+        String branch = Randoms.alpha();
+
+        GitHub gitHubApi = gitHubMockFactory();
+        GHRepository ghRepository = gitHubMockGHRepository(repositoryId, gitHubApi);
+
+        mockQueryCommits(branch, ghRepository);
+
+        // When
+        Response response = callRestEndpoint(gitHubUserToken,
+                                             REPOSITORY_ENDPOINT + "/" + repositoryId + "/"
+                                                 + COMMITTER_ENDPOINT_EXTENSION + "?branch=" + branch);
+
+        // Then
+        assertThat(response.as(CommitterDTO[].class).length, equalTo(0));
+    }
 
     private CommitDTO mockCommitDTO(Commit commit) {
         return CommitDTO.builder()
@@ -376,6 +519,10 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
                         .additions(commit.getStats().getAdditions())
                         .deletions(commit.getStats().getDeletions())
                         .build();
+    }
+
+    private CommitterDTO mockCommitterDTO(Commit commit) {
+        return new CommitterDTO(commit.getAuthorName());
     }
 
     private void gitLabMockGetBranches(Long repositoryId, RepositoryApi repositoryApi, List<Branch> branches)
@@ -394,6 +541,22 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         when(commit.getParentIds()).thenReturn(List.of(Randoms.alpha()));
         when(commit.getCommittedDate()).thenReturn(new Date());
         when(commit.getAuthorName()).thenReturn(Randoms.alpha());
+        when(commit.getMessage()).thenReturn(Randoms.alpha());
+        when(commit.getStats()).thenReturn(stats);
+        return commit;
+    }
+
+    private Commit mockCommit(String name) {
+        Commit commit = mock(Commit.class);
+
+        CommitStats stats = mock(CommitStats.class);
+        when(stats.getAdditions()).thenReturn(Randoms.integer());
+        when(stats.getDeletions()).thenReturn(Randoms.integer());
+
+        when(commit.getId()).thenReturn(Randoms.alpha());
+        when(commit.getParentIds()).thenReturn(List.of(Randoms.alpha()));
+        when(commit.getCommittedDate()).thenReturn(new Date());
+        when(commit.getAuthorName()).thenReturn(name);
         when(commit.getMessage()).thenReturn(Randoms.alpha());
         when(commit.getStats()).thenReturn(stats);
         return commit;

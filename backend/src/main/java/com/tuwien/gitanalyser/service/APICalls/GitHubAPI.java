@@ -90,9 +90,10 @@ public class GitHubAPI implements GitAPI {
 
         var github = gitHubAPIFactory.createObject(accessToken);
         String branch = branchName == null ? github.getRepositoryById(id).getDefaultBranch() : branchName;
-        List<GHCommit> list = github.getRepositoryById(id).queryCommits().from(branch).list().toList();
-
-        list.stream().map(this::mapGHCommitToInternalDTO).forEach(result::add);
+        github.getRepositoryById(id).queryCommits().from(branch).list().forEach(commit -> {
+            LOGGER.info("commit: {}", commit.getSHA1());
+            result.add(this.mapGHCommitToInternalDTO(commit));
+        });
 
         LOGGER.info("getAllCommits for repo {} finished", id);
 

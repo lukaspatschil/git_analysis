@@ -2,9 +2,11 @@ package com.tuwien.gitanalyser.endpoints;
 
 import com.tuwien.gitanalyser.endpoints.dtos.BranchDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.CommitDTO;
+import com.tuwien.gitanalyser.endpoints.dtos.CommitterDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.NotSavedRepositoryDTO;
 import com.tuwien.gitanalyser.entity.mapper.BranchMapper;
 import com.tuwien.gitanalyser.entity.mapper.CommitMapper;
+import com.tuwien.gitanalyser.entity.mapper.CommitterMapper;
 import com.tuwien.gitanalyser.entity.mapper.NotSavedRepositoryMapper;
 import com.tuwien.gitanalyser.service.RepositoryService;
 import org.gitlab4j.api.GitLabApiException;
@@ -30,14 +32,18 @@ public class RepositoryEndpoint extends BaseEndpoint {
     private final BranchMapper branchMapper;
     private final CommitMapper commitsMapper;
 
+    private final CommitterMapper committerMapper;
+
     public RepositoryEndpoint(final RepositoryService repositoryService,
                               final NotSavedRepositoryMapper notSavedRepositoryMapper,
                               final BranchMapper branchMapper,
-                              final CommitMapper commitMapper) {
+                              final CommitMapper commitMapper,
+                              final CommitterMapper committerMapper) {
         this.repositoryService = repositoryService;
         this.notSavedRepositoryMapper = notSavedRepositoryMapper;
         this.branchMapper = branchMapper;
         this.commitsMapper = commitMapper;
+        this.committerMapper = committerMapper;
     }
 
     @GetMapping
@@ -87,6 +93,21 @@ public class RepositoryEndpoint extends BaseEndpoint {
                                                                             platformId, branch));
         } catch (GitLabApiException | IOException e) {
             LOGGER.error("Error while getting commits", e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    @GetMapping("/{platformId}/committer")
+    public List<CommitterDTO> getCommittersByRepositoryId(
+        final Authentication authentication,
+        final @PathVariable Long platformId,
+        final @RequestParam(name = "branch", required = false) String branch) {
+        LOGGER.info("GET /repository/{id}/committers - get repository by platform id {} and branch {}",
+                    platformId, branch);
+        try {
+            return committerMapper.dtosToDTOs(repositoryService.getAllCommitters(getUserId(authentication),
+                                                                                 platformId, branch));
+        } catch (GitLabApiException | IOException e) {
             throw new RuntimeException(e);
         }
     }
