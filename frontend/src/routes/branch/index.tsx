@@ -2,7 +2,6 @@ import {Outlet, useParams} from "react-router-dom";
 import Wrapper from "../../components/Wrapper";
 import Navbar from "../../components/Navbar";
 import Body from "../../components/Body";
-import useDocumentTitle from "../../hooks/useDocumentTitle";
 
 export default function Index() {
     const { repositoryId, branchName} = useParams();
