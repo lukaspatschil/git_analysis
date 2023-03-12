@@ -9,8 +9,8 @@ import ProfileFull from './profile/ProfileFull';
 import LoginFull from './login/LoginFull';
 
 const navigation = [
-  { name: 'Dashboard', href: '/dashboard', current: true },
-  { name: 'Stats', href: '/stats', currrent: false }
+  { name: 'Dashboard', href: '/repository' },
+  { name: 'Stats', href: '/stats' }
 ];
 
 function classNames(...classes: any[]) {
@@ -20,8 +20,6 @@ function classNames(...classes: any[]) {
 export default function Navbar() {
   const { token } = useAuthStore();
   const { pathname } = useLocation();
-
-  useEffect(() => navigation.forEach(nav => (nav.current = nav.href === pathname ? true : false)), []);
 
   return (
     <>
@@ -45,12 +43,12 @@ export default function Navbar() {
                           key={item.name}
                           to={item.href}
                           className={classNames(
-                            item.current
+                            pathname.startsWith(item.href)
                               ? 'bg-gray-900 text-white'
                               : 'text-gray-300 hover:bg-gray-700 hover:text-white',
                             'px-3 py-2 rounded-md text-sm font-medium'
                           )}
-                          aria-current={item.current ? 'page' : undefined}
+                          aria-current={pathname.startsWith(item.href) ? 'page' : undefined}
                         >
                           {item.name}
                         </Link>
@@ -85,10 +83,10 @@ export default function Navbar() {
                     as="a"
                     href={item.href}
                     className={classNames(
-                      item.current ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white',
+                        pathname.startsWith(item.href) ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white',
                       'block px-3 py-2 rounded-md text-base font-medium'
                     )}
-                    aria-current={item.current ? 'page' : undefined}
+                    aria-current={pathname.startsWith(item.href) ? 'page' : undefined}
                   >
                     {item.name}
                   </Disclosure.Button>

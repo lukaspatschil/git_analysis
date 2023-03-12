@@ -4,15 +4,22 @@ import Body from '../components/Body';
 import Navbar from '../components/Navbar';
 import Wrapper from '../components/Wrapper';
 import { useAuthStore } from '../stores/useAuthStore';
+import useDocumentTitle from "../hooks/useDocumentTitle";
 
 export default function Login() {
   const { setToken } = useAuthStore();
+    useDocumentTitle(`login`);
   const location = useLocation();
   const navigate = useNavigate();
 
   useEffect(() => {
     const token = location.hash.substring(1);
-    setToken(token).then(() => navigate('/dashboard'));
+
+    if (import.meta.env.MODE === 'development') {
+        console.log(token);
+    }
+
+    setToken(token).then(() => navigate('/repository'));
   }, []);
 
   return (
