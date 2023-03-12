@@ -1,6 +1,5 @@
 import useSWR from "swr";
 import {useAuthStore} from "../stores/useAuthStore";
-import {useEffect} from "react";
 import {Link, useParams} from "react-router-dom";
 import Wrapper from "../components/Wrapper";
 import Navbar from "../components/Navbar";
