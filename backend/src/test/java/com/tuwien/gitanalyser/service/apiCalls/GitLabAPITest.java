@@ -1,7 +1,7 @@
-package com.tuwien.gitanalyser.service.APICalls;
+package com.tuwien.gitanalyser.service.apiCalls;
 
 import com.tuwien.gitanalyser.endpoints.dtos.internal.NotSavedRepositoryInternalDTO;
-import com.tuwien.gitanalyser.service.APICalls.factory.GitLabAPIFactory;
+import com.tuwien.gitanalyser.service.apiCalls.factory.GitLabAPIFactory;
 import org.gitlab4j.api.GitLabApi;
 import org.gitlab4j.api.GitLabApiException;
 import org.gitlab4j.api.ProjectApi;

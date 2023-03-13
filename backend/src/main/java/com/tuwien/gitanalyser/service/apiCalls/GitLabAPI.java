@@ -1,4 +1,4 @@
-package com.tuwien.gitanalyser.service.APICalls;
+package com.tuwien.gitanalyser.service.apiCalls;
 
 import com.tuwien.gitanalyser.endpoints.dtos.internal.BranchInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitInternalDTO;
@@ -80,20 +80,22 @@ public class GitLabAPI implements GitAPI {
     }
 
     @Override
-    public List<CommitInternalDTO> getAllCommits(final String accessToken, final long id, final String branchName)
+    public List<CommitInternalDTO> getAllCommits(final String accessToken, final long platformId,
+                                                 final String branchName)
         throws IOException, GitLabApiException {
-        LOGGER.info("getAllCommits for platformId {} and branch {}", id, branchName);
+        LOGGER.info("getAllCommits for platformId {} and branch {}", platformId, branchName);
 
         List<CommitInternalDTO> result;
 
         GitLabApi gitLabAPI = gitLabAPIFactory.createObject(accessToken);
-        List<Commit> commits = gitLabAPI.getCommitsApi().getCommits(id, branchName, null, null, null, true, true,
-                                                                    null);
+        List<Commit> commits = gitLabAPI.getCommitsApi()
+                                        .getCommits(platformId, branchName, null, null, null, true, true,
+                                                    null);
         result = commits.stream()
                         .map(this::mapCommitsToInternalDTO)
                         .collect(Collectors.toList());
 
-        LOGGER.info("getAllCommits finished for platformId {} and branch {}", id, branchName);
+        LOGGER.info("getAllCommits finished for platformId {} and branch {}", platformId, branchName);
 
         return result;
     }

@@ -1,4 +1,4 @@
-package com.tuwien.gitanalyser.service.APICalls;
+package com.tuwien.gitanalyser.service.apiCalls;
 
 import com.tuwien.gitanalyser.endpoints.dtos.internal.BranchInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitInternalDTO;
@@ -82,20 +82,20 @@ public class GitHubAPI implements GitAPI {
     }
 
     @Override
-    public List<CommitInternalDTO> getAllCommits(final String accessToken, final long id,
+    public List<CommitInternalDTO> getAllCommits(final String accessToken, final long platformId,
                                                  final @Nullable String branchName) throws IOException {
-        LOGGER.info("getAllCommits: {}; {}", id, branchName);
+        LOGGER.info("getAllCommits: {}; {}", platformId, branchName);
 
         List<CommitInternalDTO> result = new ArrayList<>();
 
         var github = gitHubAPIFactory.createObject(accessToken);
-        String branch = branchName == null ? github.getRepositoryById(id).getDefaultBranch() : branchName;
-        github.getRepositoryById(id).queryCommits().from(branch).list().forEach(commit -> {
+        String branch = branchName == null ? github.getRepositoryById(platformId).getDefaultBranch() : branchName;
+        github.getRepositoryById(platformId).queryCommits().from(branch).list().forEach(commit -> {
             LOGGER.info("commit: {}", commit.getSHA1());
             result.add(this.mapGHCommitToInternalDTO(commit));
         });
 
-        LOGGER.info("getAllCommits for repo {} finished", id);
+        LOGGER.info("getAllCommits for repo {} finished", platformId);
 
         return result;
     }

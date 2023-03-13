@@ -1,605 +1,186 @@
 package com.tuwien.gitanalyser.service.implementation;
 
-import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitInternalDTO;
-import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitterInternalDTO;
-import com.tuwien.gitanalyser.endpoints.dtos.internal.NotSavedRepositoryInternalDTO;
+import com.tuwien.gitanalyser.endpoints.dtos.assignment.CreateAssignmentDTO;
+import com.tuwien.gitanalyser.entity.Assignment;
+import com.tuwien.gitanalyser.entity.Repository;
+import com.tuwien.gitanalyser.entity.RepositoryFactory;
+import com.tuwien.gitanalyser.entity.SubAssignment;
+import com.tuwien.gitanalyser.entity.SubAssignmentFactory;
 import com.tuwien.gitanalyser.entity.User;
-import com.tuwien.gitanalyser.entity.utils.AuthenticationProvider;
+import com.tuwien.gitanalyser.exception.ForbiddenException;
 import com.tuwien.gitanalyser.exception.NotFoundException;
-import com.tuwien.gitanalyser.service.APICalls.GitHubAPI;
-import com.tuwien.gitanalyser.service.APICalls.GitLabAPI;
-import com.tuwien.gitanalyser.service.GitAPI;
+import com.tuwien.gitanalyser.repository.RepositoryRepository;
+import com.tuwien.gitanalyser.service.AssignmentService;
+import com.tuwien.gitanalyser.service.GitService;
+import com.tuwien.gitanalyser.service.SubAssignmentService;
 import com.tuwien.gitanalyser.service.UserService;
-import org.gitlab4j.api.GitLabApiException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import utils.CreateAssignmentDTOs;
 import utils.Randoms;
 
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
+import java.util.Optional;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class RepositoryServiceImplTest {
-
-    private final String defaultBranch = "develop";
     private RepositoryServiceImpl sut;
     private UserService userService;
-    private GitHubAPI gitHubAPI;
-    private GitLabAPI gitLabAPI;
-    private String exceptionString;
+    private GitService gitService;
+    private RepositoryRepository repositoryRepository;
+    private AssignmentService assignmentService;
+    private SubAssignmentService subAssignmentService;
+    private SubAssignmentFactory subAssignmentFactory;
+    private RepositoryFactory repositoryFactory;
 
     @BeforeEach
     void setUp() {
-        gitHubAPI = mock(GitHubAPI.class);
-        gitLabAPI = mock(GitLabAPI.class);
+        gitService = mock(GitService.class);
         userService = mock(UserService.class);
+        repositoryRepository = mock(RepositoryRepository.class);
+        assignmentService = mock(AssignmentService.class);
+        subAssignmentService = mock(SubAssignmentService.class);
+        subAssignmentFactory = mock(SubAssignmentFactory.class);
+        repositoryFactory = mock(RepositoryFactory.class);
         sut = new RepositoryServiceImpl(userService,
-                                        gitHubAPI,
-                                        gitLabAPI
-        );
-        exceptionString = "testException";
+                                        gitService,
+                                        repositoryRepository,
+                                        assignmentService,
+                                        subAssignmentService,
+                                        subAssignmentFactory,
+                                        repositoryFactory);
     }
 
     @Test
-    void getAllRepositories_GitLabAuthorization_shouldCallGitLabAPI()
-        throws GitLabApiException, NotFoundException, IOException {
+    void assignCommitters_accessNotAllowed_shouldThrowForbiddenException() {
         // Given
         long userId = Randoms.getLong();
-
-        String accessToken = prepareUserService(userId, AuthenticationProvider.GITLAB);
-
-        // When
-        sut.getAllRepositories(userId);
-
-        // Then
-        verify(gitLabAPI).getAllRepositories(accessToken);
-    }
-
-    @Test
-    void getAllRepositories_GitHubAuthorization_shouldCallGitHubAPI() throws IOException, NotFoundException {
-        // Given
-        long userId = Randoms.getLong();
-
-        String accessToken = prepareUserService(userId, AuthenticationProvider.GITHUB);
-
-        // When
-        sut.getAllRepositories(userId);
-
-        // Then
-        verify(gitHubAPI).getAllRepositories(accessToken);
-    }
-
-    @Test
-    void getAllRepositories_GitLabAuthorizationThrowsException_shouldThrowRuntimeException()
-        throws GitLabApiException, NotFoundException, IOException {
-        // Given
-        long userId = Randoms.getLong();
-
-        String accessToken = prepareUserService(userId, AuthenticationProvider.GITLAB);
-        when(gitLabAPI.getAllRepositories(accessToken)).thenThrow(new GitLabApiException(exceptionString));
+        long platformId = Randoms.getLong();
+        CreateAssignmentDTO createDTO = CreateAssignmentDTOs.random();
 
         // When + Then
-        assertThrows(RuntimeException.class, () -> sut.getAllRepositories(userId), exceptionString);
+        assertThrows(ForbiddenException.class, () -> sut.assignCommitter(userId, platformId, createDTO));
     }
 
     @Test
-    void getAllRepositories_GitHubAuthorizationThrowsException_shouldThrowException()
-        throws IOException, NotFoundException {
+    void assignCommitters_accessAllowed_shouldNotThrowException() {
         // Given
-        long userId = Randoms.getLong();
+        User user = prepareUserService();
+        long platformId = Randoms.getLong();
+        CreateAssignmentDTO createDTO = CreateAssignmentDTOs.random();
+        Repository repositoryEntity = new Repository();
+        SubAssignment subAssignment = new SubAssignment();
 
-        String accessToken = prepareUserService(userId, AuthenticationProvider.GITHUB);
-        when(gitHubAPI.getAllRepositories(accessToken)).thenThrow(new IOException(exceptionString));
-
-        // When + Then
-        assertThrows(RuntimeException.class, () -> sut.getAllRepositories(userId), exceptionString);
-    }
-
-    @Test
-    void getAllRepositories_randomAuthorization_shouldThrowException() {
-        // Given
-
-        // When + Then
-        assertThrows(RuntimeException.class, () -> sut.getAllRepositories(Randoms.getLong()));
-    }
-
-    @Test
-    void getRepositoryById_GitLabAuthorization_shouldCallGitLabAPI()
-        throws GitLabApiException, NotFoundException, IOException {
-        // Given
-        long repositoryId = Randoms.getLong();
-        long userId = Randoms.getLong();
-        var notSavedRepositoryInternalDTO = getRandomNotSavedRepositoryInternalDTO(repositoryId);
-
-        String accessToken = prepareUserService(userId, AuthenticationProvider.GITLAB);
-        mockGitApiGetRepositoryById(gitLabAPI, accessToken, repositoryId, notSavedRepositoryInternalDTO);
+        prepareRepositoryAvailable(user, platformId);
+        prepareFactories(repositoryEntity, subAssignment);
 
         // When
-        sut.getRepositoryById(userId, repositoryId);
-
-        // Then
-        verify(gitLabAPI).getRepositoryById(accessToken, repositoryId);
+        sut.assignCommitter(user.getId(), platformId, createDTO);
     }
 
     @Test
-    void getRepositoryById_GitHubAuthorization_shouldCallGitHubAPI()
-        throws IOException, NotFoundException, GitLabApiException {
+    void assignCommitters_accessAllowedAndRepositoryDoesNotExist_createsRepository() {
         // Given
-        long repositoryId = Randoms.getLong();
-        long userId = Randoms.getLong();
-        var notSavedRepositoryInternalDTO = getRandomNotSavedRepositoryInternalDTO(repositoryId);
+        User user = prepareUserService();
+        long platformId = Randoms.getLong();
+        CreateAssignmentDTO createDTO = CreateAssignmentDTOs.random();
+        Repository repositoryEntity = new Repository();
+        SubAssignment subAssignment = new SubAssignment();
 
-        String accessToken = prepareUserService(userId, AuthenticationProvider.GITHUB);
-        mockGitApiGetRepositoryById(gitHubAPI, accessToken, repositoryId, notSavedRepositoryInternalDTO);
+        prepareRepositoryAvailable(user, platformId);
+        prepareFactories(repositoryEntity, subAssignment);
+        mockRepositoryFindByUserAndPlatformIdEmpty(user, platformId);
 
         // When
-        sut.getRepositoryById(userId, repositoryId);
+        sut.assignCommitter(user.getId(), platformId, createDTO);
 
         // Then
-        verify(gitHubAPI).getRepositoryById(accessToken, repositoryId);
+        verify(repositoryRepository).save(repositoryEntity);
     }
 
     @Test
-    void getRepositoryById_randomAuthorization_shouldThrowException() throws NotFoundException {
+    void assignCommitters_accessAllowedAndRepositoryExists_shouldNotCreateRepository() {
         // Given
-        long repositoryId = Randoms.getLong();
+        User user = prepareUserService();
+        long platformId = Randoms.getLong();
+        CreateAssignmentDTO createDTO = CreateAssignmentDTOs.random();
+        Repository repository = new Repository();
+        SubAssignment subAssignment = new SubAssignment();
+
+        mockRepositoryFindByUserAndPlatformId(user, platformId, repository);
+        prepareRepositoryAvailable(user, platformId);
+        prepareSubAssignmentFactory(subAssignment);
+
+        // When
+        sut.assignCommitter(user.getId(), platformId, createDTO);
+
+        // Then
+        verify(repositoryRepository, never()).save(any());
+    }
+
+    @Test
+    void assignCommitters_accessAllowedAndRepositoryExists_shouldAddSubAssignmentToAssignment() {
+        // Given
+        User user = prepareUserService();
+        long platformId = Randoms.getLong();
+        CreateAssignmentDTO createDTO = CreateAssignmentDTOs.random();
+        Repository repository = new Repository();
+        SubAssignment subAssignment = new SubAssignment();
+        Assignment assignment = new Assignment();
+
+        mockRepositoryFindByUserAndPlatformId(user, platformId, repository);
+        prepareRepositoryAvailable(user, platformId);
+        prepareAssignment(repository, createDTO, assignment);
+        prepareSubAssignmentFactory(subAssignment);
+
+        // When
+        sut.assignCommitter(user.getId(), platformId, createDTO);
+
+        // Then
+        verify(subAssignmentService).addSubAssignment(assignment, subAssignment);
+    }
+
+    private void prepareAssignment(Repository repository, CreateAssignmentDTO createDTO, Assignment assignment) {
+        when(assignmentService.getOrCreateAssignment(repository, createDTO.getKey())).thenReturn(assignment);
+    }
+
+    private void prepareFactories(Repository repositoryEntity, SubAssignment subAssignmentEntity) {
+        prepareRepositoryFactory(repositoryEntity);
+        prepareSubAssignmentFactory(subAssignmentEntity);
+    }
+
+    private void prepareRepositoryAvailable(User user, long platformId) {
+        when(gitService.repositoryAccessibleByUser(user.getId(), platformId)).thenReturn(true);
+    }
+
+    private void mockRepositoryFindByUserAndPlatformId(User user, long platformId, Repository repository) {
+        when(repositoryRepository.findByUserAndPlatformId(user, platformId)).thenReturn(Optional.of(repository));
+    }
+
+    private void mockRepositoryFindByUserAndPlatformIdEmpty(User user, long platformId) {
+        when(repositoryRepository.findByUserAndPlatformId(user, platformId)).thenReturn(Optional.empty());
+    }
+
+    private User prepareUserService()
+        throws NotFoundException {
         Long userId = Randoms.getLong();
         User user = mock(User.class);
-
-        String accessToken = Randoms.alpha();
+        when(user.getId()).thenReturn(userId);
         when(userService.getUser(userId)).thenReturn(user);
-        when(user.getAccessToken()).thenReturn(accessToken);
-
-        // When + Then
-        assertThrows(RuntimeException.class, () -> sut.getRepositoryById(userId, repositoryId));
+        return user;
     }
 
-    @Test
-    void getAllBranches_GitLabAuthorization_shouldCallGitLabAPI()
-        throws GitLabApiException, NotFoundException, IOException {
-        // Given
-        long userId = Randoms.getLong();
-        Long repositoryId = Randoms.getLong();
-
-        String accessToken = prepareUserService(userId, AuthenticationProvider.GITLAB);
-
-        // When
-        sut.getAllBranches(userId, repositoryId);
-
-        // Then
-        verify(gitLabAPI).getAllBranches(accessToken, repositoryId);
+    private SubAssignment prepareSubAssignmentFactory(SubAssignment subAssignment) {
+        when(subAssignmentFactory.create()).thenReturn(subAssignment);
+        return subAssignment;
     }
 
-    @Test
-    void getAllBranches_GitHubAuthorization_shouldCallGitHubAPI()
-        throws IOException, NotFoundException, GitLabApiException {
-        // Given
-        long userId = Randoms.getLong();
-        Long repositoryId = Randoms.getLong();
-
-        String accessToken = prepareUserService(userId, AuthenticationProvider.GITHUB);
-
-        // When
-        sut.getAllBranches(userId, repositoryId);
-
-        // Then
-        verify(gitHubAPI).getAllBranches(accessToken, repositoryId);
-    }
-
-    @Test
-    void getAllBranches_GitLabAuthorizationThrowsException_shouldThrowRuntimeException()
-        throws GitLabApiException, NotFoundException, IOException {
-        // Given
-        long userId = Randoms.getLong();
-        Long repositoryId = Randoms.getLong();
-
-        String accessToken = prepareUserService(userId, AuthenticationProvider.GITLAB);
-        when(gitLabAPI.getAllBranches(accessToken, repositoryId)).thenThrow(new GitLabApiException(exceptionString));
-
-        // When + Then
-        assertThrows(GitLabApiException.class, () -> sut.getAllBranches(userId, repositoryId), exceptionString);
-    }
-
-    @Test
-    void getAllBranches_GitHubAuthorizationThrowsException_shouldThrowException()
-        throws IOException, NotFoundException {
-        // Given
-        long userId = Randoms.getLong();
-        Long repositoryId = Randoms.getLong();
-
-        String accessToken = prepareUserService(userId, AuthenticationProvider.GITHUB);
-        when(gitHubAPI.getAllBranches(accessToken, repositoryId)).thenThrow(new IOException(exceptionString));
-
-        // When + Then
-        assertThrows(IOException.class, () -> sut.getAllBranches(userId, repositoryId), exceptionString);
-    }
-
-    @Test
-    void getAllBranches_randomAuthorization_shouldThrowException() {
-        // Given
-
-        // When + Then
-        assertThrows(RuntimeException.class, () -> sut.getAllBranches(Randoms.getLong(), Randoms.getLong()));
-    }
-
-    @Test
-    void getAllCommits_GitHubAuthorizationRepoExists_shouldCallGitHubApi()
-        throws NotFoundException, IOException, GitLabApiException {
-        // Given
-        long userId = Randoms.getLong();
-        long repositoryId = Randoms.getLong();
-
-        String accessToken = prepareUserService(userId, AuthenticationProvider.GITHUB);
-
-        // When
-        sut.getAllCommits(userId, repositoryId, defaultBranch);
-
-        // Then
-        verify(gitHubAPI).getAllCommits(accessToken, repositoryId, defaultBranch);
-    }
-
-    @Test
-    void getAllCommits_GitHubAuthorizationRepoExistsAndNoCommits_shouldReturnEmptyList()
-        throws NotFoundException, IOException, GitLabApiException {
-        // Given
-        long userId = Randoms.getLong();
-        long repositoryId = Randoms.getLong();
-
-        String accessToken = prepareUserService(userId, AuthenticationProvider.GITHUB);
-        mockGitApiGetAllCommits(gitHubAPI, repositoryId, accessToken);
-
-        // When
-        List<CommitInternalDTO> allCommits = sut.getAllCommits(userId, repositoryId, defaultBranch);
-
-        // Then
-        assertThat(allCommits, empty());
-    }
-
-    @Test
-    void getAllCommits_GitHubAuthorizationRepoExistsAndOneCommits_shouldReturnListWithOneCommit()
-        throws NotFoundException, IOException, GitLabApiException {
-        // Given
-        long userId = Randoms.getLong();
-        long repositoryId = Randoms.getLong();
-        CommitInternalDTO commit = mock(CommitInternalDTO.class);
-
-        String accessToken = prepareUserService(userId, AuthenticationProvider.GITHUB);
-        mockGitApiGetAllCommits(gitHubAPI, repositoryId, accessToken, commit);
-
-        // When
-        List<CommitInternalDTO> allCommits = sut.getAllCommits(userId, repositoryId, defaultBranch);
-
-        // Then
-        assertThat(allCommits, equalTo(List.of(commit)));
-    }
-
-    @Test
-    void getAllCommits_GitHubAuthorizationRepoExistsAndTwoCommits_shouldReturnListWithTwoCommits()
-        throws NotFoundException, IOException, GitLabApiException {
-        // Given
-        long userId = Randoms.getLong();
-        long repositoryId = Randoms.getLong();
-        CommitInternalDTO commit1 = mock(CommitInternalDTO.class);
-        CommitInternalDTO commit2 = mock(CommitInternalDTO.class);
-
-        String accessToken = prepareUserService(userId, AuthenticationProvider.GITHUB);
-        mockGitApiGetAllCommits(gitHubAPI, repositoryId, accessToken, commit1, commit2);
-
-        // When
-        List<CommitInternalDTO> allCommits = sut.getAllCommits(userId, repositoryId, defaultBranch);
-
-        // Then
-        assertThat(allCommits, equalTo(List.of(commit1, commit2)));
-    }
-
-    @Test
-    void getAllCommits_GitLabAuthorizationRepoExists_shouldCallGitLabApi()
-        throws NotFoundException, IOException, GitLabApiException {
-        // Given
-        long userId = Randoms.getLong();
-        long repositoryId = Randoms.getLong();
-
-        String accessToken = prepareUserService(userId, AuthenticationProvider.GITLAB);
-
-        // When
-        sut.getAllCommits(userId, repositoryId, defaultBranch);
-
-        // Then
-        verify(gitLabAPI).getAllCommits(accessToken, repositoryId, defaultBranch);
-    }
-
-    @Test
-    void getAllCommits_GitLabAuthorizationRepoExistsAndNoCommits_shouldReturnEmptyList()
-        throws NotFoundException, IOException, GitLabApiException {
-        // Given
-        long userId = Randoms.getLong();
-        long repositoryId = Randoms.getLong();
-
-        String accessToken = prepareUserService(userId, AuthenticationProvider.GITLAB);
-        mockGitApiGetAllCommits(gitLabAPI, repositoryId, accessToken);
-
-        // When
-        List<CommitInternalDTO> allCommits = sut.getAllCommits(userId, repositoryId, defaultBranch);
-
-        // Then
-        assertThat(allCommits, empty());
-    }
-
-    @Test
-    void getAllCommits_GitLabAuthorizationRepoExistsAndOneCommits_shouldReturnListWithOneCommit()
-        throws NotFoundException, IOException, GitLabApiException {
-        // Given
-        long userId = Randoms.getLong();
-        long repositoryId = Randoms.getLong();
-        CommitInternalDTO commit = mock(CommitInternalDTO.class);
-
-        String accessToken = prepareUserService(userId, AuthenticationProvider.GITLAB);
-        mockGitApiGetAllCommits(gitLabAPI, repositoryId, accessToken, commit);
-
-        // When
-        List<CommitInternalDTO> allCommits = sut.getAllCommits(userId, repositoryId, defaultBranch);
-
-        // Then
-        assertThat(allCommits, equalTo(List.of(commit)));
-    }
-
-    @Test
-    void getAllCommits_GitLabAuthorizationRepoExistsAndTwoCommits_shouldReturnListWithTwoCommits()
-        throws NotFoundException, IOException, GitLabApiException {
-        // Given
-        long userId = Randoms.getLong();
-        long repositoryId = Randoms.getLong();
-        CommitInternalDTO commit1 = mock(CommitInternalDTO.class);
-        CommitInternalDTO commit2 = mock(CommitInternalDTO.class);
-
-        String accessToken = prepareUserService(userId, AuthenticationProvider.GITLAB);
-        mockGitApiGetAllCommits(gitLabAPI, repositoryId, accessToken, commit1, commit2);
-
-        // When
-        List<CommitInternalDTO> allCommits = sut.getAllCommits(userId, repositoryId, defaultBranch);
-
-        // Then
-        assertThat(allCommits, equalTo(List.of(commit1, commit2)));
-    }
-
-    @Test
-    void getAllCommitters_GitLabAuthorizationRepoExists_shouldCallGitLabApi()
-        throws NotFoundException, IOException, GitLabApiException {
-        // Given
-        long userId = Randoms.getLong();
-        long repositoryId = Randoms.getLong();
-
-        String accessToken = prepareUserService(userId, AuthenticationProvider.GITLAB);
-
-        // When
-        sut.getAllCommits(userId, repositoryId, defaultBranch);
-
-        // Then
-        verify(gitLabAPI).getAllCommits(accessToken, repositoryId, defaultBranch);
-    }
-
-    @Test
-    void getAllCommitters_GitLabAuthorizationRepoExistsAndNoCommits_shouldReturnEmptyList()
-        throws NotFoundException, IOException, GitLabApiException {
-        // Given
-        long userId = Randoms.getLong();
-        long repositoryId = Randoms.getLong();
-
-        String accessToken = prepareUserService(userId, AuthenticationProvider.GITLAB);
-        mockGitApiGetAllCommits(gitLabAPI, repositoryId, accessToken);
-
-        // When
-        Set<CommitterInternalDTO> result = sut.getAllCommitters(userId, repositoryId, defaultBranch);
-
-        // Then
-        assertThat(result, empty());
-    }
-
-    @Test
-    void getAllCommitters_GitLabAuthorizationRepoExistsAndOneCommits_shouldReturnListWithOneItem()
-        throws NotFoundException, IOException, GitLabApiException {
-        // Given
-        long userId = Randoms.getLong();
-        long repositoryId = Randoms.getLong();
-        CommitInternalDTO commit = mockCommitInternalDTO();
-        CommitterInternalDTO committerInternalDTO = new CommitterInternalDTO(commit.getAuthor());
-
-        String accessToken = prepareUserService(userId, AuthenticationProvider.GITLAB);
-        mockGitApiGetAllCommits(gitLabAPI, repositoryId, accessToken, commit);
-
-        // When
-        Set<CommitterInternalDTO> result = sut.getAllCommitters(userId, repositoryId, defaultBranch);
-
-        // Then
-        assertThat(result, containsInAnyOrder(committerInternalDTO));
-    }
-
-    @Test
-    void getAllCommitters_GitLabAuthorizationRepoExistsAndTwoCommits_shouldReturnListWithTwoItems()
-        throws NotFoundException, IOException, GitLabApiException {
-        // Given
-        long userId = Randoms.getLong();
-        long repositoryId = Randoms.getLong();
-        CommitInternalDTO commit1 = mockCommitInternalDTO();
-        CommitInternalDTO commit2 = mockCommitInternalDTO();
-        CommitterInternalDTO committerInternalDTO1 = new CommitterInternalDTO(commit1.getAuthor());
-        CommitterInternalDTO committerInternalDTO2 = new CommitterInternalDTO(commit2.getAuthor());
-
-        String accessToken = prepareUserService(userId, AuthenticationProvider.GITLAB);
-        mockGitApiGetAllCommits(gitLabAPI, repositoryId, accessToken, commit1, commit2);
-
-        // When
-        Set<CommitterInternalDTO> result = sut.getAllCommitters(userId, repositoryId, defaultBranch);
-
-        // Then
-        assertThat(result, containsInAnyOrder(committerInternalDTO1, committerInternalDTO2));
-    }
-
-    @Test
-    void getAllCommitters_GitLabAuthorizationRepoExistsAndTwoCommitsWithSameCommitter_shouldReturnListWithOneItem()
-        throws NotFoundException, IOException, GitLabApiException {
-        // Given
-        long userId = Randoms.getLong();
-        long repositoryId = Randoms.getLong();
-        String name = Randoms.alpha();
-        CommitInternalDTO commit1 = mockCommitInternalDTO(name);
-        CommitInternalDTO commit2 = mockCommitInternalDTO(name);
-        CommitterInternalDTO committerInternalDTO1 = new CommitterInternalDTO(commit1.getAuthor());
-
-        String accessToken = prepareUserService(userId, AuthenticationProvider.GITLAB);
-        mockGitApiGetAllCommits(gitLabAPI, repositoryId, accessToken, commit1, commit2);
-
-        // When
-        Set<CommitterInternalDTO> result = sut.getAllCommitters(userId, repositoryId, defaultBranch);
-
-        // Then
-        assertThat(result, equalTo(Set.of(committerInternalDTO1)));
-    }
-
-    @Test
-    void getAllCommitters_GitHubAuthorizationRepoExists_shouldCallGitLabApi()
-        throws NotFoundException, IOException, GitLabApiException {
-        // Given
-        long userId = Randoms.getLong();
-        long repositoryId = Randoms.getLong();
-
-        String accessToken = prepareUserService(userId, AuthenticationProvider.GITHUB);
-
-        // When
-        sut.getAllCommits(userId, repositoryId, defaultBranch);
-
-        // Then
-        verify(gitHubAPI).getAllCommits(accessToken, repositoryId, defaultBranch);
-    }
-
-    @Test
-    void getAllCommitters_GitHubAuthorizationRepoExistsAndNoCommits_shouldReturnEmptyList()
-        throws NotFoundException, IOException, GitLabApiException {
-        // Given
-        long userId = Randoms.getLong();
-        long repositoryId = Randoms.getLong();
-
-        String accessToken = prepareUserService(userId, AuthenticationProvider.GITHUB);
-        mockGitApiGetAllCommits(gitHubAPI, repositoryId, accessToken);
-
-        // When
-        Set<CommitterInternalDTO> result = sut.getAllCommitters(userId, repositoryId, defaultBranch);
-
-        // Then
-        assertThat(result, empty());
-    }
-
-    @Test
-    void getAllCommitters_GitHubAuthorizationRepoExistsAndOneCommits_shouldReturnListWithOneItem()
-        throws NotFoundException, IOException, GitLabApiException {
-        // Given
-        long userId = Randoms.getLong();
-        long repositoryId = Randoms.getLong();
-        CommitInternalDTO commit = mockCommitInternalDTO();
-        CommitterInternalDTO committerInternalDTO = new CommitterInternalDTO(commit.getAuthor());
-
-        String accessToken = prepareUserService(userId, AuthenticationProvider.GITHUB);
-        mockGitApiGetAllCommits(gitHubAPI, repositoryId, accessToken, commit);
-
-        // When
-        Set<CommitterInternalDTO> result = sut.getAllCommitters(userId, repositoryId, defaultBranch);
-
-        // Then
-        assertThat(result, containsInAnyOrder(committerInternalDTO));
-    }
-
-    @Test
-    void getAllCommitters_GitHubAuthorizationRepoExistsAndTwoCommits_shouldReturnListWithTwoItems()
-        throws NotFoundException, IOException, GitLabApiException {
-        // Given
-        long userId = Randoms.getLong();
-        long repositoryId = Randoms.getLong();
-        CommitInternalDTO commit1 = mockCommitInternalDTO();
-        CommitInternalDTO commit2 = mockCommitInternalDTO();
-        CommitterInternalDTO committerInternalDTO1 = new CommitterInternalDTO(commit1.getAuthor());
-        CommitterInternalDTO committerInternalDTO2 = new CommitterInternalDTO(commit2.getAuthor());
-
-        String accessToken = prepareUserService(userId, AuthenticationProvider.GITHUB);
-        mockGitApiGetAllCommits(gitHubAPI, repositoryId, accessToken, commit1, commit2);
-
-        // When
-        Set<CommitterInternalDTO> result = sut.getAllCommitters(userId, repositoryId, defaultBranch);
-
-        // Then
-        assertThat(result, containsInAnyOrder(committerInternalDTO1, committerInternalDTO2));
-    }
-
-    @Test
-    void getAllCommitters_GitHubAuthorizationRepoExistsAndTwoCommitsWithSameCommitter_shouldReturnListWithOneItem()
-        throws NotFoundException, IOException, GitLabApiException {
-        // Given
-        long userId = Randoms.getLong();
-        long repositoryId = Randoms.getLong();
-        String name = Randoms.alpha();
-        CommitInternalDTO commit1 = mockCommitInternalDTO(name);
-        CommitInternalDTO commit2 = mockCommitInternalDTO(name);
-        CommitterInternalDTO committerInternalDTO1 = new CommitterInternalDTO(commit1.getAuthor());
-
-        String accessToken = prepareUserService(userId, AuthenticationProvider.GITHUB);
-        mockGitApiGetAllCommits(gitHubAPI, repositoryId, accessToken, commit1, commit2);
-
-        // When
-        Set<CommitterInternalDTO> result = sut.getAllCommitters(userId, repositoryId, defaultBranch);
-
-        // Then
-        assertThat(result, equalTo(Set.of(committerInternalDTO1)));
-    }
-
-    private CommitInternalDTO mockCommitInternalDTO(String name) {
-        CommitInternalDTO commit = mock(CommitInternalDTO.class);
-        when(commit.getAuthor()).thenReturn(name);
-        return commit;
-    }
-
-    private CommitInternalDTO mockCommitInternalDTO() {
-        CommitInternalDTO commit = mock(CommitInternalDTO.class);
-        when(commit.getAuthor()).thenReturn(Randoms.alpha());
-        return commit;
-    }
-
-    private void mockGitApiGetAllCommits(GitAPI gitHubAPI, long repositoryId, String accessToken,
-                                         CommitInternalDTO... commits)
-        throws IOException, GitLabApiException {
-        when(gitHubAPI.getAllCommits(accessToken, repositoryId, defaultBranch))
-            .thenReturn(Arrays.stream(commits).toList());
-    }
-
-    private String prepareUserService(long userId, AuthenticationProvider authenticationProvider)
-        throws NotFoundException {
-        User user = mock(User.class);
-        String accessToken = Randoms.alpha();
-        when(userService.getUser(userId)).thenReturn(user);
-        when(user.getAccessToken()).thenReturn(accessToken);
-        when(user.getAuthenticationProvider()).thenReturn(authenticationProvider);
-        return accessToken;
-    }
-
-    private NotSavedRepositoryInternalDTO getRandomNotSavedRepositoryInternalDTO(long repositoryId) {
-        return NotSavedRepositoryInternalDTO.builder()
-                                            .platformId(repositoryId)
-                                            .name(Randoms.alpha())
-                                            .url(Randoms.alpha())
-                                            .build();
-    }
-
-    private void mockGitApiGetRepositoryById(GitAPI gitApi, String accessToken, long repositoryId,
-                                             NotSavedRepositoryInternalDTO notSavedRepositoryInternalDTO)
-        throws GitLabApiException, IOException {
-        when(gitApi.getRepositoryById(accessToken, repositoryId)).thenReturn(notSavedRepositoryInternalDTO);
+    private void prepareRepositoryFactory(Repository repository) {
+        when(repositoryFactory.create()).thenReturn(repository);
     }
 }

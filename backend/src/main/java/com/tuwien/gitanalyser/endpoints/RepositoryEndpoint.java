@@ -4,10 +4,12 @@ import com.tuwien.gitanalyser.endpoints.dtos.BranchDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.CommitDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.CommitterDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.NotSavedRepositoryDTO;
+import com.tuwien.gitanalyser.endpoints.dtos.assignment.CreateAssignmentDTO;
 import com.tuwien.gitanalyser.entity.mapper.BranchMapper;
 import com.tuwien.gitanalyser.entity.mapper.CommitMapper;
 import com.tuwien.gitanalyser.entity.mapper.CommitterMapper;
 import com.tuwien.gitanalyser.entity.mapper.NotSavedRepositoryMapper;
+import com.tuwien.gitanalyser.service.GitService;
 import com.tuwien.gitanalyser.service.RepositoryService;
 import org.gitlab4j.api.GitLabApiException;
 import org.slf4j.Logger;
@@ -15,6 +17,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -28,18 +32,21 @@ public class RepositoryEndpoint extends BaseEndpoint {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RepositoryEndpoint.class);
     private final RepositoryService repositoryService;
+
+    private final GitService gitService;
     private final NotSavedRepositoryMapper notSavedRepositoryMapper;
     private final BranchMapper branchMapper;
     private final CommitMapper commitsMapper;
-
     private final CommitterMapper committerMapper;
 
     public RepositoryEndpoint(final RepositoryService repositoryService,
+                              final GitService gitService,
                               final NotSavedRepositoryMapper notSavedRepositoryMapper,
                               final BranchMapper branchMapper,
                               final CommitMapper commitMapper,
                               final CommitterMapper committerMapper) {
         this.repositoryService = repositoryService;
+        this.gitService = gitService;
         this.notSavedRepositoryMapper = notSavedRepositoryMapper;
         this.branchMapper = branchMapper;
         this.commitsMapper = commitMapper;
@@ -50,7 +57,7 @@ public class RepositoryEndpoint extends BaseEndpoint {
     public List<NotSavedRepositoryDTO> getAllRepositories(final Authentication authentication) {
         LOGGER.info("GET /repository - get all repositories");
         return notSavedRepositoryMapper.dtosToDTOs(
-            repositoryService.getAllRepositories(getUserId(authentication))
+            gitService.getAllRepositories(getUserId(authentication))
         );
     }
 
@@ -61,7 +68,7 @@ public class RepositoryEndpoint extends BaseEndpoint {
         LOGGER.info("GET /repository/{id} - get repository by platform id {}", platformId);
         try {
             return notSavedRepositoryMapper.dtoToDTO(
-                repositoryService.getRepositoryById(getUserId(authentication), platformId)
+                gitService.getRepositoryById(getUserId(authentication), platformId)
             );
         } catch (GitLabApiException | IOException e) {
             throw new RuntimeException(e);
@@ -74,7 +81,7 @@ public class RepositoryEndpoint extends BaseEndpoint {
         final @PathVariable Long platformId) {
         LOGGER.info("GET /repository/{id}/branch - get repository by platform id {}", platformId);
         try {
-            return branchMapper.dtosToDTOs(repositoryService.getAllBranches(getUserId(authentication), platformId));
+            return branchMapper.dtosToDTOs(gitService.getAllBranches(getUserId(authentication), platformId));
         } catch (GitLabApiException | IOException e) {
             throw new RuntimeException(e);
         }
@@ -89,7 +96,7 @@ public class RepositoryEndpoint extends BaseEndpoint {
                     platformId,
                     branch);
         try {
-            return commitsMapper.dtosToDTOs(repositoryService.getAllCommits(getUserId(authentication),
+            return commitsMapper.dtosToDTOs(gitService.getAllCommits(getUserId(authentication),
                                                                             platformId, branch));
         } catch (GitLabApiException | IOException e) {
             LOGGER.error("Error while getting commits", e);
@@ -105,10 +112,21 @@ public class RepositoryEndpoint extends BaseEndpoint {
         LOGGER.info("GET /repository/{id}/committers - get repository by platform id {} and branch {}",
                     platformId, branch);
         try {
-            return committerMapper.dtosToDTOs(repositoryService.getAllCommitters(getUserId(authentication),
+            return committerMapper.dtosToDTOs(gitService.getAllCommitters(getUserId(authentication),
                                                                                  platformId, branch));
         } catch (GitLabApiException | IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @PostMapping("/{platformId}/assignment")
+    public void assignCommitters(final Authentication authentication,
+                                                final @PathVariable Long platformId,
+                                                final @RequestBody CreateAssignmentDTO createAssignmentDTO) {
+        LOGGER.info("POST /repository/{id}/assignment - assign committer to repository by platform id {} "
+                        + "values {}", platformId, createAssignmentDTO.toString());
+
+        repositoryService.assignCommitter(getUserId(authentication), platformId,
+                                                              createAssignmentDTO);
     }
 }

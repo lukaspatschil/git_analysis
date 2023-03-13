@@ -4,6 +4,7 @@ import com.tuwien.gitanalyser.endpoints.dtos.BranchDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.CommitDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.CommitterDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.NotSavedRepositoryDTO;
+import com.tuwien.gitanalyser.endpoints.dtos.assignment.CreateAssignmentDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.BranchInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitterInternalDTO;
@@ -12,6 +13,7 @@ import com.tuwien.gitanalyser.entity.mapper.BranchMapper;
 import com.tuwien.gitanalyser.entity.mapper.CommitMapper;
 import com.tuwien.gitanalyser.entity.mapper.CommitterMapper;
 import com.tuwien.gitanalyser.entity.mapper.NotSavedRepositoryMapper;
+import com.tuwien.gitanalyser.service.GitService;
 import com.tuwien.gitanalyser.service.RepositoryService;
 import org.gitlab4j.api.GitLabApiException;
 import org.junit.jupiter.api.BeforeEach;
@@ -77,19 +79,23 @@ class RepositoryEndpointTest {
     private BranchMapper branchMapper;
     private CommitMapper commitMapper;
     private CommitterMapper committerMapper;
+    private GitService gitService;
 
     @BeforeEach
     void setUp() {
         repositoryService = mock(RepositoryService.class);
+        gitService = mock(GitService.class);
         notSavedRepositoryMapper = mock(NotSavedRepositoryMapper.class);
         branchMapper = mock(BranchMapper.class);
         commitMapper = mock(CommitMapper.class);
         committerMapper = mock(CommitterMapper.class);
         sut = new RepositoryEndpoint(repositoryService,
+                                     gitService,
                                      notSavedRepositoryMapper,
                                      branchMapper,
                                      commitMapper,
-                                     committerMapper);
+                                     committerMapper
+        );
     }
 
     @Test
@@ -104,7 +110,7 @@ class RepositoryEndpointTest {
         sut.getAllRepositories(authentication);
 
         // Then
-        verify(repositoryService).getAllRepositories(userId);
+        verify(gitService).getAllRepositories(userId);
     }
 
     @Test
@@ -115,7 +121,7 @@ class RepositoryEndpointTest {
         Authentication authentication = mock(Authentication.class);
 
         mockUserId(userId, authentication);
-        when(repositoryService.getAllRepositories(userId)).thenReturn(List.of(
+        when(gitService.getAllRepositories(userId)).thenReturn(List.of(
             NOT_SAVED_REPOSITORY_INTERNAL_DTO_1,
             NOT_SAVED_REPOSITORY_INTERNAL_DTO_2,
             NOT_SAVED_REPOSITORY_INTERNAL_DTO_3));
@@ -146,7 +152,7 @@ class RepositoryEndpointTest {
         Authentication authentication = mock(Authentication.class);
 
         mockUserId(userId, authentication);
-        when(repositoryService.getAllRepositories(userId)).thenReturn(List.of());
+        when(gitService.getAllRepositories(userId)).thenReturn(List.of());
 
         // When
         List<NotSavedRepositoryDTO> repositoryList = sut.getAllRepositories(authentication);
@@ -168,7 +174,7 @@ class RepositoryEndpointTest {
         sut.getRepositoryById(authentication, repositoryId);
 
         // Then
-        verify(repositoryService).getRepositoryById(Long.parseLong(authentication.getName()), repositoryId);
+        verify(gitService).getRepositoryById(Long.parseLong(authentication.getName()), repositoryId);
     }
 
     @Test
@@ -180,7 +186,7 @@ class RepositoryEndpointTest {
         Authentication authentication = mock(Authentication.class);
 
         mockUserId(userId, authentication);
-        when(repositoryService.getRepositoryById(userId, repositoryId)).thenReturn(NOT_SAVED_REPOSITORY_INTERNAL_DTO_1);
+        when(gitService.getRepositoryById(userId, repositoryId)).thenReturn(NOT_SAVED_REPOSITORY_INTERNAL_DTO_1);
         when(notSavedRepositoryMapper.dtoToDTO(NOT_SAVED_REPOSITORY_INTERNAL_DTO_1)).thenReturn(
             NOT_SAVED_REPOSITORY_DTO_1);
 
@@ -205,7 +211,7 @@ class RepositoryEndpointTest {
         sut.getBranchesByRepositoryId(authentication, repositoryId);
 
         // Then
-        verify(repositoryService).getAllBranches(userId, repositoryId);
+        verify(gitService).getAllBranches(userId, repositoryId);
     }
 
     @Test
@@ -217,7 +223,7 @@ class RepositoryEndpointTest {
         Authentication authentication = mock(Authentication.class);
 
         mockUserId(userId, authentication);
-        when(repositoryService.getAllBranches(userId, repositoryId)).thenReturn(List.of(BRANCH_INTERNAL_DTO_1));
+        when(gitService.getAllBranches(userId, repositoryId)).thenReturn(List.of(BRANCH_INTERNAL_DTO_1));
         when(branchMapper.dtosToDTOs(List.of(BRANCH_INTERNAL_DTO_1))).thenReturn(List.of(BRANCH_DTO_1));
 
         // When
@@ -236,7 +242,7 @@ class RepositoryEndpointTest {
         Authentication authentication = mock(Authentication.class);
 
         mockUserId(userId, authentication);
-        when(repositoryService.getAllBranches(userId, repositoryId)).thenReturn(List.of(
+        when(gitService.getAllBranches(userId, repositoryId)).thenReturn(List.of(
             BRANCH_INTERNAL_DTO_1, BRANCH_INTERNAL_DTO_2));
         when(branchMapper.dtosToDTOs(List.of(
             BRANCH_INTERNAL_DTO_1,
@@ -266,7 +272,7 @@ class RepositoryEndpointTest {
         sut.getCommitsByRepositoryId(authentication, repositoryId, defaultBranch);
 
         // Then
-        verify(repositoryService).getAllCommits(userId, repositoryId, defaultBranch);
+        verify(gitService).getAllCommits(userId, repositoryId, defaultBranch);
     }
 
     @Test
@@ -280,7 +286,7 @@ class RepositoryEndpointTest {
         mockUserId(userId, authentication);
         CommitInternalDTO commit = mock(CommitInternalDTO.class);
         CommitDTO commitDTO = mock(CommitDTO.class);
-        when(repositoryService.getAllCommits(userId, repositoryId, defaultBranch)).thenReturn(List.of(commit));
+        when(gitService.getAllCommits(userId, repositoryId, defaultBranch)).thenReturn(List.of(commit));
         when(commitMapper.dtosToDTOs(List.of(commit))).thenReturn(List.of(commitDTO));
 
         // When
@@ -299,7 +305,7 @@ class RepositoryEndpointTest {
         Authentication authentication = mock(Authentication.class);
 
         mockUserId(userId, authentication);
-        when(repositoryService.getAllCommits(userId, repositoryId, defaultBranch)).thenReturn(List.of(
+        when(gitService.getAllCommits(userId, repositoryId, defaultBranch)).thenReturn(List.of(
             commit1, commit2));
         when(commitMapper.dtosToDTOs(List.of(
             commit1,
@@ -329,7 +335,7 @@ class RepositoryEndpointTest {
         sut.getCommittersByRepositoryId(authentication, repositoryId, defaultBranch);
 
         // Then
-        verify(repositoryService).getAllCommitters(userId, repositoryId, defaultBranch);
+        verify(gitService).getAllCommitters(userId, repositoryId, defaultBranch);
     }
 
     @Test
@@ -352,9 +358,28 @@ class RepositoryEndpointTest {
         assertThat(result, containsInAnyOrder(COMMITTER_DTO_1));
     }
 
+    @Test
+    void assignCommitterByRepositoryId_givenCommitter_returnsSavedItem() {
+        // Given
+        long repositoryId = Randoms.getLong();
+        long userId = Randoms.getLong();
+
+        Authentication authentication = mock(Authentication.class);
+        mockUserId(userId, authentication);
+
+        CreateAssignmentDTO createAssignmentDTO = mock(CreateAssignmentDTO.class);
+
+        // When
+        sut.assignCommitters(authentication, repositoryId, createAssignmentDTO);
+
+        // Then
+        verify(repositoryService).assignCommitter(userId, repositoryId, createAssignmentDTO);
+    }
+
     private void mockGetAllCommitters(long repositoryId, long userId, String branchName,
-                                      Set<CommitterInternalDTO> committerInternalDto) throws GitLabApiException, IOException {
-        when(repositoryService.getAllCommitters(userId, repositoryId, branchName)).thenReturn(committerInternalDto);
+                                      Set<CommitterInternalDTO> committerInternalDto)
+        throws GitLabApiException, IOException {
+        when(gitService.getAllCommitters(userId, repositoryId, branchName)).thenReturn(committerInternalDto);
     }
 
     @Test
@@ -390,4 +415,5 @@ class RepositoryEndpointTest {
     private void mockUserId(long userId, Authentication authentication) {
         when(authentication.getName()).thenReturn(String.valueOf(userId));
     }
+
 }

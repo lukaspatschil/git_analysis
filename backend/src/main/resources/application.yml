@@ -3,7 +3,7 @@ spring:
     allow-circular-references: true
     allow-bean-definition-overriding: true
   datasource:
-    url: jdbc:h2:file:./database/backend;AUTO_SERVER=TRUE;MODE=MySQL;NON_KEYWORDS=USER
+    url: jdbc:h2:file:./database/backend;AUTO_SERVER=TRUE;MODE=MySQL;NON_KEYWORDS=USER,KEY
     username: admin
     password: password
     driverClassName: org.h2.Driver

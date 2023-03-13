@@ -1,4 +1,4 @@
-package com.tuwien.gitanalyser.service.APICalls.factory;
+package com.tuwien.gitanalyser.service.apiCalls.factory;
 
 import com.tuwien.gitanalyser.security.AuthenticationConstants;
 import com.tuwien.gitanalyser.service.GitAPIFactory;

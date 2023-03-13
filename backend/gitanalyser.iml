@@ -22,7 +22,7 @@
         <setting name="validation-enabled" value="true" />
         <setting name="provider-name" value="Hibernate" />
         <datasource-mapping>
-          <factory-entry name="entityManagerFactory" value="e288cfbc-46ec-4749-9ba3-be40a4091867" />
+          <factory-entry name="entityManagerFactory" value="b6a92ad2-dd7e-454f-860b-d0aa6361cf5e" />
         </datasource-mapping>
         <naming-strategy-map />
       </configuration>
@@ -353,5 +353,6 @@
     <orderEntry type="library" scope="TEST" name="Maven: org.apache.groovy:groovy-json:4.0.6" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: io.rest-assured:rest-assured-common:5.3.0" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: io.rest-assured:xml-path:5.3.0" level="project" />
+    <orderEntry type="library" scope="TEST" name="Maven: org.hobsoft.hamcrest:hamcrest-compose:0.4.0" level="project" />
   </component>
 </module>
