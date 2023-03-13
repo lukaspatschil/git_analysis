@@ -72,17 +72,37 @@ class UserServiceImplTest {
     @EnumSource(AuthenticationProvider.class)
     public void processOAuthPostLogin_nonExistingUser_createsNewUser(AuthenticationProvider authenticationProvider) {
         // Given
-        int platformId = 1;
+        int platformId = Randoms.integer();
         String username = "John Doe";
         User expectedUser = createUser(authenticationProvider, platformId, username);
 
-        when(userRepository.findByAuthenticationProviderAndPlatformId(authenticationProvider, platformId)).thenReturn(Optional.empty());
+        when(userRepository.findByAuthenticationProviderAndPlatformId(authenticationProvider, platformId)).thenReturn(
+            Optional.empty());
 
         // When
         sut.processOAuthPostLogin(createAuth2User(authenticationProvider, platformId, username), null);
 
         // Then
         verify(userRepository).save(expectedUser);
+    }
+
+    @ParameterizedTest
+    @EnumSource(AuthenticationProvider.class)
+    public void processOAuthPostLogin_userExists_returnsUser(AuthenticationProvider authenticationProvider) {
+        // Given
+        int platformId = Randoms.integer();
+        String username = "John Doe";
+        User expectedUser = createUser(authenticationProvider, platformId, username);
+
+        when(userRepository.findByAuthenticationProviderAndPlatformId(authenticationProvider, platformId))
+            .thenReturn(Optional.of(expectedUser));
+
+        // When
+        User user = sut.processOAuthPostLogin(createAuth2User(authenticationProvider, platformId, username), null);
+
+        // Then
+        assertThat(user, equalTo(expectedUser));
+
     }
 
     private BasicAuth2User createAuth2User(AuthenticationProvider authenticationProvider, int platformId,

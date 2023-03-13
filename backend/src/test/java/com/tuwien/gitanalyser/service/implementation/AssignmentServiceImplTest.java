@@ -26,7 +26,8 @@ class AssignmentServiceImplTest {
     void setUp() {
         assignmentRepository = mock(AssignmentRepository.class);
         assignmentFactory = mock(AssignmentFactory.class);
-        sut = new AssignmentServiceImpl(assignmentRepository, assignmentFactory);
+        sut = new AssignmentServiceImpl(assignmentRepository,
+                                        assignmentFactory);
     }
 
     @Test
@@ -85,4 +86,5 @@ class AssignmentServiceImplTest {
         when(assignmentFactory.create()).thenReturn(assignment);
         return assignment;
     }
+
 }

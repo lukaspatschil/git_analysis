@@ -25,11 +25,6 @@ public class Randoms {
         return random.nextInt();
     }
 
-    public static Integer integer(int min, int max){
-        Random random = new Random();
-        return random.nextInt(min, max);
-    }
-
     public static long getLong(){
         Random random = new Random();
         long value = random.nextLong();
