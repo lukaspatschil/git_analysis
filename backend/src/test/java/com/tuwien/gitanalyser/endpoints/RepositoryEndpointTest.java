@@ -4,11 +4,14 @@ import com.tuwien.gitanalyser.endpoints.dtos.BranchDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.CommitDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.CommitterDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.NotSavedRepositoryDTO;
+import com.tuwien.gitanalyser.endpoints.dtos.assignment.AssignmentDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.assignment.CreateAssignmentDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.BranchInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitterInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.NotSavedRepositoryInternalDTO;
+import com.tuwien.gitanalyser.entity.Assignment;
+import com.tuwien.gitanalyser.entity.mapper.AssignmentMapper;
 import com.tuwien.gitanalyser.entity.mapper.BranchMapper;
 import com.tuwien.gitanalyser.entity.mapper.CommitMapper;
 import com.tuwien.gitanalyser.entity.mapper.CommitterMapper;
@@ -74,12 +77,13 @@ class RepositoryEndpointTest {
     private final CommitInternalDTO commit1 = mock(CommitInternalDTO.class);
     private final CommitInternalDTO commit2 = mock(CommitInternalDTO.class);
     private RepositoryService repositoryService;
+    private GitService gitService;
     private NotSavedRepositoryMapper notSavedRepositoryMapper;
     private RepositoryEndpoint sut;
     private BranchMapper branchMapper;
     private CommitMapper commitMapper;
     private CommitterMapper committerMapper;
-    private GitService gitService;
+    private AssignmentMapper assignmentMapper;
 
     @BeforeEach
     void setUp() {
@@ -89,13 +93,14 @@ class RepositoryEndpointTest {
         branchMapper = mock(BranchMapper.class);
         commitMapper = mock(CommitMapper.class);
         committerMapper = mock(CommitterMapper.class);
+        assignmentMapper = mock(AssignmentMapper.class);
         sut = new RepositoryEndpoint(repositoryService,
                                      gitService,
                                      notSavedRepositoryMapper,
                                      branchMapper,
                                      commitMapper,
-                                     committerMapper
-        );
+                                     committerMapper,
+                                     assignmentMapper);
     }
 
     @Test
@@ -376,12 +381,6 @@ class RepositoryEndpointTest {
         verify(repositoryService).assignCommitter(userId, repositoryId, createAssignmentDTO);
     }
 
-    private void mockGetAllCommitters(long repositoryId, long userId, String branchName,
-                                      Set<CommitterInternalDTO> committerInternalDto)
-        throws GitLabApiException, IOException {
-        when(gitService.getAllCommitters(userId, repositoryId, branchName)).thenReturn(committerInternalDto);
-    }
-
     @Test
     void getCommittersByRepositoryId_givenTwoCommitters_returnsListWithTwoItems() throws GitLabApiException,
                                                                                          IOException {
@@ -405,6 +404,88 @@ class RepositoryEndpointTest {
 
         // Then
         assertThat(result, containsInAnyOrder(COMMITTER_DTO_1, COMMITTER_DTO_2));
+    }
+
+    @Test
+    void getAssignments_always_shouldCallGetAssignments() {
+        // Given
+        long userId = Randoms.getLong();
+        long platformId = Randoms.getLong();
+
+        Authentication authentication = mock(Authentication.class);
+        mockUserId(userId, authentication);
+
+        // When
+        sut.getAssignments(authentication, platformId);
+
+        // Then
+        verify(repositoryService).getAssignments(userId, platformId);
+    }
+
+    @Test
+    void getAssignments_assignmentServiceReturnsEmptyList_shouldReturnEmptyList() {
+        // Given
+        long userId = Randoms.getLong();
+        long platformId = Randoms.getLong();
+
+        Authentication authentication = mock(Authentication.class);
+        mockUserId(userId, authentication);
+        when(repositoryService.getAssignments(userId, platformId)).thenReturn(List.of());
+
+        // When
+        List<AssignmentDTO> result = sut.getAssignments(authentication, platformId);
+
+        // Then
+        assertThat(result, equalTo(List.of()));
+    }
+
+    @Test
+    void getAssignments_assignmentServiceReturnsSingleAssignment_shouldReturnSingleAssignmentDTO() {
+        // Given
+        long userId = Randoms.getLong();
+        long platformId = Randoms.getLong();
+
+        Authentication authentication = mock(Authentication.class);
+        Assignment assignment = mock(Assignment.class);
+        AssignmentDTO mapperAssignment = mock(AssignmentDTO.class);
+        mockUserId(userId, authentication);
+        when(repositoryService.getAssignments(userId, platformId)).thenReturn(List.of(assignment));
+        when(assignmentMapper.entitiesToDTO(List.of(assignment))).thenReturn(List.of(mapperAssignment));
+
+        // When
+        List<AssignmentDTO> result = sut.getAssignments(authentication, platformId);
+
+        // Then
+        assertThat(result, containsInAnyOrder(mapperAssignment));
+    }
+
+    @Test
+    void getAssignments_assignmentServiceReturnsMultipleAssignments_shouldReturnMultipleAssignmentDTOs() {
+        // Given
+        long userId = Randoms.getLong();
+        long platformId = Randoms.getLong();
+
+        Authentication authentication = mock(Authentication.class);
+        Assignment assignment1 = mock(Assignment.class);
+        Assignment assignment2 = mock(Assignment.class);
+        AssignmentDTO mapperAssignment1 = mock(AssignmentDTO.class);
+        AssignmentDTO mapperAssignment2 = mock(AssignmentDTO.class);
+        mockUserId(userId, authentication);
+        when(repositoryService.getAssignments(userId, platformId)).thenReturn(List.of(assignment1, assignment2));
+        when(assignmentMapper.entitiesToDTO(List.of(assignment1, assignment2)))
+            .thenReturn(List.of(mapperAssignment1, mapperAssignment2));
+
+        // When
+        List<AssignmentDTO> result = sut.getAssignments(authentication, platformId);
+
+        // Then
+        assertThat(result, containsInAnyOrder(mapperAssignment1, mapperAssignment2));
+    }
+
+    private void mockGetAllCommitters(long repositoryId, long userId, String branchName,
+                                      Set<CommitterInternalDTO> committerInternalDto)
+        throws GitLabApiException, IOException {
+        when(gitService.getAllCommitters(userId, repositoryId, branchName)).thenReturn(committerInternalDto);
     }
 
     private void mockCommitterMapper(Set<CommitterInternalDTO> committerInternalDto, List<CommitterDTO> committerDto) {

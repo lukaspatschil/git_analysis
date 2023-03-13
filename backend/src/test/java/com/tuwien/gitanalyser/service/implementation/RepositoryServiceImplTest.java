@@ -19,8 +19,12 @@ import org.junit.jupiter.api.Test;
 import utils.CreateAssignmentDTOs;
 import utils.Randoms;
 
+import java.util.List;
 import java.util.Optional;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -145,6 +149,84 @@ class RepositoryServiceImplTest {
         verify(subAssignmentService).addSubAssignment(assignment, subAssignment);
     }
 
+    @Test
+    void getAssignments_userIsNotAllowedToAccess_shouldThrowExceptionForbiddenException() {
+        // Given
+        long userId = Randoms.getLong();
+        long platformId = Randoms.getLong();
+
+        // When + Then
+        assertThrows(ForbiddenException.class, () -> sut.getAssignments(userId, platformId));
+    }
+
+    @Test
+    void getAssignments_userIsAllowedToAccessAndRepositoryExistsAndAssignmentExists_returnsAssignment() {
+        // Given
+        long platformId = Randoms.getLong();
+
+        User user = prepareUserService();
+        prepareRepositoryAvailable(user, platformId);
+
+        Assignment assignment = mock(Assignment.class);
+        prepareExistingRepository(List.of(assignment), platformId, user);
+
+        // When
+        List<Assignment> result = sut.getAssignments(user.getId(), platformId);
+
+        // Then
+        assertThat(result, containsInAnyOrder(assignment));
+    }
+
+    @Test
+    void getAssignments_userIsAllowedToAccessAndRepositoryExistsAndMultipleAssignmentExists_returnsAssignments() {
+        // Given
+        long platformId = Randoms.getLong();
+
+        User user = prepareUserService();
+        prepareRepositoryAvailable(user, platformId);
+
+        Assignment assignment1 = mock(Assignment.class);
+        Assignment assignment2 = mock(Assignment.class);
+
+        prepareExistingRepository(List.of(assignment1, assignment2), platformId, user);
+
+        // When
+        List<Assignment> result = sut.getAssignments(user.getId(), platformId);
+
+        // Then
+        assertThat(result, containsInAnyOrder(assignment1, assignment2));
+    }
+
+    @Test
+    void getAssignments_userIsAllowedToAccessAndRepositoryExistsAndNoAssignmentExists_returnsEmptyList() {
+        // Given
+        long platformId = Randoms.getLong();
+
+        User user = prepareUserService();
+        prepareRepositoryAvailable(user, platformId);
+
+        prepareExistingRepository(List.of(), platformId, user);
+
+        // When
+        List<Assignment> result = sut.getAssignments(user.getId(), platformId);
+
+        // Then
+        assertThat(result, equalTo(List.of()));
+    }
+
+    @Test
+    void getAssignments_userIsAllowedToAccessAndRepositoryDoesNotExist_throwsNotFoundException() {
+        // Given
+        long platformId = Randoms.getLong();
+
+        User user = prepareUserService();
+        prepareRepositoryAvailable(user, platformId);
+
+        // When + Then
+        assertThrows(NotFoundException.class, () -> sut.getAssignments(user.getId(), platformId));
+
+    }
+
     private void prepareAssignment(Repository repository, CreateAssignmentDTO createDTO, Assignment assignment) {
         when(assignmentService.getOrCreateAssignment(repository, createDTO.getKey())).thenReturn(assignment);
     }
@@ -182,5 +264,12 @@ class RepositoryServiceImplTest {
 
     private void prepareRepositoryFactory(Repository repository) {
         when(repositoryFactory.create()).thenReturn(repository);
+    }
+
+    private Repository prepareExistingRepository(List<Assignment> assignments, long platformId, User user) {
+        Repository repository = mock(Repository.class);
+        when(repository.getAssignments()).thenReturn(assignments);
+        mockRepositoryFindByUserAndPlatformId(user, platformId, repository);
+        return repository;
     }
 }

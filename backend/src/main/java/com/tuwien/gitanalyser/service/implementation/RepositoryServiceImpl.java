@@ -8,6 +8,7 @@ import com.tuwien.gitanalyser.entity.SubAssignment;
 import com.tuwien.gitanalyser.entity.SubAssignmentFactory;
 import com.tuwien.gitanalyser.entity.User;
 import com.tuwien.gitanalyser.exception.ForbiddenException;
+import com.tuwien.gitanalyser.exception.NotFoundException;
 import com.tuwien.gitanalyser.repository.RepositoryRepository;
 import com.tuwien.gitanalyser.service.AssignmentService;
 import com.tuwien.gitanalyser.service.GitService;
@@ -18,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -71,7 +73,27 @@ public class RepositoryServiceImpl implements RepositoryService {
         subAssignmentService.addSubAssignment(assignment, subAssignment);
     }
 
+    @Override
+    public List<Assignment> getAssignments(final long userId, final Long platformId) {
+
+        if (!gitService.repositoryAccessibleByUser(userId, platformId)) {
+            throw new ForbiddenException("User is not allowed to access this repository");
+        }
+
+        User user = userService.getUser(userId);
+        Optional<Repository> repository = findRepositoryByPlatformIdAndUser(platformId, user);
+
+        if (repository.isEmpty()) {
+            throw new NotFoundException("Repository not found");
+        }
+
+        LOGGER.info("getAssignments finished for platformId {}", platformId);
+
+        return repository.get().getAssignments();
+    }
+
     private Optional<Repository> findRepositoryByPlatformIdAndUser(final Long platformId, final User user) {
+        LOGGER.info("findRepositoryByPlatformIdAndUser with platformId {} and user {}", platformId, user);
         return repositoryRepository.findByUserAndPlatformId(user, platformId);
     }
 

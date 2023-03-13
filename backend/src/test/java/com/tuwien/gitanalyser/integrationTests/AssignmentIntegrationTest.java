@@ -1,6 +1,8 @@
 package com.tuwien.gitanalyser.integrationTests;
 
+import com.tuwien.gitanalyser.endpoints.dtos.assignment.AssignmentDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.assignment.CreateAssignmentDTO;
+import com.tuwien.gitanalyser.endpoints.dtos.assignment.SubAssignmentDTO;
 import com.tuwien.gitanalyser.entity.Assignment;
 import com.tuwien.gitanalyser.entity.Repository;
 import com.tuwien.gitanalyser.entity.SubAssignment;
@@ -10,9 +12,13 @@ import org.gitlab4j.api.GitLabApi;
 import org.gitlab4j.api.GitLabApiException;
 import org.gitlab4j.api.ProjectApi;
 import org.gitlab4j.api.models.Project;
+import org.hamcrest.Matcher;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import utils.Randoms;
+
+import java.util.Arrays;
+import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.allOf;
@@ -29,6 +35,14 @@ public class AssignmentIntegrationTest extends BaseIntegrationTest {
     private static final String REPOSITORY_ENDPOINT = "/apiV1/repository";
 
     private static final String ASSIGNMENT_EXTENSION = "/assignment";
+
+    private static Matcher<SubAssignmentDTO> subAssignmentDTOMatcher(SubAssignment subAssignment12) {
+        return allOf(
+            hasFeature("name", SubAssignmentDTO::getName,
+                       equalTo(subAssignment12.getAssignedName())),
+            hasFeature("id", SubAssignmentDTO::getId, equalTo(subAssignment12.getId()))
+        );
+    }
 
     @Test
     public void addAssignment_userAllowedToAccessRepositoryAndNoRepositoryExists_shouldCreateNewRepositoryWithOneAssignmentAndOneSubAssignment()
@@ -112,7 +126,7 @@ public class AssignmentIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
-    public void addAssignment_userAllowedToAccessRepositoryAndRepositoryExistsAndAssignmentExistsAndSubAssignmentExists_shouldAddSubAssignment()
+    public void addAssignment_userAllowedToAccessRepositoryAndRepositoryExistsAndAssignmentExistsAndSubAssignmentExistsAndDifferentName_shouldAddSubAssignment()
         throws GitLabApiException {
         // Given
         long platformId = Randoms.getLong();
@@ -184,6 +198,198 @@ public class AssignmentIntegrationTest extends BaseIntegrationTest {
         ));
     }
 
+    @Test
+    public void addAssignment_userNotAllowedAndNoRepositoryExists_shouldReturn403()
+        throws GitLabApiException {
+        // Given
+        long platformId = Randoms.getLong();
+        String key = Randoms.alpha();
+        String assignedName = Randoms.alpha();
+        var createAssignmentDTO = new CreateAssignmentDTO(key, assignedName);
+
+        GitLabApi gitLabApi = gitLabMockFactory();
+        ProjectApi projectApi = this.gitLabMockProjectApi(gitLabApi);
+        gitLabMockGetProjectThrowsGitLabException(projectApi, platformId);
+
+        // When
+        Response response = callPostRestEndpoint(gitLabUserToken,
+                                                 REPOSITORY_ENDPOINT + "/" + platformId + ASSIGNMENT_EXTENSION,
+                                                 createAssignmentDTO);
+
+        // Then
+        assertThat(response.getStatusCode(), equalTo(HttpStatus.FORBIDDEN.value()));
+    }
+
+    @Test
+    public void addAssignment_userAllowedToAccessRepositoryAndRepositoryExistsAndAssignmentExistsAndSubAssignmentExistsAndSameName_shouldThrowConflictException()
+        throws GitLabApiException {
+        // Given
+        long platformId = Randoms.getLong();
+        String key = Randoms.alpha();
+
+        prepareGitLabAllowedToAccess(platformId);
+        Repository repository = addRepository(gitLabUser, platformId);
+        Assignment assignment = addAssignment(key, repository);
+        SubAssignment subAssignment = addSubAssignment(assignment);
+
+        var createAssignmentDTO = new CreateAssignmentDTO(key, subAssignment.getAssignedName());
+
+        // When
+        Response response = callPostRestEndpoint(gitLabUserToken,
+                                                 REPOSITORY_ENDPOINT + "/" + platformId + ASSIGNMENT_EXTENSION,
+                                                 createAssignmentDTO);
+
+        // Then
+        assertThat(response.getStatusCode(), equalTo(HttpStatus.CONFLICT.value()));
+    }
+
+    @Test
+    public void getAssignments_userNotAllowedToAccessRepository_returnsForbidden() {
+        // Given
+        long platformId = Randoms.getLong();
+
+        // When
+        Response response = callGetRestEndpoint(gitLabUserToken,
+                                                REPOSITORY_ENDPOINT + "/" + platformId + ASSIGNMENT_EXTENSION);
+
+        // Then
+        assertThat(response.getStatusCode(), equalTo(HttpStatus.FORBIDDEN.value()));
+    }
+
+    @Test
+    public void getAssignments_userAllowedToAccessRepositoryAndDoesNotExist_returnsNotFound()
+        throws GitLabApiException {
+        // Given
+        long platformId = Randoms.getLong();
+
+        prepareGitLabAllowedToAccess(platformId);
+
+        // When
+        Response response = callGetRestEndpoint(gitLabUserToken,
+                                                REPOSITORY_ENDPOINT + "/" + platformId + ASSIGNMENT_EXTENSION);
+
+        // Then
+        assertThat(response.getStatusCode(), equalTo(HttpStatus.NOT_FOUND.value()));
+    }
+
+    @Test
+    public void getAssignments_userAllowedToAccessRepositoryExists_returnsEmptyList()
+        throws GitLabApiException {
+        // Given
+        long platformId = Randoms.getLong();
+
+        prepareGitLabAllowedToAccess(platformId);
+        addRepository(gitLabUser, platformId);
+
+        // When
+        Response response = callGetRestEndpoint(gitLabUserToken,
+                                                REPOSITORY_ENDPOINT + "/" + platformId + ASSIGNMENT_EXTENSION);
+
+        // Then
+        assertThat(response.as(AssignmentDTO[].class).length, equalTo(0));
+    }
+
+    @Test
+    public void getAssignments_userAllowedToAccessRepositoryExistsAndAssignmentExists_returnsEmptyAssignment()
+        throws GitLabApiException {
+        // Given
+        long platformId = Randoms.getLong();
+        String key = Randoms.alpha();
+
+        prepareGitLabAllowedToAccess(platformId);
+        Repository repository = addRepository(gitLabUser, platformId);
+        addAssignment(key, repository);
+
+        // When
+        Response response = callGetRestEndpoint(gitLabUserToken,
+                                                REPOSITORY_ENDPOINT + "/" + platformId + ASSIGNMENT_EXTENSION);
+
+        // Then
+        List<AssignmentDTO> assignments = Arrays.asList(response.as(AssignmentDTO[].class));
+        assertThat(assignments.size(), equalTo(1));
+        assertThat(assignments, containsInAnyOrder(
+            allOf(
+                hasFeature("key", AssignmentDTO::getKey, equalTo(key))
+            )
+        ));
+    }
+
+    @Test
+    public void getAssignments_userAllowedToAccessRepositoryExistsAndAssignmentExistsAndSubAssignmentExists_returnsCorrectAssignment()
+        throws GitLabApiException {
+        // Given
+        long platformId = Randoms.getLong();
+        String key = Randoms.alpha();
+
+        prepareGitLabAllowedToAccess(platformId);
+        Repository repository = addRepository(gitLabUser, platformId);
+        Assignment assignment = addAssignment(key, repository);
+        SubAssignment subAssignment = addSubAssignment(assignment);
+
+        // When
+        Response response = callGetRestEndpoint(gitLabUserToken,
+                                                REPOSITORY_ENDPOINT + "/" + platformId + ASSIGNMENT_EXTENSION);
+
+        // Then
+        List<AssignmentDTO> assignments = Arrays.asList(response.as(AssignmentDTO[].class));
+        assertThat(assignments.size(), equalTo(1));
+
+        assertThat(assignments, containsInAnyOrder(
+            allOf(
+                hasFeature("key", AssignmentDTO::getKey, equalTo(key)),
+                hasFeature("subAssignment", AssignmentDTO::getAssignedNames, containsInAnyOrder(
+                               subAssignmentDTOMatcher(subAssignment)
+                           )
+                )
+            )
+        ));
+    }
+
+    @Test
+    public void getAssignments_userAllowedToAccessRepositoryExistsAndMultipleAssignmentsExistAndMultipleSubAssignmentExist_returnsCorrectAssignment()
+        throws GitLabApiException {
+        // Given
+        long platformId = Randoms.getLong();
+        String key1 = Randoms.alpha();
+        String key2 = Randoms.alpha();
+
+        prepareGitLabAllowedToAccess(platformId);
+
+        Repository repository1 = addRepository(gitLabUser, platformId);
+        Assignment assignment1 = addAssignment(key1, repository1);
+        SubAssignment subAssignment11 = addSubAssignment(assignment1);
+        SubAssignment subAssignment12 = addSubAssignment(assignment1);
+
+        Assignment assignment2 = addAssignment(key2, repository1);
+        SubAssignment subAssignment21 = addSubAssignment(assignment2);
+        SubAssignment subAssignment22 = addSubAssignment(assignment2);
+
+        // When
+        Response response = callGetRestEndpoint(gitLabUserToken,
+                                                REPOSITORY_ENDPOINT + "/" + platformId + ASSIGNMENT_EXTENSION);
+
+        // Then
+        List<AssignmentDTO> assignments = Arrays.asList(response.as(AssignmentDTO[].class));
+        assertThat(assignments.size(), equalTo(2));
+
+        assertThat(assignments, containsInAnyOrder(
+            assignmentMatcher(key1, subAssignment11, subAssignment12),
+            assignmentMatcher(key2, subAssignment21, subAssignment22)
+            ));
+    }
+
+    private static Matcher<AssignmentDTO> assignmentMatcher(String key1, SubAssignment subAssignment21,
+                                                                  SubAssignment subAssignment22) {
+        return allOf(
+            hasFeature("key", AssignmentDTO::getKey, equalTo(key1)),
+            hasFeature("subAssignment", AssignmentDTO::getAssignedNames, containsInAnyOrder(
+                           subAssignmentDTOMatcher(subAssignment21),
+                           subAssignmentDTOMatcher(subAssignment22)
+                       )
+            )
+        );
+    }
+
     private void assertRepository(Repository createdRepository, long platformId, User user, int numberOfAssignments) {
         assertThat(createdRepository, notNullValue());
         assertThat(createdRepository.getUser().getId(), equalTo(user.getId()));
@@ -227,30 +433,8 @@ public class AssignmentIntegrationTest extends BaseIntegrationTest {
 
     private SubAssignment addSubAssignment(Assignment assignment) {
         SubAssignment subAssignment =
-            SubAssignment.builder().assignment(assignment).assignedName("AlreadyExistingSubAssignment").build();
+            SubAssignment.builder().assignment(assignment).assignedName(Randoms.alpha()).build();
         subAssignmentRepository.save(subAssignment);
         return subAssignment;
-    }
-
-    @Test
-    public void addAssignment_userNotAllowedAndNoRepositoryExists_shouldReturn403()
-        throws GitLabApiException {
-        // Given
-        long platformId = Randoms.getLong();
-        String key = Randoms.alpha();
-        String assignedName = Randoms.alpha();
-        var createAssignmentDTO = new CreateAssignmentDTO(key, assignedName);
-
-        GitLabApi gitLabApi = gitLabMockFactory();
-        ProjectApi projectApi = this.gitLabMockProjectApi(gitLabApi);
-        gitLabMockGetProjectThrowsGitLabException(projectApi, platformId);
-
-        // When
-        Response response = callPostRestEndpoint(gitLabUserToken,
-                                                 REPOSITORY_ENDPOINT + "/" + platformId + ASSIGNMENT_EXTENSION,
-                                                 createAssignmentDTO);
-
-        // Then
-        assertThat(response.getStatusCode(), equalTo(HttpStatus.FORBIDDEN.value()));
     }
 }

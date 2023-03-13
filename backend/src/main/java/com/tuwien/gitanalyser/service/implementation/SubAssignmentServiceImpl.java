@@ -2,6 +2,7 @@ package com.tuwien.gitanalyser.service.implementation;
 
 import com.tuwien.gitanalyser.entity.Assignment;
 import com.tuwien.gitanalyser.entity.SubAssignment;
+import com.tuwien.gitanalyser.exception.ConflictException;
 import com.tuwien.gitanalyser.repository.SubAssignmentRepository;
 import com.tuwien.gitanalyser.service.SubAssignmentService;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,11 @@ public class SubAssignmentServiceImpl implements SubAssignmentService {
     @Override
     public SubAssignment addSubAssignment(final Assignment assignment, final SubAssignment subAssignment) {
         subAssignment.setAssignment(assignment);
-        return subAssignmentRepository.save(subAssignment);
+
+        try {
+            return subAssignmentRepository.save(subAssignment);
+        } catch (Exception e) {
+            throw new ConflictException("Assignment already exists");
+        }
     }
 }
