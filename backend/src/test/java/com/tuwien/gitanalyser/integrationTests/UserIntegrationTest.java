@@ -18,7 +18,7 @@ public class UserIntegrationTest extends BaseIntegrationTest {
         // Given
 
         // When
-        Response response = callRestEndpoint(gitHubUserToken, USER_ENDPOINT);
+        Response response = callGetRestEndpoint(gitHubUserToken, USER_ENDPOINT);
 
         // Then
         assertThat(response.getStatusCode(), is(HttpStatus.OK.value()));
@@ -29,7 +29,7 @@ public class UserIntegrationTest extends BaseIntegrationTest {
         // Given
 
         // When
-        Response response = callRestEndpoint(gitLabUserToken, USER_ENDPOINT);
+        Response response = callGetRestEndpoint(gitLabUserToken, USER_ENDPOINT);
 
         // Then
         assertThat(response.getStatusCode(), is(HttpStatus.OK.value()));
@@ -42,7 +42,7 @@ public class UserIntegrationTest extends BaseIntegrationTest {
                                            gitHubUser.getEmail(), gitHubUser.getPictureUrl());
 
         // When
-        Response response = callRestEndpoint(gitHubUserToken, USER_ENDPOINT);
+        Response response = callGetRestEndpoint(gitHubUserToken, USER_ENDPOINT);
 
         // Then
         assertThat(response.getStatusCode(), is(HttpStatus.OK.value()));
@@ -56,7 +56,7 @@ public class UserIntegrationTest extends BaseIntegrationTest {
                                            gitLabUser.getEmail(), gitLabUser.getPictureUrl());
 
         // When
-        Response response = callRestEndpoint(gitLabUserToken, USER_ENDPOINT);
+        Response response = callGetRestEndpoint(gitLabUserToken, USER_ENDPOINT);
 
         // Then
         assertThat(response.getStatusCode(), is(HttpStatus.OK.value()));

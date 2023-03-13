@@ -2,11 +2,14 @@ package com.tuwien.gitanalyser.integrationTests;
 
 import com.tuwien.gitanalyser.entity.User;
 import com.tuwien.gitanalyser.entity.utils.AuthenticationProvider;
+import com.tuwien.gitanalyser.repository.AssignmentRepository;
+import com.tuwien.gitanalyser.repository.RepositoryRepository;
+import com.tuwien.gitanalyser.repository.SubAssignmentRepository;
 import com.tuwien.gitanalyser.repository.UserRepository;
 import com.tuwien.gitanalyser.security.AuthenticationConstants;
 import com.tuwien.gitanalyser.security.jwt.JWTTokenProvider;
-import com.tuwien.gitanalyser.service.APICalls.factory.GitHubAPIFactory;
-import com.tuwien.gitanalyser.service.APICalls.factory.GitLabAPIFactory;
+import com.tuwien.gitanalyser.service.apiCalls.factory.GitHubAPIFactory;
+import com.tuwien.gitanalyser.service.apiCalls.factory.GitLabAPIFactory;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
@@ -55,8 +58,6 @@ public abstract class BaseIntegrationTest {
     protected String gitLabAccessToken;
 
     @Autowired
-    protected UserRepository userRepository;
-    @Autowired
     protected GitHubAPIFactory gitHubAPIFactory;
     @Autowired
     protected GitLabAPIFactory gitLabAPIFactory;
@@ -66,14 +67,14 @@ public abstract class BaseIntegrationTest {
     private JWTTokenProvider jwtTokenProvider;
     @LocalServerPort
     private int port;
-
-    protected static Project gitLabCreateRandomProject() {
-        Project ownedProject = new Project();
-        ownedProject.setId(Randoms.getLong());
-        ownedProject.setHttpUrlToRepo(Randoms.alpha());
-        ownedProject.setName(Randoms.alpha());
-        return ownedProject;
-    }
+    @Autowired
+    protected UserRepository userRepository;
+    @Autowired
+    protected RepositoryRepository repositoryRepository;
+    @Autowired
+    protected AssignmentRepository assignmentRepository;
+    @Autowired
+    protected SubAssignmentRepository subAssignmentRepository;
 
     @Before
     public void beforeBase() {
@@ -101,12 +102,15 @@ public abstract class BaseIntegrationTest {
 
     @After
     public void afterBase() {
+        subAssignmentRepository.deleteAll();
+        assignmentRepository.deleteAll();
+        repositoryRepository.deleteAll();
         userRepository.deleteAll();
     }
 
     private User createUser(String username, String email, String accessToken, Integer platformId,
                             AuthenticationProvider authenticationProvider, String pictureUrl) {
-        User gitLabUser = User.builder()
+        User user = User.builder()
                               .username(username)
                               .email(email)
                               .accessToken(accessToken)
@@ -115,10 +119,10 @@ public abstract class BaseIntegrationTest {
                               .pictureUrl(pictureUrl)
                               .build();
 
-        if (gitLabUser.getId() == null) {
-            gitLabUser = userRepository.save(gitLabUser);
+        if (user.getId() == null) {
+            user = userRepository.save(user);
         }
-        return gitLabUser;
+        return user;
     }
 
     protected GHMyself gitHubMockAPI() throws IOException {
@@ -162,9 +166,9 @@ public abstract class BaseIntegrationTest {
         when(ghRepository.getBranches()).thenReturn(Map.of());
     }
 
-    protected GHRepository gitHubMockGHRepository(Long repositoryId, GitHub gitLabApi) throws IOException {
+    protected GHRepository gitHubMockGHRepository(GitHub gitHubApi, Long platformId) throws IOException {
         GHRepository ghRepository = mock(GHRepository.class);
-        when(gitLabApi.getRepositoryById(repositoryId)).thenReturn(ghRepository);
+        when(gitHubApi.getRepositoryById(platformId)).thenReturn(ghRepository);
         return ghRepository;
     }
 
@@ -172,8 +176,12 @@ public abstract class BaseIntegrationTest {
         when(projectApi.getMemberProjects()).thenReturn(projects);
     }
 
-    protected void gitLabMockGetProject(ProjectApi projectApi, Project projects) throws GitLabApiException {
-        when(projectApi.getProject(projects.getId())).thenReturn(projects);
+    protected void gitLabMockGetProject(ProjectApi projectApi, Project project) throws GitLabApiException {
+        when(projectApi.getProject(project.getId())).thenReturn(project);
+    }
+
+    protected void gitLabMockGetProjectThrowsGitLabException(ProjectApi projectApi, Long projectId) throws GitLabApiException {
+        when(projectApi.getProject(projectId)).thenThrow(new GitLabApiException("not Found"));
     }
 
     protected void gitLabMockOwnedProjects(ProjectApi projectApi, List<Project> projects) throws GitLabApiException {
@@ -192,7 +200,15 @@ public abstract class BaseIntegrationTest {
                                    null)).thenReturn(List.of(commits));
     }
 
-    protected Response callRestEndpoint(String authorizationToken, String url) {
+    protected Project gitLabCreateRandomProject() {
+        Project ownedProject = new Project();
+        ownedProject.setId(Randoms.getLong());
+        ownedProject.setHttpUrlToRepo(Randoms.alpha());
+        ownedProject.setName(Randoms.alpha());
+        return ownedProject;
+    }
+
+    protected Response callGetRestEndpoint(String authorizationToken, String url) {
         return RestAssured.given().log().all()
                           .contentType(ContentType.JSON)
                           .header(HttpHeaders.AUTHORIZATION, authorizationToken)
@@ -200,8 +216,17 @@ public abstract class BaseIntegrationTest {
                           .then().extract().response();
     }
 
+    protected Response callPostRestEndpoint(String authorizationToken, String url, Object body) {
+        return RestAssured.given().log().all()
+                          .contentType(ContentType.JSON)
+                          .header(HttpHeaders.AUTHORIZATION, authorizationToken)
+                          .body(body)
+                          .when().post(url)
+                          .then().extract().response();
+    }
     @TestConfiguration
     static class IntegrationTestDependencyInjection {
+
         @Bean
         public GitHubAPIFactory gitHubAPIFactory() {
             return mock(GitHubAPIFactory.class);

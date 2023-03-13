@@ -36,7 +36,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class RepositoryIntegrationTest extends BaseIntegrationTest {
+public class GitIntegrationTest extends BaseIntegrationTest {
 
     private static final String REPOSITORY_ENDPOINT = "/apiV1/repository";
 
@@ -53,7 +53,7 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         gitHubMockAPI();
 
         // When
-        Response response = callRestEndpoint(gitHubUserToken, REPOSITORY_ENDPOINT);
+        Response response = callGetRestEndpoint(gitHubUserToken, REPOSITORY_ENDPOINT);
 
         // Then
         assertThat(response.getStatusCode(), is(HttpStatus.OK.value()));
@@ -66,7 +66,7 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         gitHubMockAPI();
 
         // When
-        Response response = callRestEndpoint(gitHubUserToken, REPOSITORY_ENDPOINT);
+        Response response = callGetRestEndpoint(gitHubUserToken, REPOSITORY_ENDPOINT);
 
         // Then
         assertThat(response.as(RepositoryDTO[].class).length, is(0));
@@ -81,7 +81,7 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         gitLabMockMemberProjects(projectApi, List.of());
 
         // When
-        Response response = callRestEndpoint(gitLabUserToken, REPOSITORY_ENDPOINT);
+        Response response = callGetRestEndpoint(gitLabUserToken, REPOSITORY_ENDPOINT);
 
         // Then
         assertThat(response.getStatusCode(), is(HttpStatus.OK.value()));
@@ -97,7 +97,7 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         gitLabMockMemberProjects(projectApi, List.of());
 
         // When
-        Response response = callRestEndpoint(gitLabUserToken, REPOSITORY_ENDPOINT);
+        Response response = callGetRestEndpoint(gitLabUserToken, REPOSITORY_ENDPOINT);
 
         // Then
         assertThat(response.as(NotSavedRepositoryDTO[].class).length, is(0));
@@ -116,7 +116,7 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         gitLabMockMemberProjects(projectApi, List.of(ownedProject));
 
         // When
-        Response response = callRestEndpoint(gitLabUserToken, REPOSITORY_ENDPOINT);
+        Response response = callGetRestEndpoint(gitLabUserToken, REPOSITORY_ENDPOINT);
 
         // Then
         assertThat(response.as(NotSavedRepositoryDTO[].class).length, is(2));
@@ -143,7 +143,7 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         gitLabMockGetProject(projectApi, project);
 
         // When
-        Response response = callRestEndpoint(gitLabUserToken, REPOSITORY_ENDPOINT + "/" + project.getId());
+        Response response = callGetRestEndpoint(gitLabUserToken, REPOSITORY_ENDPOINT + "/" + project.getId());
 
         // Then
         RepositoryDTO repositories = response.as(RepositoryDTO.class);
@@ -160,11 +160,11 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         // Given
         Long repositoryId = Randoms.getLong();
 
-        var gitHubApi = gitHubMockFactory();
-        GHRepository ghRepository = gitHubMockGHRepository(repositoryId, gitHubApi);
+        GitHub gitHubApi = gitHubMockFactory();
+        GHRepository ghRepository = gitHubMockGHRepository(gitHubApi, repositoryId);
         gitHubMockBranches(ghRepository);
         // When
-        Response response = callRestEndpoint(
+        Response response = callGetRestEndpoint(
             gitHubUserToken, REPOSITORY_ENDPOINT + "/" + repositoryId + "/" + BRANCHES_ENDPOINT_EXTENSION);
 
         // Then
@@ -178,12 +178,12 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         // Given
         Long repositoryId = Randoms.getLong();
 
-        var gitHubApi = gitHubMockFactory();
-        GHRepository ghRepository = gitHubMockGHRepository(repositoryId, gitHubApi);
+        GitHub gitHubApi = gitHubMockFactory();
+        GHRepository ghRepository = gitHubMockGHRepository(gitHubApi, repositoryId);
         gitHubMockBranches(ghRepository);
 
         // When
-        Response response = callRestEndpoint(
+        Response response = callGetRestEndpoint(
             gitHubUserToken, REPOSITORY_ENDPOINT + "/" + repositoryId + "/" + BRANCHES_ENDPOINT_EXTENSION);
 
         // Then
@@ -199,7 +199,7 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         gitLabMockGetBranches(repositoryId, repositoryApi, List.of());
 
         // When
-        Response response = callRestEndpoint(
+        Response response = callGetRestEndpoint(
             gitLabUserToken, REPOSITORY_ENDPOINT + "/" + repositoryId + "/" + BRANCHES_ENDPOINT_EXTENSION);
 
         // Then
@@ -216,7 +216,7 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         gitLabMockGetBranches(project.getId(), repositoryApi, List.of());
 
         // When
-        Response response = callRestEndpoint(
+        Response response = callGetRestEndpoint(
             gitLabUserToken, REPOSITORY_ENDPOINT + "/" + project.getId() + "/" + BRANCHES_ENDPOINT_EXTENSION);
 
         // Then
@@ -237,7 +237,7 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         gitLabMockGetBranches(repositoryId, repositoryApi, List.of(branch1, branch2));
 
         // When
-        Response response = callRestEndpoint(
+        Response response = callGetRestEndpoint(
             gitLabUserToken, REPOSITORY_ENDPOINT + "/" + repositoryId + "/" + BRANCHES_ENDPOINT_EXTENSION);
 
         // Then
@@ -264,8 +264,8 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         gitLabMockGetCommits(commitsApi, repositoryId, branch, commit);
 
         // When
-        callRestEndpoint(gitLabUserToken,
-                         REPOSITORY_ENDPOINT + "/" + repositoryId + "/" + COMMITS_ENDPOINT_EXTENSION
+        callGetRestEndpoint(gitLabUserToken,
+                            REPOSITORY_ENDPOINT + "/" + repositoryId + "/" + COMMITS_ENDPOINT_EXTENSION
                              + "?branch=" + branch);
 
         // Then
@@ -287,8 +287,8 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         gitLabMockGetCommits(commitsApi, repositoryId, branch, commit);
 
         // When
-        Response response = callRestEndpoint(gitLabUserToken,
-                                             REPOSITORY_ENDPOINT + "/" + repositoryId + "/" + COMMITS_ENDPOINT_EXTENSION
+        Response response = callGetRestEndpoint(gitLabUserToken,
+                                                REPOSITORY_ENDPOINT + "/" + repositoryId + "/" + COMMITS_ENDPOINT_EXTENSION
                                                  + "?branch=" + branch);
 
         // Then
@@ -315,8 +315,8 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         gitLabMockGetCommits(commitsApi, repositoryId, branch, commit1, commit2);
 
         // When
-        Response response = callRestEndpoint(gitLabUserToken,
-                                             REPOSITORY_ENDPOINT + "/" + repositoryId + "/" + COMMITS_ENDPOINT_EXTENSION
+        Response response = callGetRestEndpoint(gitLabUserToken,
+                                                REPOSITORY_ENDPOINT + "/" + repositoryId + "/" + COMMITS_ENDPOINT_EXTENSION
                                                  + "?branch=" + branch);
 
         // Then
@@ -333,11 +333,11 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         String branch = Randoms.alpha();
 
         GitHub gitHubApi = gitHubMockFactory();
-        gitHubMockGHRepository(repositoryId, gitHubApi);
+        gitHubMockGHRepository(gitHubApi, repositoryId);
 
         // When
-        callRestEndpoint(gitHubUserToken,
-                         REPOSITORY_ENDPOINT + "/" + repositoryId + "/" + COMMITS_ENDPOINT_EXTENSION
+        callGetRestEndpoint(gitHubUserToken,
+                            REPOSITORY_ENDPOINT + "/" + repositoryId + "/" + COMMITS_ENDPOINT_EXTENSION
                              + "?branch=" + branch);
 
         // Then
@@ -351,13 +351,13 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         String branch = Randoms.alpha();
 
         GitHub gitHubApi = gitHubMockFactory();
-        GHRepository ghRepository = gitHubMockGHRepository(repositoryId, gitHubApi);
+        GHRepository ghRepository = gitHubMockGHRepository(gitHubApi, repositoryId);
 
         mockQueryCommits(branch, ghRepository);
 
         // When
-        Response response = callRestEndpoint(gitHubUserToken,
-                                             REPOSITORY_ENDPOINT + "/" + repositoryId + "/" + COMMITS_ENDPOINT_EXTENSION
+        Response response = callGetRestEndpoint(gitHubUserToken,
+                                                REPOSITORY_ENDPOINT + "/" + repositoryId + "/" + COMMITS_ENDPOINT_EXTENSION
                                                  + "?branch=" + branch);
 
         // Then
@@ -379,8 +379,8 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         gitLabMockGetCommits(commitsApi, repositoryId, branch, commit);
 
         // When
-        callRestEndpoint(gitLabUserToken,
-                         REPOSITORY_ENDPOINT + "/" + repositoryId + "/" + COMMITTER_ENDPOINT_EXTENSION
+        callGetRestEndpoint(gitLabUserToken,
+                            REPOSITORY_ENDPOINT + "/" + repositoryId + "/" + COMMITTER_ENDPOINT_EXTENSION
                              + "?branch=" + branch);
 
         // Then
@@ -402,8 +402,8 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         gitLabMockGetCommits(commitsApi, repositoryId, branch, commit);
 
         // When
-        Response response = callRestEndpoint(gitLabUserToken,
-                                             REPOSITORY_ENDPOINT + "/" + repositoryId + "/"
+        Response response = callGetRestEndpoint(gitLabUserToken,
+                                                REPOSITORY_ENDPOINT + "/" + repositoryId + "/"
                                                  + COMMITTER_ENDPOINT_EXTENSION + "?branch=" + branch);
 
         // Then
@@ -431,8 +431,8 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         gitLabMockGetCommits(commitsApi, repositoryId, branch, commit1, commit2);
 
         // When
-        Response response = callRestEndpoint(gitLabUserToken,
-                                             REPOSITORY_ENDPOINT + "/" + repositoryId + "/"
+        Response response = callGetRestEndpoint(gitLabUserToken,
+                                                REPOSITORY_ENDPOINT + "/" + repositoryId + "/"
                                                  + COMMITTER_ENDPOINT_EXTENSION + "?branch=" + branch);
 
         // Then
@@ -459,8 +459,8 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         gitLabMockGetCommits(commitsApi, repositoryId, branch, commit1, commit2);
 
         // When
-        Response response = callRestEndpoint(gitLabUserToken,
-                                             REPOSITORY_ENDPOINT + "/" + repositoryId + "/"
+        Response response = callGetRestEndpoint(gitLabUserToken,
+                                                REPOSITORY_ENDPOINT + "/" + repositoryId + "/"
                                                  + COMMITTER_ENDPOINT_EXTENSION + "?branch=" + branch);
 
         // Then
@@ -477,11 +477,11 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         String branch = Randoms.alpha();
 
         GitHub gitHubApi = gitHubMockFactory();
-        gitHubMockGHRepository(repositoryId, gitHubApi);
+        gitHubMockGHRepository(gitHubApi, repositoryId);
 
         // When
-        callRestEndpoint(gitHubUserToken,
-                         REPOSITORY_ENDPOINT + "/" + repositoryId + "/" + COMMITTER_ENDPOINT_EXTENSION
+        callGetRestEndpoint(gitHubUserToken,
+                            REPOSITORY_ENDPOINT + "/" + repositoryId + "/" + COMMITTER_ENDPOINT_EXTENSION
                              + "?branch=" + branch);
 
         // Then
@@ -495,13 +495,13 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         String branch = Randoms.alpha();
 
         GitHub gitHubApi = gitHubMockFactory();
-        GHRepository ghRepository = gitHubMockGHRepository(repositoryId, gitHubApi);
+        GHRepository ghRepository = gitHubMockGHRepository(gitHubApi, repositoryId);
 
         mockQueryCommits(branch, ghRepository);
 
         // When
-        Response response = callRestEndpoint(gitHubUserToken,
-                                             REPOSITORY_ENDPOINT + "/" + repositoryId + "/"
+        Response response = callGetRestEndpoint(gitHubUserToken,
+                                                REPOSITORY_ENDPOINT + "/" + repositoryId + "/"
                                                  + COMMITTER_ENDPOINT_EXTENSION + "?branch=" + branch);
 
         // Then

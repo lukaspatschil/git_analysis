@@ -222,6 +222,15 @@
             <type>pom</type>
         </dependency>
 
+        <!-- has Feature -->
+        <!-- https://mvnrepository.com/artifact/org.hobsoft.hamcrest/hamcrest-compose -->
+        <dependency>
+            <groupId>org.hobsoft.hamcrest</groupId>
+            <artifactId>hamcrest-compose</artifactId>
+            <version>0.4.0</version>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
     <build>

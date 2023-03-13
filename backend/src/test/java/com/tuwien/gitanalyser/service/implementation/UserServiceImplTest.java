@@ -4,9 +4,9 @@ import com.tuwien.gitanalyser.entity.User;
 import com.tuwien.gitanalyser.entity.utils.AuthenticationProvider;
 import com.tuwien.gitanalyser.exception.NotFoundException;
 import com.tuwien.gitanalyser.repository.UserRepository;
-import com.tuwien.gitanalyser.security.OAuth2.BasicAuth2User;
-import com.tuwien.gitanalyser.security.OAuth2.GitHubOAuth2User;
-import com.tuwien.gitanalyser.security.OAuth2.GitLabOAuth2User;
+import com.tuwien.gitanalyser.security.oAuth2.BasicAuth2User;
+import com.tuwien.gitanalyser.security.oAuth2.GitHubOAuth2User;
+import com.tuwien.gitanalyser.security.oAuth2.GitLabOAuth2User;
 import com.tuwien.gitanalyser.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,7 +14,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import utils.Randoms;
 
-import java.util.List;
 import java.util.Optional;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -77,7 +76,7 @@ class UserServiceImplTest {
         String username = "John Doe";
         User expectedUser = createUser(authenticationProvider, platformId, username);
 
-        when(userRepository.findByPlatformAndPlatformId(authenticationProvider, platformId)).thenReturn(List.of());
+        when(userRepository.findByAuthenticationProviderAndPlatformId(authenticationProvider, platformId)).thenReturn(Optional.empty());
 
         // When
         sut.processOAuthPostLogin(createAuth2User(authenticationProvider, platformId, username), null);

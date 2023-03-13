@@ -9,12 +9,25 @@ import java.io.IOException;
 import java.util.List;
 
 public interface GitAPI {
+    /**
+     * returns all repositories from the git api.
+     */
     List<NotSavedRepositoryInternalDTO> getAllRepositories(String tokenValue) throws IOException, GitLabApiException;
 
-    NotSavedRepositoryInternalDTO getRepositoryById(String accessToken, long id) throws GitLabApiException, IOException;
+    /**
+     * returns a repository by its id.
+     */
+    NotSavedRepositoryInternalDTO getRepositoryById(String accessToken, long platformId)
+        throws GitLabApiException, IOException;
 
-    List<BranchInternalDTO> getAllBranches(String accessToken, Long id) throws IOException, GitLabApiException;
+    /**
+     * returns all branches from the git api.
+     */
+    List<BranchInternalDTO> getAllBranches(String accessToken, Long platformId) throws IOException, GitLabApiException;
 
-    List<CommitInternalDTO> getAllCommits(String accessToken, long id, String branchName)
+    /**
+     * returns all commits from the git api. If branchName is null, the commits from the default branch are returned.
+     */
+    List<CommitInternalDTO> getAllCommits(String accessToken, long platformId, String branchName)
         throws IOException, GitLabApiException;
 }

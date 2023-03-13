@@ -1,6 +1,6 @@
-package com.tuwien.gitanalyser.service.APICalls;
+package com.tuwien.gitanalyser.service.apiCalls;
 
-import com.tuwien.gitanalyser.service.APICalls.factory.GitHubAPIFactory;
+import com.tuwien.gitanalyser.service.apiCalls.factory.GitHubAPIFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.kohsuke.github.GitHub;
