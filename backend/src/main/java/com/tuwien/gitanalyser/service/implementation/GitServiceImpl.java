@@ -9,6 +9,7 @@ import com.tuwien.gitanalyser.exception.NotFoundException;
 import com.tuwien.gitanalyser.security.AuthenticationConstants;
 import com.tuwien.gitanalyser.service.GitAPI;
 import com.tuwien.gitanalyser.service.GitService;
+import com.tuwien.gitanalyser.service.RepositoryService;
 import com.tuwien.gitanalyser.service.UserService;
 import com.tuwien.gitanalyser.service.apiCalls.GitHubAPI;
 import com.tuwien.gitanalyser.service.apiCalls.GitLabAPI;
@@ -27,13 +28,17 @@ public class GitServiceImpl implements GitService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GitServiceImpl.class);
     private final UserService userService;
+
+    private final RepositoryService repositoryService;
     private final GitHubAPI gitHubAPI;
     private final GitLabAPI gitLabAPI;
 
     public GitServiceImpl(final UserService userService,
+                          final RepositoryService repositoryService,
                           final GitHubAPI gitHubAPI,
                           final GitLabAPI gitLabAPI) {
         this.userService = userService;
+        this.repositoryService = repositoryService;
         this.gitHubAPI = gitHubAPI;
         this.gitLabAPI = gitLabAPI;
     }
@@ -50,6 +55,9 @@ public class GitServiceImpl implements GitService {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+
+        repositoryService.deleteAllNotAccessibleRepositoryEntities(userId,
+                                                                   allRepos.stream().map(NotSavedRepositoryInternalDTO::getPlatformId).toList());
 
         return allRepos;
     }

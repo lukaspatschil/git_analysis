@@ -563,23 +563,4 @@ public class AssignmentIntegrationTest extends BaseIntegrationTest {
         when(project.getId()).thenReturn(platformId);
         return project;
     }
-
-    private Repository addRepository(User user, long platformId) {
-        Repository repository = Repository.builder().user(user).platformId(platformId).build();
-        repositoryRepository.save(repository);
-        return repository;
-    }
-
-    private Assignment addAssignment(String key, Repository repository) {
-        Assignment assignment = Assignment.builder().repository(repository).key(key).build();
-        assignmentRepository.save(assignment);
-        return assignment;
-    }
-
-    private SubAssignment addSubAssignment(Assignment assignment) {
-        SubAssignment subAssignment =
-            SubAssignment.builder().assignment(assignment).assignedName(Randoms.alpha()).build();
-        subAssignmentRepository.save(subAssignment);
-        return subAssignment;
-    }
 }

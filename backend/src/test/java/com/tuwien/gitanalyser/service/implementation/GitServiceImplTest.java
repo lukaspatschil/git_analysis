@@ -7,6 +7,7 @@ import com.tuwien.gitanalyser.entity.User;
 import com.tuwien.gitanalyser.entity.utils.AuthenticationProvider;
 import com.tuwien.gitanalyser.exception.NotFoundException;
 import com.tuwien.gitanalyser.service.GitAPI;
+import com.tuwien.gitanalyser.service.RepositoryService;
 import com.tuwien.gitanalyser.service.UserService;
 import com.tuwien.gitanalyser.service.apiCalls.GitHubAPI;
 import com.tuwien.gitanalyser.service.apiCalls.GitLabAPI;
@@ -34,6 +35,7 @@ class GitServiceImplTest {
     private final String defaultBranch = "develop";
     GitServiceImpl sut;
     private UserService userService;
+    private RepositoryService repositoryService;
     private GitHubAPI gitHubAPI;
     private GitLabAPI gitLabAPI;
     private String exceptionString;
@@ -41,14 +43,15 @@ class GitServiceImplTest {
     @BeforeEach
     void setUp() {
         userService = mock(UserService.class);
+        repositoryService = mock(RepositoryService.class);
         gitHubAPI = mock(GitHubAPI.class);
         gitLabAPI = mock(GitLabAPI.class);
-        sut = new GitServiceImpl(userService, gitHubAPI, gitLabAPI);
+        sut = new GitServiceImpl(userService, repositoryService, gitHubAPI, gitLabAPI);
         exceptionString = "testException";
     }
 
     @Test
-    void getAllRepositories_GitLabAuthorization_shouldCallGitLabAPI()
+    void getAllRepositories_gitLabAuthorization_shouldCallGitLabAPI()
         throws GitLabApiException, NotFoundException, IOException {
         // Given
         long userId = Randoms.getLong();
@@ -63,7 +66,7 @@ class GitServiceImplTest {
     }
 
     @Test
-    void getAllRepositories_GitHubAuthorization_shouldCallGitHubAPI() throws IOException, NotFoundException {
+    void getAllRepositories_gitHubAuthorization_shouldCallGitHubAPI() throws IOException, NotFoundException {
         // Given
         long userId = Randoms.getLong();
 
@@ -77,7 +80,129 @@ class GitServiceImplTest {
     }
 
     @Test
-    void getAllRepositories_GitLabAuthorizationThrowsException_shouldThrowRuntimeException()
+    void getAllRepositories_gitHubAuthorizationAndNoRepositoryExists_returnsEmptyList()
+        throws IOException, NotFoundException {
+        // Given
+        long userId = Randoms.getLong();
+
+        String accessToken = prepareUserService(userId, AuthenticationProvider.GITHUB);
+        when(gitHubAPI.getAllRepositories(accessToken)).thenReturn(List.of());
+
+        // When
+        List<NotSavedRepositoryInternalDTO> result = sut.getAllRepositories(userId);
+
+        // Then
+        assertThat(result, empty());
+    }
+
+    @Test
+    void getAllRepositories_gitHubAuthorizationAndOneRepositoryExists_returnsRepository()
+        throws IOException, NotFoundException {
+        // Given
+        long userId = Randoms.getLong();
+        NotSavedRepositoryInternalDTO repository1 = mock(NotSavedRepositoryInternalDTO.class);
+
+        String accessToken = prepareUserService(userId, AuthenticationProvider.GITHUB);
+        when(gitHubAPI.getAllRepositories(accessToken)).thenReturn(List.of(repository1));
+
+        // When
+        List<NotSavedRepositoryInternalDTO> result = sut.getAllRepositories(userId);
+
+        // Then
+        assertThat(result, containsInAnyOrder(repository1));
+    }
+
+    @Test
+    void getAllRepositories_gitHubAuthorizationAndMultipleRepositoriesExist_returnsRepositories()
+        throws IOException, NotFoundException {
+        // Given
+        long userId = Randoms.getLong();
+        NotSavedRepositoryInternalDTO repository1 = mock(NotSavedRepositoryInternalDTO.class);
+        NotSavedRepositoryInternalDTO repository2 = mock(NotSavedRepositoryInternalDTO.class);
+
+        String accessToken = prepareUserService(userId, AuthenticationProvider.GITHUB);
+        when(gitHubAPI.getAllRepositories(accessToken)).thenReturn(List.of(repository1, repository2));
+
+        // When
+        List<NotSavedRepositoryInternalDTO> result = sut.getAllRepositories(userId);
+
+        // Then
+        assertThat(result, containsInAnyOrder(repository1, repository2));
+    }
+
+    @Test
+    void getAllRepositories_gitLabAuthorizationAndNoRepositoryExists_returnsEmptyList()
+        throws IOException, NotFoundException, GitLabApiException {
+        // Given
+        long userId = Randoms.getLong();
+
+        String accessToken = prepareUserService(userId, AuthenticationProvider.GITLAB);
+        when(gitLabAPI.getAllRepositories(accessToken)).thenReturn(List.of());
+
+        // When
+        List<NotSavedRepositoryInternalDTO> result = sut.getAllRepositories(userId);
+
+        // Then
+        assertThat(result, empty());
+    }
+
+    @Test
+    void getAllRepositories_gitLabAuthorizationAndOneRepositoryExists_returnsRepository()
+        throws IOException, NotFoundException, GitLabApiException {
+        // Given
+        long userId = Randoms.getLong();
+        NotSavedRepositoryInternalDTO repository1 = mock(NotSavedRepositoryInternalDTO.class);
+
+        String accessToken = prepareUserService(userId, AuthenticationProvider.GITLAB);
+        when(gitLabAPI.getAllRepositories(accessToken)).thenReturn(List.of(repository1));
+
+        // When
+        List<NotSavedRepositoryInternalDTO> result = sut.getAllRepositories(userId);
+
+        // Then
+        assertThat(result, containsInAnyOrder(repository1));
+    }
+
+    @Test
+    void getAllRepositories_gitLabAuthorizationAndMultipleRepositoriesExist_returnsRepositories()
+        throws IOException, NotFoundException, GitLabApiException {
+        // Given
+        long userId = Randoms.getLong();
+        NotSavedRepositoryInternalDTO repository1 = mock(NotSavedRepositoryInternalDTO.class);
+        NotSavedRepositoryInternalDTO repository2 = mock(NotSavedRepositoryInternalDTO.class);
+
+        String accessToken = prepareUserService(userId, AuthenticationProvider.GITLAB);
+        when(gitLabAPI.getAllRepositories(accessToken)).thenReturn(List.of(repository1, repository2));
+
+        // When
+        List<NotSavedRepositoryInternalDTO> result = sut.getAllRepositories(userId);
+
+        // Then
+        assertThat(result, containsInAnyOrder(repository1, repository2));
+    }
+
+    @Test
+    void getAllRepositories_gitLabAuthorizationAndMultipleRepositoriesExist_callsRepositoryServiceCleanUp()
+        throws IOException, NotFoundException, GitLabApiException {
+        // Given
+        long userId = Randoms.getLong();
+        NotSavedRepositoryInternalDTO repository1 =
+            NotSavedRepositoryInternalDTO.builder().platformId(Randoms.getLong()).build();
+        NotSavedRepositoryInternalDTO repository2 =
+            NotSavedRepositoryInternalDTO.builder().platformId(Randoms.getLong()).build();
+
+        String accessToken = prepareUserService(userId, AuthenticationProvider.GITLAB);
+        when(gitLabAPI.getAllRepositories(accessToken)).thenReturn(List.of(repository1, repository2));
+
+        // When
+        sut.getAllRepositories(userId);
+
+        // Then
+        verify(repositoryService).deleteAllNotAccessibleRepositoryEntities(userId, List.of(repository1.getPlatformId(), repository2.getPlatformId()));
+    }
+
+    @Test
+    void getAllRepositories_gitLabAuthorizationThrowsException_shouldThrowException()
         throws GitLabApiException, NotFoundException, IOException {
         // Given
         long userId = Randoms.getLong();
@@ -90,7 +215,7 @@ class GitServiceImplTest {
     }
 
     @Test
-    void getAllRepositories_GitHubAuthorizationThrowsException_shouldThrowException()
+    void getAllRepositories_gitHubAuthorizationThrowsException_shouldThrowException()
         throws IOException, NotFoundException {
         // Given
         long userId = Randoms.getLong();
@@ -111,7 +236,7 @@ class GitServiceImplTest {
     }
 
     @Test
-    void getRepositoryById_GitLabAuthorization_shouldCallGitLabAPI()
+    void getRepositoryById_gitLabAuthorization_shouldCallGitLabAPI()
         throws GitLabApiException, NotFoundException, IOException {
         // Given
         long repositoryId = Randoms.getLong();
@@ -129,7 +254,7 @@ class GitServiceImplTest {
     }
 
     @Test
-    void getRepositoryById_GitHubAuthorization_shouldCallGitHubAPI()
+    void getRepositoryById_gitHubAuthorization_shouldCallGitHubAPI()
         throws IOException, NotFoundException, GitLabApiException {
         // Given
         long repositoryId = Randoms.getLong();
@@ -162,7 +287,7 @@ class GitServiceImplTest {
     }
 
     @Test
-    void getAllBranches_GitLabAuthorization_shouldCallGitLabAPI()
+    void getAllBranches_gitLabAuthorization_shouldCallGitLabAPI()
         throws GitLabApiException, NotFoundException, IOException {
         // Given
         long userId = Randoms.getLong();
@@ -178,7 +303,7 @@ class GitServiceImplTest {
     }
 
     @Test
-    void getAllBranches_GitHubAuthorization_shouldCallGitHubAPI()
+    void getAllBranches_gitHubAuthorization_shouldCallGitHubAPI()
         throws IOException, NotFoundException, GitLabApiException {
         // Given
         long userId = Randoms.getLong();
@@ -194,7 +319,7 @@ class GitServiceImplTest {
     }
 
     @Test
-    void getAllBranches_GitLabAuthorizationThrowsException_shouldThrowRuntimeException()
+    void getAllBranches_gitLabAuthorizationThrowsException_shouldThrowRuntimeException()
         throws GitLabApiException, NotFoundException, IOException {
         // Given
         long userId = Randoms.getLong();
@@ -208,7 +333,7 @@ class GitServiceImplTest {
     }
 
     @Test
-    void getAllBranches_GitHubAuthorizationThrowsException_shouldThrowException()
+    void getAllBranches_gitHubAuthorizationThrowsException_shouldThrowException()
         throws IOException, NotFoundException {
         // Given
         long userId = Randoms.getLong();
@@ -230,7 +355,7 @@ class GitServiceImplTest {
     }
 
     @Test
-    void getAllCommits_GitHubAuthorizationRepoExists_shouldCallGitHubApi()
+    void getAllCommits_gitHubAuthorizationRepoExists_shouldCallGitHubApi()
         throws NotFoundException, IOException, GitLabApiException {
         // Given
         long userId = Randoms.getLong();
@@ -246,7 +371,7 @@ class GitServiceImplTest {
     }
 
     @Test
-    void getAllCommits_GitHubAuthorizationRepoExistsAndNoCommits_shouldReturnEmptyList()
+    void getAllCommits_gitHubAuthorizationRepoExistsAndNoCommits_shouldReturnEmptyList()
         throws NotFoundException, IOException, GitLabApiException {
         // Given
         long userId = Randoms.getLong();
@@ -263,7 +388,7 @@ class GitServiceImplTest {
     }
 
     @Test
-    void getAllCommits_GitHubAuthorizationRepoExistsAndOneCommits_shouldReturnListWithOneCommit()
+    void getAllCommits_gitHubAuthorizationRepoExistsAndOneCommits_shouldReturnListWithOneCommit()
         throws NotFoundException, IOException, GitLabApiException {
         // Given
         long userId = Randoms.getLong();
@@ -281,7 +406,7 @@ class GitServiceImplTest {
     }
 
     @Test
-    void getAllCommits_GitHubAuthorizationRepoExistsAndTwoCommits_shouldReturnListWithTwoCommits()
+    void getAllCommits_gitHubAuthorizationRepoExistsAndTwoCommits_shouldReturnListWithTwoCommits()
         throws NotFoundException, IOException, GitLabApiException {
         // Given
         long userId = Randoms.getLong();
@@ -300,7 +425,7 @@ class GitServiceImplTest {
     }
 
     @Test
-    void getAllCommits_GitLabAuthorizationRepoExists_shouldCallGitLabApi()
+    void getAllCommits_gitLabAuthorizationRepoExists_shouldCallGitLabApi()
         throws NotFoundException, IOException, GitLabApiException {
         // Given
         long userId = Randoms.getLong();
@@ -316,7 +441,7 @@ class GitServiceImplTest {
     }
 
     @Test
-    void getAllCommits_GitLabAuthorizationRepoExistsAndNoCommits_shouldReturnEmptyList()
+    void getAllCommits_gitLabAuthorizationRepoExistsAndNoCommits_shouldReturnEmptyList()
         throws NotFoundException, IOException, GitLabApiException {
         // Given
         long userId = Randoms.getLong();
@@ -333,7 +458,7 @@ class GitServiceImplTest {
     }
 
     @Test
-    void getAllCommits_GitLabAuthorizationRepoExistsAndOneCommits_shouldReturnListWithOneCommit()
+    void getAllCommits_gitLabAuthorizationRepoExistsAndOneCommits_shouldReturnListWithOneCommit()
         throws NotFoundException, IOException, GitLabApiException {
         // Given
         long userId = Randoms.getLong();
@@ -351,7 +476,7 @@ class GitServiceImplTest {
     }
 
     @Test
-    void getAllCommits_GitLabAuthorizationRepoExistsAndTwoCommits_shouldReturnListWithTwoCommits()
+    void getAllCommits_gitLabAuthorizationRepoExistsAndTwoCommits_shouldReturnListWithTwoCommits()
         throws NotFoundException, IOException, GitLabApiException {
         // Given
         long userId = Randoms.getLong();
@@ -370,7 +495,7 @@ class GitServiceImplTest {
     }
 
     @Test
-    void getAllCommitters_GitLabAuthorizationRepoExists_shouldCallGitLabApi()
+    void getAllCommitters_gitLabAuthorizationRepoExists_shouldCallGitLabApi()
         throws NotFoundException, IOException, GitLabApiException {
         // Given
         long userId = Randoms.getLong();
@@ -386,7 +511,7 @@ class GitServiceImplTest {
     }
 
     @Test
-    void getAllCommitters_GitLabAuthorizationRepoExistsAndNoCommits_shouldReturnEmptyList()
+    void getAllCommitters_gitLabAuthorizationRepoExistsAndNoCommits_shouldReturnEmptyList()
         throws NotFoundException, IOException, GitLabApiException {
         // Given
         long userId = Randoms.getLong();
@@ -403,7 +528,7 @@ class GitServiceImplTest {
     }
 
     @Test
-    void getAllCommitters_GitLabAuthorizationRepoExistsAndOneCommits_shouldReturnListWithOneItem()
+    void getAllCommitters_gitLabAuthorizationRepoExistsAndOneCommits_shouldReturnListWithOneItem()
         throws NotFoundException, IOException, GitLabApiException {
         // Given
         long userId = Randoms.getLong();
@@ -422,7 +547,7 @@ class GitServiceImplTest {
     }
 
     @Test
-    void getAllCommitters_GitLabAuthorizationRepoExistsAndTwoCommits_shouldReturnListWithTwoItems()
+    void getAllCommitters_gitLabAuthorizationRepoExistsAndTwoCommits_shouldReturnListWithTwoItems()
         throws NotFoundException, IOException, GitLabApiException {
         // Given
         long userId = Randoms.getLong();
@@ -443,7 +568,7 @@ class GitServiceImplTest {
     }
 
     @Test
-    void getAllCommitters_GitLabAuthorizationRepoExistsAndTwoCommitsWithSameCommitter_shouldReturnListWithOneItem()
+    void getAllCommitters_gitLabAuthorizationRepoExistsAndTwoCommitsWithSameCommitter_shouldReturnListWithOneItem()
         throws NotFoundException, IOException, GitLabApiException {
         // Given
         long userId = Randoms.getLong();
@@ -464,7 +589,7 @@ class GitServiceImplTest {
     }
 
     @Test
-    void getAllCommitters_GitHubAuthorizationRepoExists_shouldCallGitLabApi()
+    void getAllCommitters_gitHubAuthorizationRepoExists_shouldCallGitLabApi()
         throws NotFoundException, IOException, GitLabApiException {
         // Given
         long userId = Randoms.getLong();
@@ -480,7 +605,7 @@ class GitServiceImplTest {
     }
 
     @Test
-    void getAllCommitters_GitHubAuthorizationRepoExistsAndNoCommits_shouldReturnEmptyList()
+    void getAllCommitters_gitHubAuthorizationRepoExistsAndNoCommits_shouldReturnEmptyList()
         throws NotFoundException, IOException, GitLabApiException {
         // Given
         long userId = Randoms.getLong();
@@ -497,7 +622,7 @@ class GitServiceImplTest {
     }
 
     @Test
-    void getAllCommitters_GitHubAuthorizationRepoExistsAndOneCommits_shouldReturnListWithOneItem()
+    void getAllCommitters_gitHubAuthorizationRepoExistsAndOneCommits_shouldReturnListWithOneItem()
         throws NotFoundException, IOException, GitLabApiException {
         // Given
         long userId = Randoms.getLong();
@@ -516,7 +641,7 @@ class GitServiceImplTest {
     }
 
     @Test
-    void getAllCommitters_GitHubAuthorizationRepoExistsAndTwoCommits_shouldReturnListWithTwoItems()
+    void getAllCommitters_gitHubAuthorizationRepoExistsAndTwoCommits_shouldReturnListWithTwoItems()
         throws NotFoundException, IOException, GitLabApiException {
         // Given
         long userId = Randoms.getLong();
@@ -537,7 +662,7 @@ class GitServiceImplTest {
     }
 
     @Test
-    void getAllCommitters_GitHubAuthorizationRepoExistsAndTwoCommitsWithSameCommitter_shouldReturnListWithOneItem()
+    void getAllCommitters_gitHubAuthorizationRepoExistsAndTwoCommitsWithSameCommitter_shouldReturnListWithOneItem()
         throws NotFoundException, IOException, GitLabApiException {
         // Given
         long userId = Randoms.getLong();

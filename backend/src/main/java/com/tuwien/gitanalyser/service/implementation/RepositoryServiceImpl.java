@@ -95,6 +95,21 @@ public class RepositoryServiceImpl implements RepositoryService {
         assignmentService.deleteSubAssignmentById(repository.get(), subAssignmentId);
     }
 
+    @Override
+    public void deleteAllNotAccessibleRepositoryEntities(Long userId, List<Long> gitRepositoryIds) {
+        LOGGER.info("deleteAllNotAccessibleRepositoryEntities with userId {} and gitRepositoryIds {}",
+                    userId, gitRepositoryIds);
+
+        User user = userService.getUser(userId);
+        List<Repository> repositories = repositoryRepository.findByUser(user);
+
+        for (Repository repository : repositories) {
+            if (!gitRepositoryIds.contains(repository.getPlatformId())) {
+                repositoryRepository.delete(repository);
+            }
+        }
+    }
+
     private Optional<Repository> findRepositoryByPlatformIdAndUser(final Long platformId, final User user) {
         LOGGER.info("findRepositoryByPlatformIdAndUser with platformId {} and user {}", platformId, user);
         return repositoryRepository.findByUserAndPlatformId(user, platformId);

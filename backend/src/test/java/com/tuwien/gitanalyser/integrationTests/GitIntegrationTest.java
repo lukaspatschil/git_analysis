@@ -5,6 +5,7 @@ import com.tuwien.gitanalyser.endpoints.dtos.CommitDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.CommitterDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.NotSavedRepositoryDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.RepositoryDTO;
+import com.tuwien.gitanalyser.entity.Repository;
 import io.restassured.response.Response;
 import org.gitlab4j.api.CommitsApi;
 import org.gitlab4j.api.GitLabApi;
@@ -15,6 +16,7 @@ import org.gitlab4j.api.models.Branch;
 import org.gitlab4j.api.models.Commit;
 import org.gitlab4j.api.models.CommitStats;
 import org.gitlab4j.api.models.Project;
+import org.hamcrest.Matcher;
 import org.junit.Test;
 import org.kohsuke.github.GHCommitQueryBuilder;
 import org.kohsuke.github.GHRepository;
@@ -27,11 +29,16 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
+import static com.github.npathai.hamcrestopt.OptionalMatchers.isEmpty;
+import static com.github.npathai.hamcrestopt.OptionalMatchers.isPresent;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.core.Is.is;
+import static org.hobsoft.hamcrest.compose.ComposeMatchers.hasFeature;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -47,6 +54,7 @@ public class GitIntegrationTest extends BaseIntegrationTest {
     private static final String COMMITTER_ENDPOINT_EXTENSION = "committer";
 
     // TODO: positive test case for github
+
     @Test
     public void queryAllRepositories_userGitHubUserExists_shouldSend200() throws IOException {
         // Given
@@ -123,13 +131,49 @@ public class GitIntegrationTest extends BaseIntegrationTest {
         NotSavedRepositoryDTO[] repositories = response.as(NotSavedRepositoryDTO[].class);
 
         assertThat(Arrays.asList(repositories), containsInAnyOrder(
-            new NotSavedRepositoryDTO(ownedProject.getId(),
-                                      ownedProject.getName(),
-                                      ownedProject.getHttpUrlToRepo()),
-            new NotSavedRepositoryDTO(memberedProject.getId(),
-                                      memberedProject.getName(),
-                                      memberedProject.getHttpUrlToRepo())
+            repositoryMatcher(ownedProject),
+            repositoryMatcher(memberedProject)
         ));
+    }
+
+    @Test
+    public void queryAllRepositories_userGitLabUserExistsAndOneMemberProject_shouldDeleteOtherRepositories()
+        throws GitLabApiException {
+        // Given
+        Project memberedProject = gitLabCreateRandomProject();
+
+        Repository repository = addRepository(gitLabUser, Randoms.getLong());
+
+        GitLabApi gitLabApi = gitLabMockFactory();
+        ProjectApi projectApi = gitLabMockProjectApi(gitLabApi);
+        gitLabMockOwnedProjects(projectApi, List.of(memberedProject));
+
+        // When
+        Response response = callGetRestEndpoint(gitLabUserToken, REPOSITORY_ENDPOINT);
+
+        // Then
+        Optional<Repository> resultRepository = repositoryRepository.findById(repository.getId());
+        assertThat(resultRepository, isEmpty());
+    }
+
+    @Test
+    public void queryAllRepositories_userGitLabUserExistsAndOneMemberProjectWithEqualPlatformIds_shouldNotDeleteOtherRepositories()
+        throws GitLabApiException {
+        // Given
+        Project memberedProject = gitLabCreateRandomProject();
+
+        Repository repository = addRepository(gitLabUser, memberedProject.getId());
+
+        GitLabApi gitLabApi = gitLabMockFactory();
+        ProjectApi projectApi = gitLabMockProjectApi(gitLabApi);
+        gitLabMockOwnedProjects(projectApi, List.of(memberedProject));
+
+        // When
+        Response response = callGetRestEndpoint(gitLabUserToken, REPOSITORY_ENDPOINT);
+
+        // Then
+        Optional<Repository> resultRepository = repositoryRepository.findById(repository.getId());
+        assertThat(resultRepository, isPresent());
     }
 
     @Test
@@ -245,8 +289,8 @@ public class GitIntegrationTest extends BaseIntegrationTest {
         BranchDTO[] repositories = response.as(BranchDTO[].class);
 
         assertThat(Arrays.asList(repositories), containsInAnyOrder(
-            new BranchDTO(branch1.getName()),
-            new BranchDTO(branch2.getName())
+            branchDTOMatcher(branch1),
+            branchDTOMatcher(branch2)
         ));
     }
 
@@ -266,7 +310,7 @@ public class GitIntegrationTest extends BaseIntegrationTest {
         // When
         callGetRestEndpoint(gitLabUserToken,
                             REPOSITORY_ENDPOINT + "/" + repositoryId + "/" + COMMITS_ENDPOINT_EXTENSION
-                             + "?branch=" + branch);
+                                + "?branch=" + branch);
 
         // Then
         verify(gitLabApi).getCommitsApi();
@@ -288,14 +332,17 @@ public class GitIntegrationTest extends BaseIntegrationTest {
 
         // When
         Response response = callGetRestEndpoint(gitLabUserToken,
-                                                REPOSITORY_ENDPOINT + "/" + repositoryId + "/" + COMMITS_ENDPOINT_EXTENSION
-                                                 + "?branch=" + branch);
+                                                REPOSITORY_ENDPOINT + "/" + repositoryId + "/"
+                                                    + COMMITS_ENDPOINT_EXTENSION
+                                                    + "?branch=" + branch);
 
         // Then
         assertThat(response.as(CommitDTO[].class).length, equalTo(1));
         CommitDTO[] commits = response.as(CommitDTO[].class);
 
-        assertThat(Arrays.asList(commits), containsInAnyOrder(equalTo(commitDTO)));
+        assertThat(Arrays.asList(commits), containsInAnyOrder(
+            CommitDTOMatcher(commitDTO)
+        ));
     }
 
     @Test
@@ -316,8 +363,9 @@ public class GitIntegrationTest extends BaseIntegrationTest {
 
         // When
         Response response = callGetRestEndpoint(gitLabUserToken,
-                                                REPOSITORY_ENDPOINT + "/" + repositoryId + "/" + COMMITS_ENDPOINT_EXTENSION
-                                                 + "?branch=" + branch);
+                                                REPOSITORY_ENDPOINT + "/" + repositoryId + "/"
+                                                    + COMMITS_ENDPOINT_EXTENSION
+                                                    + "?branch=" + branch);
 
         // Then
         assertThat(response.as(CommitDTO[].class).length, equalTo(2));
@@ -338,7 +386,7 @@ public class GitIntegrationTest extends BaseIntegrationTest {
         // When
         callGetRestEndpoint(gitHubUserToken,
                             REPOSITORY_ENDPOINT + "/" + repositoryId + "/" + COMMITS_ENDPOINT_EXTENSION
-                             + "?branch=" + branch);
+                                + "?branch=" + branch);
 
         // Then
         verify(gitHubApi).getRepositoryById(repositoryId);
@@ -357,15 +405,15 @@ public class GitIntegrationTest extends BaseIntegrationTest {
 
         // When
         Response response = callGetRestEndpoint(gitHubUserToken,
-                                                REPOSITORY_ENDPOINT + "/" + repositoryId + "/" + COMMITS_ENDPOINT_EXTENSION
-                                                 + "?branch=" + branch);
+                                                REPOSITORY_ENDPOINT + "/" + repositoryId + "/"
+                                                    + COMMITS_ENDPOINT_EXTENSION
+                                                    + "?branch=" + branch);
 
         // Then
         assertThat(response.as(CommitDTO[].class).length, equalTo(0));
     }
 
     // TODO positive tests for get commits from github
-
     @Test
     public void queryAllCommitter_gitLabUser_shouldCallGitLabService() throws GitLabApiException {
         // Given
@@ -381,7 +429,7 @@ public class GitIntegrationTest extends BaseIntegrationTest {
         // When
         callGetRestEndpoint(gitLabUserToken,
                             REPOSITORY_ENDPOINT + "/" + repositoryId + "/" + COMMITTER_ENDPOINT_EXTENSION
-                             + "?branch=" + branch);
+                                + "?branch=" + branch);
 
         // Then
         verify(gitLabApi).getCommitsApi();
@@ -404,7 +452,7 @@ public class GitIntegrationTest extends BaseIntegrationTest {
         // When
         Response response = callGetRestEndpoint(gitLabUserToken,
                                                 REPOSITORY_ENDPOINT + "/" + repositoryId + "/"
-                                                 + COMMITTER_ENDPOINT_EXTENSION + "?branch=" + branch);
+                                                    + COMMITTER_ENDPOINT_EXTENSION + "?branch=" + branch);
 
         // Then
         assertThat(response.as(CommitterDTO[].class).length, equalTo(1));
@@ -433,7 +481,7 @@ public class GitIntegrationTest extends BaseIntegrationTest {
         // When
         Response response = callGetRestEndpoint(gitLabUserToken,
                                                 REPOSITORY_ENDPOINT + "/" + repositoryId + "/"
-                                                 + COMMITTER_ENDPOINT_EXTENSION + "?branch=" + branch);
+                                                    + COMMITTER_ENDPOINT_EXTENSION + "?branch=" + branch);
 
         // Then
         assertThat(response.as(CommitterDTO[].class).length, equalTo(2));
@@ -461,13 +509,15 @@ public class GitIntegrationTest extends BaseIntegrationTest {
         // When
         Response response = callGetRestEndpoint(gitLabUserToken,
                                                 REPOSITORY_ENDPOINT + "/" + repositoryId + "/"
-                                                 + COMMITTER_ENDPOINT_EXTENSION + "?branch=" + branch);
+                                                    + COMMITTER_ENDPOINT_EXTENSION + "?branch=" + branch);
 
         // Then
         assertThat(response.as(CommitterDTO[].class).length, equalTo(1));
         CommitterDTO[] committers = response.as(CommitterDTO[].class);
 
-        assertThat(Arrays.asList(committers), containsInAnyOrder(committerDTO));
+        assertThat(Arrays.asList(committers), containsInAnyOrder(
+            committerDTOMatcher(committerDTO)
+        ));
     }
 
     @Test
@@ -482,7 +532,7 @@ public class GitIntegrationTest extends BaseIntegrationTest {
         // When
         callGetRestEndpoint(gitHubUserToken,
                             REPOSITORY_ENDPOINT + "/" + repositoryId + "/" + COMMITTER_ENDPOINT_EXTENSION
-                             + "?branch=" + branch);
+                                + "?branch=" + branch);
 
         // Then
         verify(gitHubApi).getRepositoryById(repositoryId);
@@ -502,7 +552,7 @@ public class GitIntegrationTest extends BaseIntegrationTest {
         // When
         Response response = callGetRestEndpoint(gitHubUserToken,
                                                 REPOSITORY_ENDPOINT + "/" + repositoryId + "/"
-                                                 + COMMITTER_ENDPOINT_EXTENSION + "?branch=" + branch);
+                                                    + COMMITTER_ENDPOINT_EXTENSION + "?branch=" + branch);
 
         // Then
         assertThat(response.as(CommitterDTO[].class).length, equalTo(0));
@@ -570,6 +620,37 @@ public class GitIntegrationTest extends BaseIntegrationTest {
         PagedIterable pagedIterable = mock(PagedIterable.class);
         when(commitQueryBuilder.list()).thenReturn(pagedIterable);
         when(pagedIterable.toList()).thenReturn(List.of());
+    }
+
+    private Matcher<NotSavedRepositoryDTO> repositoryMatcher(Project project) {
+        return allOf(
+            hasFeature("id", NotSavedRepositoryDTO::getId, equalTo(project.getId())),
+            hasFeature("name", NotSavedRepositoryDTO::getName, equalTo(project.getName())),
+            hasFeature("url", NotSavedRepositoryDTO::getUrl, equalTo(project.getHttpUrlToRepo()))
+        );
+    }
+
+    private Matcher<CommitDTO> CommitDTOMatcher(CommitDTO commitDTO) {
+        return allOf(
+            hasFeature("id", CommitDTO::getId, equalTo(commitDTO.getId())),
+            hasFeature("message", CommitDTO::getMessage, equalTo(commitDTO.getMessage())),
+            hasFeature("author", CommitDTO::getAuthor, equalTo(commitDTO.getAuthor())),
+            hasFeature("timestamp", CommitDTO::getTimestamp, equalTo(commitDTO.getTimestamp())),
+            hasFeature("parentIds", CommitDTO::getParentIds, equalTo(commitDTO.getParentIds())),
+            hasFeature("isMergeCommit", CommitDTO::isMergeCommit, equalTo(commitDTO.isMergeCommit())),
+            hasFeature("additions", CommitDTO::getAdditions, equalTo(commitDTO.getAdditions())),
+            hasFeature("deletions", CommitDTO::getDeletions, equalTo(commitDTO.getDeletions()))
+        );
+    }
+
+    private Matcher<BranchDTO> branchDTOMatcher(Branch branch1) {
+        return allOf(
+            hasFeature("name", BranchDTO::getName, equalTo(branch1.getName()))
+        );
+    }
+
+    private Matcher<CommitterDTO> committerDTOMatcher(CommitterDTO committerDTO) {
+        return hasFeature("name", CommitterDTO::getName, equalTo(committerDTO.getName()));
     }
 }
 
