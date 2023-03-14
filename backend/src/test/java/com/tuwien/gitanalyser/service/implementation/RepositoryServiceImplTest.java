@@ -193,6 +193,73 @@ class RepositoryServiceImplTest {
 
     }
 
+    @Test
+    void deleteAllNotAccessibleRepositoryEntities_singleRepoSavedAndNoRepoFound_deletesRepo() {
+        // Given
+        Repository repository = createRepository();
+
+        User user = prepareUserService();
+        when(repositoryRepository.findByUser(user)).thenReturn(List.of(repository));
+
+        // When
+        sut.deleteAllNotAccessibleRepositoryEntities(user.getId(), List.of());
+
+        // Then
+        verify(repositoryRepository).delete(repository);
+    }
+
+    @Test
+    void deleteAllNotAccessibleRepositoryEntities_singleRepoSavedAndSameRepoFound_doesNotDeleteRepo() {
+        // Given
+        Repository repository = createRepository();
+
+        User user = prepareUserService();
+        when(repositoryRepository.findByUser(user)).thenReturn(List.of(repository));
+
+        // When
+        sut.deleteAllNotAccessibleRepositoryEntities(user.getId(), List.of(repository.getPlatformId()));
+
+        // Then
+        verify(repositoryRepository, never()).delete(repository);
+    }
+
+    @Test
+    void deleteAllNotAccessibleRepositoryEntities_TwoReposSavedAndOneRepoFound_deleteNotFoundRepo() {
+        // Given
+        Repository repository1 = createRepository();
+        Repository repository2 = createRepository();
+
+        User user = prepareUserService();
+        when(repositoryRepository.findByUser(user)).thenReturn(List.of(repository1, repository2));
+
+        // When
+        sut.deleteAllNotAccessibleRepositoryEntities(user.getId(), List.of(repository1.getPlatformId()));
+
+        // Then
+        verify(repositoryRepository).delete(repository2);
+    }
+
+    @Test
+    void deleteAllNotAccessibleRepositoryEntities_TwoReposSavedAndNoRepoFound_deleteAllRepos() {
+        // Given
+        Repository repository1 = createRepository();
+        Repository repository2 = createRepository();
+
+        User user = prepareUserService();
+        when(repositoryRepository.findByUser(user)).thenReturn(List.of(repository1, repository2));
+
+        // When
+        sut.deleteAllNotAccessibleRepositoryEntities(user.getId(), List.of());
+
+        // Then
+        verify(repositoryRepository).delete(repository1);
+        verify(repositoryRepository).delete(repository2);
+    }
+
+    private static Repository createRepository() {
+        return Repository.builder().platformId(Randoms.getLong()).build();
+    }
+
     private void prepareAssignment(Repository repository, CreateAssignmentDTO createDTO, Assignment assignment) {
         when(assignmentService.getOrCreateAssignment(repository, createDTO.getKey())).thenReturn(assignment);
     }
@@ -210,8 +277,7 @@ class RepositoryServiceImplTest {
         when(repositoryRepository.findByUserAndPlatformId(user, platformId)).thenReturn(Optional.empty());
     }
 
-    private User prepareUserService()
-        throws NotFoundException {
+    private User prepareUserService() throws NotFoundException {
         Long userId = Randoms.getLong();
         User user = mock(User.class);
         when(user.getId()).thenReturn(userId);

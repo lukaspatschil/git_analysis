@@ -1,5 +1,8 @@
 package com.tuwien.gitanalyser.integrationTests;
 
+import com.tuwien.gitanalyser.entity.Assignment;
+import com.tuwien.gitanalyser.entity.Repository;
+import com.tuwien.gitanalyser.entity.SubAssignment;
 import com.tuwien.gitanalyser.entity.User;
 import com.tuwien.gitanalyser.entity.utils.AuthenticationProvider;
 import com.tuwien.gitanalyser.repository.AssignmentRepository;
@@ -64,10 +67,6 @@ public abstract class BaseIntegrationTest {
     protected User gitLabUser;
     protected User gitHubUser;
     @Autowired
-    private JWTTokenProvider jwtTokenProvider;
-    @LocalServerPort
-    private int port;
-    @Autowired
     protected UserRepository userRepository;
     @Autowired
     protected RepositoryRepository repositoryRepository;
@@ -75,6 +74,10 @@ public abstract class BaseIntegrationTest {
     protected AssignmentRepository assignmentRepository;
     @Autowired
     protected SubAssignmentRepository subAssignmentRepository;
+    @Autowired
+    private JWTTokenProvider jwtTokenProvider;
+    @LocalServerPort
+    private int port;
 
     @Before
     public void beforeBase() {
@@ -111,13 +114,13 @@ public abstract class BaseIntegrationTest {
     private User createUser(String username, String email, String accessToken, Integer platformId,
                             AuthenticationProvider authenticationProvider, String pictureUrl) {
         User user = User.builder()
-                              .username(username)
-                              .email(email)
-                              .accessToken(accessToken)
-                              .platformId(platformId)
-                              .authenticationProvider(authenticationProvider)
-                              .pictureUrl(pictureUrl)
-                              .build();
+                        .username(username)
+                        .email(email)
+                        .accessToken(accessToken)
+                        .platformId(platformId)
+                        .authenticationProvider(authenticationProvider)
+                        .pictureUrl(pictureUrl)
+                        .build();
 
         if (user.getId() == null) {
             user = userRepository.save(user);
@@ -180,7 +183,8 @@ public abstract class BaseIntegrationTest {
         when(projectApi.getProject(project.getId())).thenReturn(project);
     }
 
-    protected void gitLabMockGetProjectThrowsGitLabException(ProjectApi projectApi, Long projectId) throws GitLabApiException {
+    protected void gitLabMockGetProjectThrowsGitLabException(ProjectApi projectApi, Long projectId)
+        throws GitLabApiException {
         when(projectApi.getProject(projectId)).thenThrow(new GitLabApiException("not Found"));
     }
 
@@ -208,6 +212,25 @@ public abstract class BaseIntegrationTest {
         return ownedProject;
     }
 
+    protected Repository addRepository(User user, long platformId) {
+        Repository repository = Repository.builder().user(user).platformId(platformId).build();
+        repositoryRepository.save(repository);
+        return repository;
+    }
+
+    protected Assignment addAssignment(String key, Repository repository) {
+        Assignment assignment = Assignment.builder().repository(repository).key(key).build();
+        assignmentRepository.save(assignment);
+        return assignment;
+    }
+
+    protected SubAssignment addSubAssignment(Assignment assignment) {
+        SubAssignment subAssignment =
+            SubAssignment.builder().assignment(assignment).assignedName(Randoms.alpha()).build();
+        subAssignmentRepository.save(subAssignment);
+        return subAssignment;
+    }
+
     protected Response callGetRestEndpoint(String authorizationToken, String url) {
         return RestAssured.given().log().all()
                           .contentType(ContentType.JSON)
@@ -232,6 +255,7 @@ public abstract class BaseIntegrationTest {
                           .when().post(url)
                           .then().extract().response();
     }
+
     @TestConfiguration
     static class IntegrationTestDependencyInjection {
 

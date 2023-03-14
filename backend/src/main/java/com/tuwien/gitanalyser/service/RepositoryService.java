@@ -12,4 +12,6 @@ public interface RepositoryService {
     List<Assignment> getAssignments(long userId, Long platformId);
 
     void deleteAssignment(Long userId, Long platformId, Long subAssignmentId);
+
+    void deleteAllNotAccessibleRepositoryEntities(Long userId, List<Long> gitRepositoryIds);
 }
