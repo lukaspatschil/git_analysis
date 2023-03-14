@@ -7,11 +7,9 @@ import com.tuwien.gitanalyser.entity.RepositoryFactory;
 import com.tuwien.gitanalyser.entity.SubAssignment;
 import com.tuwien.gitanalyser.entity.SubAssignmentFactory;
 import com.tuwien.gitanalyser.entity.User;
-import com.tuwien.gitanalyser.exception.ForbiddenException;
 import com.tuwien.gitanalyser.exception.NotFoundException;
 import com.tuwien.gitanalyser.repository.RepositoryRepository;
 import com.tuwien.gitanalyser.service.AssignmentService;
-import com.tuwien.gitanalyser.service.GitService;
 import com.tuwien.gitanalyser.service.SubAssignmentService;
 import com.tuwien.gitanalyser.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,7 +33,6 @@ import static org.mockito.Mockito.when;
 class RepositoryServiceImplTest {
     private RepositoryServiceImpl sut;
     private UserService userService;
-    private GitService gitService;
     private RepositoryRepository repositoryRepository;
     private AssignmentService assignmentService;
     private SubAssignmentService subAssignmentService;
@@ -44,7 +41,6 @@ class RepositoryServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        gitService = mock(GitService.class);
         userService = mock(UserService.class);
         repositoryRepository = mock(RepositoryRepository.class);
         assignmentService = mock(AssignmentService.class);
@@ -52,7 +48,6 @@ class RepositoryServiceImplTest {
         subAssignmentFactory = mock(SubAssignmentFactory.class);
         repositoryFactory = mock(RepositoryFactory.class);
         sut = new RepositoryServiceImpl(userService,
-                                        gitService,
                                         repositoryRepository,
                                         assignmentService,
                                         subAssignmentService,
@@ -61,18 +56,7 @@ class RepositoryServiceImplTest {
     }
 
     @Test
-    void assignCommitters_accessNotAllowed_shouldThrowForbiddenException() {
-        // Given
-        long userId = Randoms.getLong();
-        long platformId = Randoms.getLong();
-        CreateAssignmentDTO createDTO = CreateAssignmentDTOs.random();
-
-        // When + Then
-        assertThrows(ForbiddenException.class, () -> sut.assignCommitter(userId, platformId, createDTO));
-    }
-
-    @Test
-    void assignCommitters_accessAllowed_shouldNotThrowException() {
+    void assignCommitters_always_shouldNotThrowException() {
         // Given
         User user = prepareUserService();
         long platformId = Randoms.getLong();
@@ -80,7 +64,6 @@ class RepositoryServiceImplTest {
         Repository repositoryEntity = new Repository();
         SubAssignment subAssignment = new SubAssignment();
 
-        prepareRepositoryAvailable(user, platformId);
         prepareFactories(repositoryEntity, subAssignment);
 
         // When
@@ -88,7 +71,7 @@ class RepositoryServiceImplTest {
     }
 
     @Test
-    void assignCommitters_accessAllowedAndRepositoryDoesNotExist_createsRepository() {
+    void assignCommitters_repositoryDoesNotExist_createsRepository() {
         // Given
         User user = prepareUserService();
         long platformId = Randoms.getLong();
@@ -96,7 +79,6 @@ class RepositoryServiceImplTest {
         Repository repositoryEntity = new Repository();
         SubAssignment subAssignment = new SubAssignment();
 
-        prepareRepositoryAvailable(user, platformId);
         prepareFactories(repositoryEntity, subAssignment);
         mockRepositoryFindByUserAndPlatformIdEmpty(user, platformId);
 
@@ -108,7 +90,7 @@ class RepositoryServiceImplTest {
     }
 
     @Test
-    void assignCommitters_accessAllowedAndRepositoryExists_shouldNotCreateRepository() {
+    void assignCommitters_repositoryExists_shouldNotCreateRepository() {
         // Given
         User user = prepareUserService();
         long platformId = Randoms.getLong();
@@ -117,7 +99,6 @@ class RepositoryServiceImplTest {
         SubAssignment subAssignment = new SubAssignment();
 
         mockRepositoryFindByUserAndPlatformId(user, platformId, repository);
-        prepareRepositoryAvailable(user, platformId);
         prepareSubAssignmentFactory(subAssignment);
 
         // When
@@ -128,7 +109,7 @@ class RepositoryServiceImplTest {
     }
 
     @Test
-    void assignCommitters_accessAllowedAndRepositoryExists_shouldAddSubAssignmentToAssignment() {
+    void assignCommitters_repositoryExists_shouldAddSubAssignmentToAssignment() {
         // Given
         User user = prepareUserService();
         long platformId = Randoms.getLong();
@@ -138,7 +119,6 @@ class RepositoryServiceImplTest {
         Assignment assignment = new Assignment();
 
         mockRepositoryFindByUserAndPlatformId(user, platformId, repository);
-        prepareRepositoryAvailable(user, platformId);
         prepareAssignment(repository, createDTO, assignment);
         prepareSubAssignmentFactory(subAssignment);
 
@@ -150,22 +130,11 @@ class RepositoryServiceImplTest {
     }
 
     @Test
-    void getAssignments_userIsNotAllowedToAccess_shouldThrowExceptionForbiddenException() {
-        // Given
-        long userId = Randoms.getLong();
-        long platformId = Randoms.getLong();
-
-        // When + Then
-        assertThrows(ForbiddenException.class, () -> sut.getAssignments(userId, platformId));
-    }
-
-    @Test
-    void getAssignments_userIsAllowedToAccessAndRepositoryExistsAndAssignmentExists_returnsAssignment() {
+    void getAssignments_repositoryExistsAndAssignmentExists_returnsAssignment() {
         // Given
         long platformId = Randoms.getLong();
 
         User user = prepareUserService();
-        prepareRepositoryAvailable(user, platformId);
 
         Assignment assignment = mock(Assignment.class);
         prepareExistingRepository(List.of(assignment), platformId, user);
@@ -178,12 +147,11 @@ class RepositoryServiceImplTest {
     }
 
     @Test
-    void getAssignments_userIsAllowedToAccessAndRepositoryExistsAndMultipleAssignmentExists_returnsAssignments() {
+    void getAssignments_repositoryExistsAndMultipleAssignmentExists_returnsAssignments() {
         // Given
         long platformId = Randoms.getLong();
 
         User user = prepareUserService();
-        prepareRepositoryAvailable(user, platformId);
 
         Assignment assignment1 = mock(Assignment.class);
         Assignment assignment2 = mock(Assignment.class);
@@ -198,12 +166,11 @@ class RepositoryServiceImplTest {
     }
 
     @Test
-    void getAssignments_userIsAllowedToAccessAndRepositoryExistsAndNoAssignmentExists_returnsEmptyList() {
+    void getAssignments_repositoryExistsAndNoAssignmentExists_returnsEmptyList() {
         // Given
         long platformId = Randoms.getLong();
 
         User user = prepareUserService();
-        prepareRepositoryAvailable(user, platformId);
 
         prepareExistingRepository(List.of(), platformId, user);
 
@@ -215,12 +182,11 @@ class RepositoryServiceImplTest {
     }
 
     @Test
-    void getAssignments_userIsAllowedToAccessAndRepositoryDoesNotExist_throwsNotFoundException() {
+    void getAssignments_repositoryDoesNotExist_throwsNotFoundException() {
         // Given
         long platformId = Randoms.getLong();
 
         User user = prepareUserService();
-        prepareRepositoryAvailable(user, platformId);
 
         // When + Then
         assertThrows(NotFoundException.class, () -> sut.getAssignments(user.getId(), platformId));
@@ -234,10 +200,6 @@ class RepositoryServiceImplTest {
     private void prepareFactories(Repository repositoryEntity, SubAssignment subAssignmentEntity) {
         prepareRepositoryFactory(repositoryEntity);
         prepareSubAssignmentFactory(subAssignmentEntity);
-    }
-
-    private void prepareRepositoryAvailable(User user, long platformId) {
-        when(gitService.repositoryAccessibleByUser(user.getId(), platformId)).thenReturn(true);
     }
 
     private void mockRepositoryFindByUserAndPlatformId(User user, long platformId, Repository repository) {
