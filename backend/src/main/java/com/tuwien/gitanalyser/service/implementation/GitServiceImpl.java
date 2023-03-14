@@ -56,8 +56,11 @@ public class GitServiceImpl implements GitService {
             throw new RuntimeException(e);
         }
 
-        repositoryService.deleteAllNotAccessibleRepositoryEntities(userId,
-                                                                   allRepos.stream().map(NotSavedRepositoryInternalDTO::getPlatformId).toList());
+        repositoryService.deleteAllNotAccessibleRepositoryEntities(
+            userId,
+            allRepos.stream()
+                    .map(NotSavedRepositoryInternalDTO::getPlatformId)
+                    .toList());
 
         return allRepos;
     }
