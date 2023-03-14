@@ -96,7 +96,7 @@ public class RepositoryServiceImpl implements RepositoryService {
     }
 
     @Override
-    public void deleteAllNotAccessibleRepositoryEntities(Long userId, List<Long> gitRepositoryIds) {
+    public void deleteAllNotAccessibleRepositoryEntities(final Long userId, final List<Long> gitRepositoryIds) {
         LOGGER.info("deleteAllNotAccessibleRepositoryEntities with userId {} and gitRepositoryIds {}",
                     userId, gitRepositoryIds);
 
