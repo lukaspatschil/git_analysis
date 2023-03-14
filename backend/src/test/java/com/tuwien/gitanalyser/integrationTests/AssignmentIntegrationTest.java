@@ -56,11 +56,13 @@ public class AssignmentIntegrationTest extends BaseIntegrationTest {
         prepareGitLabAllowedToAccess(platformId);
 
         // When
-        callPostRestEndpoint(gitLabUserToken,
-                             REPOSITORY_ENDPOINT + "/" + platformId + ASSIGNMENT_EXTENSION,
-                             createAssignmentDTO);
+        Response response = callPostRestEndpoint(gitLabUserToken,
+                                                 REPOSITORY_ENDPOINT + "/" + platformId + ASSIGNMENT_EXTENSION,
+                                                 createAssignmentDTO);
 
         // Then
+        assertThat(response.getStatusCode(), equalTo(HttpStatus.CREATED.value()));
+
         Repository createdRepository = repositoryRepository.findByUserAndPlatformId(gitLabUser, platformId).get();
         assertRepository(createdRepository, platformId, gitLabUser, 1);
 
@@ -84,11 +86,13 @@ public class AssignmentIntegrationTest extends BaseIntegrationTest {
         addRepository(gitLabUser, platformId);
 
         // When
-        callPostRestEndpoint(gitLabUserToken,
-                             REPOSITORY_ENDPOINT + "/" + platformId + ASSIGNMENT_EXTENSION,
-                             createAssignmentDTO);
+        Response response = callPostRestEndpoint(gitLabUserToken,
+                                                 REPOSITORY_ENDPOINT + "/" + platformId + ASSIGNMENT_EXTENSION,
+                                                 createAssignmentDTO);
 
         // Then
+        assertThat(response.getStatusCode(), equalTo(HttpStatus.CREATED.value()));
+
         Repository createdRepository = repositoryRepository.findByUserAndPlatformId(gitLabUser, platformId).get();
         assertRepository(createdRepository, platformId, gitLabUser, 1);
 
@@ -113,11 +117,13 @@ public class AssignmentIntegrationTest extends BaseIntegrationTest {
         addAssignment(key, repository);
 
         // When
-        callPostRestEndpoint(gitLabUserToken,
-                             REPOSITORY_ENDPOINT + "/" + platformId + ASSIGNMENT_EXTENSION,
-                             createAssignmentDTO);
+        Response response = callPostRestEndpoint(gitLabUserToken,
+                                                 REPOSITORY_ENDPOINT + "/" + platformId + ASSIGNMENT_EXTENSION,
+                                                 createAssignmentDTO);
 
         // Then
+        assertThat(response.getStatusCode(), equalTo(HttpStatus.CREATED.value()));
+
         Repository createdRepository = repositoryRepository.findByUserAndPlatformId(gitLabUser, platformId).get();
         assertRepository(createdRepository, platformId, gitLabUser, 1);
 
@@ -140,11 +146,13 @@ public class AssignmentIntegrationTest extends BaseIntegrationTest {
         SubAssignment subAssignment = addSubAssignment(assignment);
 
         // When
-        callPostRestEndpoint(gitLabUserToken,
-                             REPOSITORY_ENDPOINT + "/" + platformId + ASSIGNMENT_EXTENSION,
-                             createAssignmentDTO);
+        Response response = callPostRestEndpoint(gitLabUserToken,
+                                                 REPOSITORY_ENDPOINT + "/" + platformId + ASSIGNMENT_EXTENSION,
+                                                 createAssignmentDTO);
 
         // Then
+        assertThat(response.getStatusCode(), equalTo(HttpStatus.CREATED.value()));
+
         Repository repositoryResult = repositoryRepository.findByUserAndPlatformId(gitLabUser, platformId).get();
         assertRepository(repositoryResult, platformId, gitLabUser, 1);
 
@@ -174,11 +182,12 @@ public class AssignmentIntegrationTest extends BaseIntegrationTest {
         SubAssignment subAssignment = addSubAssignment(assignment);
 
         // When
-        callPostRestEndpoint(gitLabUserToken,
-                             REPOSITORY_ENDPOINT + "/" + platformId + ASSIGNMENT_EXTENSION,
-                             createAssignmentDTO);
+        Response response = callPostRestEndpoint(gitLabUserToken,
+                                                 REPOSITORY_ENDPOINT + "/" + platformId + ASSIGNMENT_EXTENSION,
+                                                 createAssignmentDTO);
 
         // Then
+        assertThat(response.getStatusCode(), equalTo(HttpStatus.CREATED.value()));
         Repository repositoryResult = repositoryRepository.findByUserAndPlatformId(gitLabUser, platformId).get();
         assertRepository(repositoryResult, platformId, gitLabUser, 2);
 

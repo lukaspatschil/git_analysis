@@ -11,6 +11,7 @@ import com.tuwien.gitanalyser.entity.mapper.BranchMapper;
 import com.tuwien.gitanalyser.entity.mapper.CommitMapper;
 import com.tuwien.gitanalyser.entity.mapper.CommitterMapper;
 import com.tuwien.gitanalyser.entity.mapper.NotSavedRepositoryMapper;
+import com.tuwien.gitanalyser.security.SecurityAnnotations;
 import com.tuwien.gitanalyser.service.GitService;
 import com.tuwien.gitanalyser.service.RepositoryService;
 import org.gitlab4j.api.GitLabApiException;
@@ -128,6 +129,7 @@ public class RepositoryEndpoint extends BaseEndpoint {
 
     @PostMapping("/{platformId}/assignment")
     @ResponseStatus(HttpStatus.CREATED)
+    @SecurityAnnotations.UserOwnsRepo()
     public void assignCommitters(final Authentication authentication,
                                  final @PathVariable Long platformId,
                                  final @RequestBody CreateAssignmentDTO createAssignmentDTO) {
@@ -139,6 +141,7 @@ public class RepositoryEndpoint extends BaseEndpoint {
     }
 
     @GetMapping("/{platformId}/assignment")
+    @SecurityAnnotations.UserOwnsRepo()
     public List<AssignmentDTO> getAssignments(final Authentication authentication,
                                               final @PathVariable Long platformId) {
         LOGGER.info("GET /repository/{id}/assignment - get assignments from repository by platform id {} ", platformId);
