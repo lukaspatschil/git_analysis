@@ -71,12 +71,28 @@ public class RepositoryServiceImpl implements RepositoryService {
         Optional<Repository> repository = findRepositoryByPlatformIdAndUser(platformId, user);
 
         if (repository.isEmpty()) {
+            LOGGER.info("getAssignments finished with empty repository for platformId {}", platformId);
             throw new NotFoundException("Repository not found");
         }
 
         LOGGER.info("getAssignments finished for platformId {}", platformId);
 
         return repository.get().getAssignments();
+    }
+
+    @Override
+    public void deleteAssignment(final Long userId, final Long platformId, final Long subAssignmentId) {
+        LOGGER.info("deleteAssignment with userId {} and platformId {} and subAssignmentId {}",
+                    userId, platformId, subAssignmentId);
+        User user = userService.getUser(userId);
+        Optional<Repository> repository = findRepositoryByPlatformIdAndUser(platformId, user);
+
+        if (repository.isEmpty()) {
+            LOGGER.info("getAssignments finished with empty repository for platformId {}", platformId);
+            throw new NotFoundException("Repository not found");
+        }
+
+        assignmentService.deleteSubAssignmentById(repository.get(), subAssignmentId);
     }
 
     private Optional<Repository> findRepositoryByPlatformIdAndUser(final Long platformId, final User user) {

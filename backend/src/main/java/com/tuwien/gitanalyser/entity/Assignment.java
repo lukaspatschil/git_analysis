@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -41,6 +42,6 @@ public class Assignment {
     @Column(name = "key")
     private String key;
 
-    @OneToMany(mappedBy = "assignment", fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "assignment", fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
     private List<SubAssignment> subAssignments;
 }

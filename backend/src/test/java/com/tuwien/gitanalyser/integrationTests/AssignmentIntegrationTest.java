@@ -19,7 +19,10 @@ import utils.Randoms;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
+import static com.github.npathai.hamcrestopt.OptionalMatchers.isEmpty;
+import static com.github.npathai.hamcrestopt.OptionalMatchers.isPresent;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -385,6 +388,139 @@ public class AssignmentIntegrationTest extends BaseIntegrationTest {
             assignmentMatcher(key1, subAssignment11, subAssignment12),
             assignmentMatcher(key2, subAssignment21, subAssignment22)
             ));
+    }
+
+    @Test
+    public void deleteAssignment_userNotAllowedToAccessRepository_returnsForbidden() {
+        // Given
+        long platformId = Randoms.getLong();
+        long subAssignmentId = Randoms.getLong();
+
+        // When
+        Response response = callDeleteRestEndpoint(gitLabUserToken,
+                                                   REPOSITORY_ENDPOINT + "/" + platformId + ASSIGNMENT_EXTENSION +
+                                                       "/" + subAssignmentId);
+
+        // Then
+        assertThat(response.getStatusCode(), equalTo(HttpStatus.FORBIDDEN.value()));
+    }
+
+    @Test
+    public void deleteAssignment_userAllowedToAccessRepositoryAndRepositoryDoesNotExist_returnsNotFound()
+        throws GitLabApiException {
+        // Given
+        long platformId = Randoms.getLong();
+        long subAssignmentId = Randoms.getLong();
+
+        prepareGitLabAllowedToAccess(platformId);
+
+        // When
+        Response response = callDeleteRestEndpoint(gitLabUserToken,
+                                                   REPOSITORY_ENDPOINT + "/" + platformId + ASSIGNMENT_EXTENSION +
+                                                       "/" + subAssignmentId);
+
+        // Then
+        assertThat(response.getStatusCode(), equalTo(HttpStatus.NOT_FOUND.value()));
+    }
+
+    @Test
+    public void deleteAssignment_userAllowedToAccessRepositoryAndRepositoryExistsAndNoAssignmentExists_returnsNotFound()
+        throws GitLabApiException {
+        // Given
+        long platformId = Randoms.getLong();
+        long subAssignmentId = Randoms.getLong();
+
+        prepareGitLabAllowedToAccess(platformId);
+
+        addRepository(gitLabUser, platformId);
+
+        // When
+        Response response = callDeleteRestEndpoint(gitLabUserToken,
+                                                   REPOSITORY_ENDPOINT + "/" + platformId + ASSIGNMENT_EXTENSION +
+                                                       "/" + subAssignmentId);
+
+        // Then
+        assertThat(response.getStatusCode(), equalTo(HttpStatus.NOT_FOUND.value()));
+    }
+
+    @Test
+    public void deleteAssignment_userAllowedToAccessRepositoryAndRepositoryExistsAndAssignmentExistsAndSubAssignmentExists_returnsOk()
+        throws GitLabApiException {
+        // Given
+        long platformId = Randoms.getLong();
+        String key = Randoms.alpha();
+
+        prepareGitLabAllowedToAccess(platformId);
+
+        Repository repository = addRepository(gitLabUser, platformId);
+        Assignment assignment = addAssignment(key, repository);
+        SubAssignment subAssignment = addSubAssignment(assignment);
+
+        // When
+        Response response = callDeleteRestEndpoint(gitLabUserToken,
+                                                   REPOSITORY_ENDPOINT + "/" + platformId + ASSIGNMENT_EXTENSION +
+                                                       "/" + subAssignment.getId());
+
+        // Then
+        assertThat(response.getStatusCode(), equalTo(HttpStatus.OK.value()));
+    }
+
+    @Test
+    public void deleteAssignment_userAllowedToAccessRepositoryAndRepositoryExistsAndAssignmentExistsAndSubAssignmentExists_deletesAssignment()
+        throws GitLabApiException {
+        // Given
+        long platformId = Randoms.getLong();
+        String key = Randoms.alpha();
+
+        prepareGitLabAllowedToAccess(platformId);
+
+        Repository repository = addRepository(gitLabUser, platformId);
+        Assignment assignment = addAssignment(key, repository);
+        SubAssignment subAssignment = addSubAssignment(assignment);
+
+        // When
+        callDeleteRestEndpoint(gitLabUserToken,
+                               REPOSITORY_ENDPOINT + "/" + platformId + ASSIGNMENT_EXTENSION +
+                                   "/" + subAssignment.getId());
+
+        // Then
+        Optional<Assignment> result = assignmentRepository.findById(assignment.getId());
+        assertThat(result, isEmpty());
+    }
+
+    @Test
+    public void deleteAssignment_userAllowedToAccessRepositoryAndRepositoryExistsAndAssignmentExistsAndMultipleSubAssignmentsExist_deletesSubAssignment()
+        throws GitLabApiException {
+        // Given
+        long platformId = Randoms.getLong();
+        String key = Randoms.alpha();
+
+        prepareGitLabAllowedToAccess(platformId);
+
+        Repository repository = addRepository(gitLabUser, platformId);
+        Assignment assignment = addAssignment(key, repository);
+        SubAssignment subAssignment1 = addSubAssignment(assignment);
+        SubAssignment subAssignment2 = addSubAssignment(assignment);
+
+        // When
+        callDeleteRestEndpoint(gitLabUserToken,
+                               REPOSITORY_ENDPOINT + "/" + platformId + ASSIGNMENT_EXTENSION +
+                                   "/" + subAssignment1.getId());
+
+        // Then
+        Optional<Assignment> result = assignmentRepository.findById(assignment.getId());
+        assertThat(result, isPresent());
+        assertThat(result.get().getSubAssignments().size(), equalTo(1));
+        assertThat(result.get().getSubAssignments(), containsInAnyOrder(
+            subAssignmentMatcher(subAssignment2)
+        ));
+    }
+
+    private static Matcher<SubAssignment> subAssignmentMatcher(SubAssignment subAssignment2) {
+        return allOf(
+            hasFeature("id", SubAssignment::getId, equalTo(subAssignment2.getId())),
+            hasFeature("name", SubAssignment::getAssignedName, equalTo(subAssignment2.getAssignedName()))
+        );
     }
 
     private static Matcher<AssignmentDTO> assignmentMatcher(String key1, SubAssignment subAssignment21,

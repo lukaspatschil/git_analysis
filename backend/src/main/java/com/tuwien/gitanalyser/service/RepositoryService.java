@@ -10,4 +10,6 @@ public interface RepositoryService {
     void assignCommitter(long userId, Long platformId, CreateAssignmentDTO dto);
 
     List<Assignment> getAssignments(long userId, Long platformId);
+
+    void deleteAssignment(Long userId, Long platformId, Long subAssignmentId);
 }
