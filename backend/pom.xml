@@ -39,6 +39,8 @@
         <libvcs4j.tools.version>1.8.0</libvcs4j.tools.version>
         <maven.compiler.plugin.version>3.5.1</maven.compiler.plugin.version>
         <maven.surfire.version>3.0.0-M8</maven.surfire.version>
+        <hamcrest-compose.version>0.4.0</hamcrest-compose.version>
+        <hamcrest-optional.version>1.0</hamcrest-optional.version>
     </properties>
 
     <dependencies>
@@ -227,9 +229,18 @@
         <dependency>
             <groupId>org.hobsoft.hamcrest</groupId>
             <artifactId>hamcrest-compose</artifactId>
-            <version>0.4.0</version>
+            <version>${hamcrest-compose.version}</version>
             <scope>test</scope>
         </dependency>
+
+        <!-- https://mvnrepository.com/artifact/com.github.npathai/hamcrest-optional -->
+        <dependency>
+            <groupId>com.github.npathai</groupId>
+            <artifactId>hamcrest-optional</artifactId>
+            <version>${hamcrest-optional.version}</version>
+            <scope>test</scope>
+        </dependency>
+
 
     </dependencies>
 

@@ -179,12 +179,9 @@
         <module name="UpperEll"/>
 
         <!-- https://checkstyle.org/config_filters.html#SuppressionXpathFilter -->
-        <module name="SuppressionXpathFilter">
-            <property name="file" value="${org.checkstyle.sun.suppressionxpathfilter.config}"
-                      default="checkstyle-xpath-suppressions.xml" />
-            <property name="optional" value="true"/>
-        </module>
+        <module name="SuppressWarningsHolder"/>
 
     </module>
+    <module name="SuppressWarningsFilter"/>
 
 </module>

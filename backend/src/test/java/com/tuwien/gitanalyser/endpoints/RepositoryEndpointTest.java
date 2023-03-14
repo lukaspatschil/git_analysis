@@ -482,6 +482,23 @@ class RepositoryEndpointTest {
         assertThat(result, containsInAnyOrder(mapperAssignment1, mapperAssignment2));
     }
 
+
+    @Test
+    void deleteAssignment_always_shouldCallRepositoryServiceDeleteAssignment(){
+        // Given
+        long userId = Randoms.getLong();
+        long platformId = Randoms.getLong();
+        long subAssignmentId = Randoms.getLong();
+
+        Authentication authentication = mock(Authentication.class);
+        mockUserId(userId, authentication);
+
+        // When
+        sut.deleteAssignment(authentication, platformId, subAssignmentId);
+
+        // Then
+        verify(repositoryService).deleteAssignment(userId, platformId, subAssignmentId);
+    }
     private void mockGetAllCommitters(long repositoryId, long userId, String branchName,
                                       Set<CommitterInternalDTO> committerInternalDto)
         throws GitLabApiException, IOException {

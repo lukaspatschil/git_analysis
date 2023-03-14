@@ -6,4 +6,6 @@ import com.tuwien.gitanalyser.entity.SubAssignment;
 public interface SubAssignmentService {
 
     SubAssignment addSubAssignment(Assignment assignment, SubAssignment subAssignment);
+
+    void deleteSubAssignmentById(Long subAssignmentId);
 }

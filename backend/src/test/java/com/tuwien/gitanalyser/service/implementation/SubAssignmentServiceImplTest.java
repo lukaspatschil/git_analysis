@@ -3,9 +3,13 @@ package com.tuwien.gitanalyser.service.implementation;
 import com.tuwien.gitanalyser.entity.Assignment;
 import com.tuwien.gitanalyser.entity.SubAssignment;
 import com.tuwien.gitanalyser.exception.ConflictException;
+import com.tuwien.gitanalyser.exception.NotFoundException;
 import com.tuwien.gitanalyser.repository.SubAssignmentRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import utils.Randoms;
+
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
@@ -47,5 +51,30 @@ class SubAssignmentServiceImplTest {
 
         // Then
         assertThrows(ConflictException.class, () -> sut.addSubAssignment(assignment, subAssignment));
+    }
+
+    @Test
+    void deleteSubAssignmentById_subAssignmentExists_shouldDeleteSubAssignment() {
+        // Given
+        Long subAssignmentId = Randoms.getLong();
+        SubAssignment subAssignment = mock(SubAssignment.class);
+        when(subAssignmentRepository.findById(subAssignmentId)).thenReturn(Optional.of(subAssignment));
+
+        // When
+        sut.deleteSubAssignmentById(subAssignmentId);
+
+        // Then
+        verify(subAssignmentRepository).delete(subAssignment);
+    }
+
+    @Test
+    void deleteSubAssignmentById_subAssignmentDoesNotExist_throwNotFoundException() {
+        // Given
+        Long subAssignmentId = Randoms.getLong();
+
+        // When
+        assertThrows(NotFoundException.class, () -> sut.deleteSubAssignmentById(subAssignmentId));
+
+        // Then
     }
 }

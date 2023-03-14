@@ -19,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -148,5 +149,18 @@ public class RepositoryEndpoint extends BaseEndpoint {
 
         return assignmentMapper.entitiesToDTO(repositoryService.getAssignments(getUserId(authentication),
                                                                                platformId));
+    }
+
+    @DeleteMapping("/{platformId}/assignment/{subAssignmentId}")
+    @SecurityAnnotations.UserOwnsRepo
+    public void deleteAssignment(final Authentication authentication,
+                                 final @PathVariable("platformId") Long platformId,
+                                 final @PathVariable("subAssignmentId") Long subAssignmentId) {
+        LOGGER.info("DELETE /repository/{id}/assignment/{subAssignmentId} - delete assignment from repository "
+                        + "by platform id {} and subAssignmentId {}",
+                    platformId,
+                    subAssignmentId);
+
+        repositoryService.deleteAssignment(getUserId(authentication), platformId, subAssignmentId);
     }
 }
