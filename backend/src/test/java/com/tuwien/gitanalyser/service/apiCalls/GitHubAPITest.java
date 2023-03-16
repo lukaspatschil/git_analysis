@@ -1,6 +1,7 @@
 package com.tuwien.gitanalyser.service.apiCalls;
 
 import com.tuwien.gitanalyser.endpoints.dtos.internal.NotSavedRepositoryInternalDTO;
+import com.tuwien.gitanalyser.exception.GitHubException;
 import com.tuwien.gitanalyser.service.apiCalls.factory.GitHubAPIFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -50,7 +51,7 @@ class GitHubAPITest {
     }
 
     @Test
-    void getAllRepositories_noRepositoriesAvailable_returnEmptyList() throws IOException {
+    void getAllRepositories_noRepositoriesAvailable_returnEmptyList() throws IOException, GitHubException {
         // Given
         GitHub gitHub = mockFactory();
         GHMyself ghMyself = mockMySelf(gitHub);
@@ -65,7 +66,7 @@ class GitHubAPITest {
 
     @Disabled
     @Test
-    void getAllRepositories_OneProject_singleItemAsList() throws IOException {
+    void getAllRepositories_OneProject_singleItemAsList() throws IOException, GitHubException {
         // Given
         GitHub gitHub = mockFactory();
         GHMyself ghMyself = mockMySelf(gitHub);
@@ -82,7 +83,7 @@ class GitHubAPITest {
 
     @Disabled
     @Test
-    void getAllRepositories_twoProjects_return2ItemsList() throws IOException {
+    void getAllRepositories_twoProjects_return2ItemsList() throws IOException, GitHubException {
         // Given
         GitHub gitHub = mockFactory();
         GHMyself ghMyself = mockMySelf(gitHub);
@@ -107,8 +108,7 @@ class GitHubAPITest {
         when(ghMyself.getAllRepositories()).thenThrow(new IOException(TEST_EXCEPTION_ERROR_MESSAGE));
 
         // When + Then
-        IOException exception = assertThrows(IOException.class, () -> sut.getAllRepositories(accessToken));
-        assertThat(exception.getMessage(), is(TEST_EXCEPTION_ERROR_MESSAGE));
+        assertThrows(GitHubException.class, () -> sut.getAllRepositories(accessToken));
     }
 
     @Test
@@ -119,14 +119,13 @@ class GitHubAPITest {
         when(gitHub.getRepositoryById(exceptionRepositoryId)).thenThrow(new IOException(TEST_EXCEPTION_ERROR_MESSAGE));
 
         // When + Then
-        IOException exception = assertThrows(IOException.class,
-                                             () -> sut.getRepositoryById(accessToken, exceptionRepositoryId));
-        assertThat(exception.getMessage(), is(TEST_EXCEPTION_ERROR_MESSAGE));
+        assertThrows(GitHubException.class,
+                     () -> sut.getRepositoryById(accessToken, exceptionRepositoryId));
     }
 
     @Disabled
     @Test
-    void getRepositoryById_gitlabLibraryReturnsOneRepository_sutReturnsRepository() throws IOException {
+    void getRepositoryById_gitlabLibraryReturnsOneRepository_sutReturnsRepository() throws IOException, GitHubException {
         // Given
         long queryRepositoryId = firstRepository.getId();
 

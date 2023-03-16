@@ -29,7 +29,7 @@
         <spring.security.oauth2.resource.server.verision>6.0.1</spring.security.oauth2.resource.server.verision>
         <spring.security.oauth2.jose>6.0.1</spring.security.oauth2.jose>
         <rest-assured.version>5.3.0</rest-assured.version>
-        <pitest.version>1.10.4</pitest.version>
+        <pitest.version>1.11.4</pitest.version>
         <github.api.version>1.314</github.api.version>
         <junit.jupiter.engine.version>5.4.0</junit.jupiter.engine.version>
         <gitlab4j.api.version>5.0.1</gitlab4j.api.version>
@@ -39,8 +39,10 @@
         <libvcs4j.tools.version>1.8.0</libvcs4j.tools.version>
         <maven.compiler.plugin.version>3.5.1</maven.compiler.plugin.version>
         <maven.surfire.version>3.0.0-M8</maven.surfire.version>
+        <pitest-junit5-plugin.version>1.1.1</pitest-junit5-plugin.version>
+        <maven-surefire-plugin.version>3.0.0-M8</maven-surefire-plugin.version>
         <hamcrest-compose.version>0.4.0</hamcrest-compose.version>
-        <hamcrest-optional.version>1.0</hamcrest-optional.version>
+        <hamcrest-optional.version>2.0.0</hamcrest-optional.version>
     </properties>
 
     <dependencies>
@@ -308,7 +310,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.0.0-M8</version>
+                <version>${maven-surefire-plugin.version}</version>
             </plugin>
             <plugin>
                 <groupId>org.jacoco</groupId>
@@ -333,6 +335,20 @@
                 <groupId>org.pitest</groupId>
                 <artifactId>pitest-maven</artifactId>
                 <version>${pitest.version}</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.pitest</groupId>
+                        <artifactId>pitest-junit5-plugin</artifactId>
+                        <version>${pitest-junit5-plugin.version}</version>
+                    </dependency>
+                </dependencies>
+                <configuration>
+                    <excludedClasses>
+                        <param>com.tuwien.gitanalyser.configuration.*</param>
+                        <param>com.tuwien.gitanalyser.endpoints.dtos.*</param>
+                        <param>com.tuwien.gitanalyser.security.oAuth2.*</param>
+                    </excludedClasses>
+                </configuration>
             </plugin>
         </plugins>
     </build>

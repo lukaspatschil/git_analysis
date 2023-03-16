@@ -4,26 +4,27 @@ import com.tuwien.gitanalyser.endpoints.dtos.internal.BranchInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitterInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.NotSavedRepositoryInternalDTO;
-import org.gitlab4j.api.GitLabApiException;
+import com.tuwien.gitanalyser.exception.GitException;
+import com.tuwien.gitanalyser.exception.NoProviderFoundException;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
 public interface GitService {
 
-    List<NotSavedRepositoryInternalDTO> getAllRepositories(Long userId);
+    List<NotSavedRepositoryInternalDTO> getAllRepositories(Long userId) throws NoProviderFoundException, GitException;
 
-    List<BranchInternalDTO> getAllBranches(Long userId, Long platformId) throws GitLabApiException, IOException;
+    List<BranchInternalDTO> getAllBranches(Long userId, Long platformId)
+        throws GitException, NoProviderFoundException;
 
     NotSavedRepositoryInternalDTO getRepositoryById(Long userId, Long platformId)
-        throws GitLabApiException, IOException;
+        throws GitException, NoProviderFoundException;
 
     List<CommitInternalDTO> getAllCommits(long userId, Long platformId, String branch)
-        throws GitLabApiException, IOException;
+        throws GitException, NoProviderFoundException;
 
     Set<CommitterInternalDTO> getAllCommitters(long userId, Long platformId, String branch)
-        throws GitLabApiException, IOException;
+        throws GitException, NoProviderFoundException;
 
-    boolean repositoryAccessibleByUser(long userId, Long platformId);
+    boolean repositoryAccessibleByUser(long userId, Long platformId) throws NoProviderFoundException;
 }
