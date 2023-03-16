@@ -149,7 +149,7 @@ public class GitIntegrationTest extends BaseIntegrationTest {
         gitLabMockOwnedProjects(projectApi, List.of(memberedProject));
 
         // When
-        Response response = callGetRestEndpoint(gitLabUserToken, REPOSITORY_ENDPOINT);
+        callGetRestEndpoint(gitLabUserToken, REPOSITORY_ENDPOINT);
 
         // Then
         Optional<Repository> resultRepository = repositoryRepository.findById(repository.getId());
@@ -169,7 +169,7 @@ public class GitIntegrationTest extends BaseIntegrationTest {
         gitLabMockOwnedProjects(projectApi, List.of(memberedProject));
 
         // When
-        Response response = callGetRestEndpoint(gitLabUserToken, REPOSITORY_ENDPOINT);
+        callGetRestEndpoint(gitLabUserToken, REPOSITORY_ENDPOINT);
 
         // Then
         Optional<Repository> resultRepository = repositoryRepository.findById(repository.getId());
@@ -286,9 +286,9 @@ public class GitIntegrationTest extends BaseIntegrationTest {
 
         // Then
         assertThat(response.as(BranchDTO[].class).length, equalTo(2));
-        BranchDTO[] repositories = response.as(BranchDTO[].class);
+        BranchDTO[] branchDTOS = response.as(BranchDTO[].class);
 
-        assertThat(Arrays.asList(repositories), containsInAnyOrder(
+        assertThat(Arrays.asList(branchDTOS), containsInAnyOrder(
             branchDTOMatcher(branch1),
             branchDTOMatcher(branch2)
         ));

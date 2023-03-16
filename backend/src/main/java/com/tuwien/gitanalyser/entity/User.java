@@ -53,7 +53,6 @@ public class User {
     private String accessToken;
     @Column(name = "refresh_token")
     private String refreshToken;
-
     @OneToMany(mappedBy = "user")
     private List<Repository> repositories = new ArrayList<>();
 

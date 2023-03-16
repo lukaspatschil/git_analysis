@@ -3,6 +3,7 @@ package com.tuwien.gitanalyser.service.apiCalls;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.BranchInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.NotSavedRepositoryInternalDTO;
+import com.tuwien.gitanalyser.exception.GitHubException;
 import com.tuwien.gitanalyser.service.GitAPI;
 import com.tuwien.gitanalyser.service.GitAPIFactory;
 import org.kohsuke.github.GHCommit;
@@ -29,19 +30,24 @@ public class GitHubAPI implements GitAPI {
         this.gitHubAPIFactory = gitHubAPIFactory;
     }
 
-    public List<NotSavedRepositoryInternalDTO> getAllRepositories(final String accessToken) throws IOException {
+    public List<NotSavedRepositoryInternalDTO> getAllRepositories(final String accessToken) throws GitHubException {
         LOGGER.info("getAllRepositories");
 
-        GitHub github = gitHubAPIFactory.createObject(accessToken);
-        List<NotSavedRepositoryInternalDTO> repositories =
-            github.getMyself()
-                  .getAllRepositories()
-                  .values()
-                  .stream()
-                  .map(repo -> new NotSavedRepositoryInternalDTO(repo.getId(),
-                                                                 repo.getName(),
-                                                                 repo.getHttpTransportUrl()))
-                  .collect(Collectors.toList());
+        List<NotSavedRepositoryInternalDTO> repositories;
+
+        try {
+            GitHub github = gitHubAPIFactory.createObject(accessToken);
+            repositories = github.getMyself()
+                                 .getAllRepositories()
+                                 .values()
+                                 .stream()
+                                 .map(repo -> new NotSavedRepositoryInternalDTO(repo.getId(),
+                                                                                repo.getName(),
+                                                                                repo.getHttpTransportUrl()))
+                                 .collect(Collectors.toList());
+        } catch (IOException e) {
+            throw new GitHubException(e);
+        }
 
         LOGGER.info("getAllRepositories finished: " + repositories.size());
 
@@ -50,11 +56,16 @@ public class GitHubAPI implements GitAPI {
 
     @Override
     public NotSavedRepositoryInternalDTO getRepositoryById(final String accessToken, final long platformId)
-        throws IOException {
+        throws GitHubException {
         LOGGER.info("getRepositoryById: " + platformId);
 
-        GitHub github = gitHubAPIFactory.createObject(accessToken);
-        GHRepository repository = github.getRepositoryById(platformId);
+        GHRepository repository;
+        try {
+            GitHub github = gitHubAPIFactory.createObject(accessToken);
+            repository = github.getRepositoryById(platformId);
+        } catch (IOException e) {
+            throw new GitHubException(e);
+        }
 
         LOGGER.info("getRepositoryById finished: " + repository.getName());
 
@@ -66,34 +77,43 @@ public class GitHubAPI implements GitAPI {
     }
 
     @Override
-    public List<BranchInternalDTO> getAllBranches(final String accessToken, final Long platformId) throws IOException {
+    public List<BranchInternalDTO> getAllBranches(final String accessToken, final Long platformId) {
         LOGGER.info("getAllBranches: " + platformId);
 
-        GitHub github = gitHubAPIFactory.createObject(accessToken);
-        List<BranchInternalDTO> branches = github.getRepositoryById(platformId)
-                                                 .getBranches()
-                                                 .values()
-                                                 .stream()
-                                                 .map(branch -> new BranchInternalDTO(branch.getName()))
-                                                 .collect(Collectors.toList());
+        List<BranchInternalDTO> branches;
+        try {
+            GitHub github = gitHubAPIFactory.createObject(accessToken);
+            branches = github.getRepositoryById(platformId)
+                             .getBranches()
+                             .values()
+                             .stream()
+                             .map(branch -> new BranchInternalDTO(branch.getName()))
+                             .collect(Collectors.toList());
 
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         LOGGER.info("getAllBranches for repo {} finished", platformId);
         return branches;
     }
 
     @Override
     public List<CommitInternalDTO> getAllCommits(final String accessToken, final long platformId,
-                                                 final @Nullable String branchName) throws IOException {
+                                                 final @Nullable String branchName) throws GitHubException {
         LOGGER.info("getAllCommits: {}; {}", platformId, branchName);
 
         List<CommitInternalDTO> result = new ArrayList<>();
 
-        var github = gitHubAPIFactory.createObject(accessToken);
-        String branch = branchName == null ? github.getRepositoryById(platformId).getDefaultBranch() : branchName;
-        github.getRepositoryById(platformId).queryCommits().from(branch).list().forEach(commit -> {
-            LOGGER.info("commit: {}", commit.getSHA1());
-            result.add(this.mapGHCommitToInternalDTO(commit));
-        });
+        try {
+            GitHub github = gitHubAPIFactory.createObject(accessToken);
+            String branch = branchName == null ? github.getRepositoryById(platformId).getDefaultBranch() : branchName;
+            github.getRepositoryById(platformId).queryCommits().from(branch).list().forEach(commit -> {
+                LOGGER.info("commit: {}", commit.getSHA1());
+                result.add(this.mapGHCommitToInternalDTO(commit));
+            });
+        } catch (IOException e) {
+            throw new GitHubException(e);
+        }
 
         LOGGER.info("getAllCommits for repo {} finished", platformId);
 
