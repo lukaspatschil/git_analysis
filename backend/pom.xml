@@ -43,6 +43,8 @@
         <maven-surefire-plugin.version>3.0.0-M8</maven-surefire-plugin.version>
         <hamcrest-compose.version>0.4.0</hamcrest-compose.version>
         <hamcrest-optional.version>2.0.0</hamcrest-optional.version>
+        <springdoc-openapi-security.version>${springdoc-openapi-ui.version}</springdoc-openapi-security.version>
+        <springdoc-openapi-ui.version>1.6.15</springdoc-openapi-ui.version>
     </properties>
 
     <dependencies>
@@ -243,6 +245,17 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- openapi -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-ui</artifactId>
+            <version>${springdoc-openapi-ui.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-security</artifactId>
+            <version>${springdoc-openapi-security.version}</version>
+        </dependency>
 
     </dependencies>
 

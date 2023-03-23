@@ -23,3 +23,7 @@ logging:
   level:
     org.springframework.web: DEBUG
     org.hibernate.type: DEBUG
+springdoc:
+  show-login-endpoint: true
+  swagger-ui:
+    operationsSorter: alpha

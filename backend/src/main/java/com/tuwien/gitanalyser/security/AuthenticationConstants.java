@@ -8,7 +8,6 @@ import java.util.Base64;
 
 public class AuthenticationConstants {
 
-    public static final String ROLE_PREFIX = "ROLE_";
     public static final String TOKEN_PREFIX = "Bearer ";
 
     public static final String[] GITHUB_SCOPES = {"user:email", "read:user", "repo"};
@@ -21,6 +20,7 @@ public class AuthenticationConstants {
     public static final String GITHUB_AUTHORIZATION_URI = "https://github.com/login/oauth/authorize";
     public static final String GITHUB_TOKEN_URI = "https://github.com/login/oauth/access_token";
     public static final String GITHUB_USER_INFO_URI = "https://api.github.com/user";
+
     public static final String GITLAB_REGISTRATION_ID = "gitlab";
     public static final String GITLAB_CLIENT_NAME = "GitLab";
     public static final String GITLAB_CLIENT_URL = "https://gitlab.com";
