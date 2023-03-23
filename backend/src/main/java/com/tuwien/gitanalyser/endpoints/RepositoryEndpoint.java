@@ -23,6 +23,13 @@ import com.tuwien.gitanalyser.exception.NoProviderFoundException;
 import com.tuwien.gitanalyser.security.SecurityAnnotations;
 import com.tuwien.gitanalyser.service.GitService;
 import com.tuwien.gitanalyser.service.RepositoryService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -42,6 +49,8 @@ import java.util.Set;
 
 @RestController()
 @RequestMapping("/apiV1/repository")
+@SecurityRequirement(name = "oauth2")
+@Tag(name = "Repository Endpoint")
 public class RepositoryEndpoint extends BaseEndpoint {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RepositoryEndpoint.class);
@@ -70,6 +79,14 @@ public class RepositoryEndpoint extends BaseEndpoint {
     }
 
     @GetMapping
+    @Operation(description = "Get all repositories", responses = {
+        @ApiResponse(responseCode = "200", content = @Content(
+            array = @ArraySchema(schema = @Schema(implementation = NotSavedRepositoryDTO.class)),
+            mediaType = "application/json")),
+        @ApiResponse(responseCode = "400", content = @Content(
+            mediaType = "application/json",
+            schema = @Schema(hidden = true)))
+    })
     public List<NotSavedRepositoryDTO> getAllRepositories(final Authentication authentication)
         throws InternalServerErrorException, BadRequestException {
         LOGGER.info("GET /repository - get all repositories");
@@ -85,6 +102,14 @@ public class RepositoryEndpoint extends BaseEndpoint {
     }
 
     @GetMapping("/{platformId}")
+    @Operation(description = "Get repository by id", responses = {
+        @ApiResponse(responseCode = "200", content = @Content(
+            schema = @Schema(implementation = NotSavedRepositoryDTO.class),
+            mediaType = "application/json")),
+        @ApiResponse(responseCode = "400", content = @Content(
+            mediaType = "application/json",
+            schema = @Schema(hidden = true)))
+    })
     public NotSavedRepositoryDTO getRepositoryById(
         final Authentication authentication,
         final @PathVariable Long platformId) throws InternalServerErrorException, BadRequestException {
@@ -103,6 +128,14 @@ public class RepositoryEndpoint extends BaseEndpoint {
     }
 
     @GetMapping("/{platformId}/branch")
+    @Operation(description = "Get all branches for a repository", responses = {
+        @ApiResponse(responseCode = "200", content = @Content(
+            array = @ArraySchema(schema = @Schema(implementation = BranchDTO.class)),
+            mediaType = "application/json")),
+        @ApiResponse(responseCode = "400", content = @Content(
+            mediaType = "application/json",
+            schema = @Schema(hidden = true)))
+    })
     public List<BranchDTO> getBranchesByRepositoryId(
         final Authentication authentication,
         final @PathVariable Long platformId) throws InternalServerErrorException, BadRequestException {
@@ -119,6 +152,14 @@ public class RepositoryEndpoint extends BaseEndpoint {
     }
 
     @GetMapping("/{platformId}/commit")
+    @Operation(description = "Get all branches for a repository", responses = {
+        @ApiResponse(responseCode = "200", content = @Content(
+            array = @ArraySchema(schema = @Schema(implementation = CommitDTO.class)),
+            mediaType = "application/json")),
+        @ApiResponse(responseCode = "400", content = @Content(
+            mediaType = "application/json",
+            schema = @Schema(hidden = true)))
+    })
     public List<CommitDTO> getCommitsByRepositoryId(
         final Authentication authentication,
         final @PathVariable Long platformId,
@@ -138,6 +179,14 @@ public class RepositoryEndpoint extends BaseEndpoint {
     }
 
     @GetMapping("/{platformId}/committer")
+    @Operation(description = "Get all committers for a repository", responses = {
+        @ApiResponse(responseCode = "200", content = @Content(
+            array = @ArraySchema(schema = @Schema(implementation = CommitterDTO.class)),
+            mediaType = "application/json")),
+        @ApiResponse(responseCode = "400", content = @Content(
+            mediaType = "application/json",
+            schema = @Schema(hidden = true)))
+    })
     public List<CommitterDTO> getCommittersByRepositoryId(
         final Authentication authentication,
         final @PathVariable Long platformId,
@@ -160,6 +209,12 @@ public class RepositoryEndpoint extends BaseEndpoint {
     @PostMapping("/{platformId}/assignment")
     @ResponseStatus(HttpStatus.CREATED)
     @SecurityAnnotations.UserOwnsRepo()
+    @Operation(description = "Add assignment for committers for a repository", responses = {
+        @ApiResponse(responseCode = "201"),
+        @ApiResponse(responseCode = "400", content = @Content(
+            mediaType = "application/json",
+            schema = @Schema(hidden = true)))
+    })
     public void assignCommitters(final Authentication authentication,
                                  final @PathVariable Long platformId,
                                  final @RequestBody CreateAssignmentDTO createAssignmentDTO) {
@@ -172,6 +227,11 @@ public class RepositoryEndpoint extends BaseEndpoint {
 
     @GetMapping("/{platformId}/assignment")
     @SecurityAnnotations.UserOwnsRepo()
+    @Operation(description = "Get assignment for committers for a repository", responses = {
+        @ApiResponse(responseCode = "201", content = @Content(
+            array = @ArraySchema(schema = @Schema(implementation = AssignmentDTO.class)),
+            mediaType = "application/json"))
+    })
     public List<AssignmentDTO> getAssignments(final Authentication authentication,
                                               final @PathVariable Long platformId) {
         LOGGER.info("GET /repository/{id}/assignment - get assignments from repository by platform id {} ", platformId);
@@ -183,6 +243,12 @@ public class RepositoryEndpoint extends BaseEndpoint {
 
     @DeleteMapping("/{platformId}/assignment/{subAssignmentId}")
     @SecurityAnnotations.UserOwnsRepo
+    @Operation(description = "Get assignment for committers for a repository", responses = {
+        @ApiResponse(responseCode = "200"),
+        @ApiResponse(responseCode = "400", content = @Content(
+            mediaType = "application/json",
+            schema = @Schema(hidden = true)))
+    })
     public void deleteAssignment(final Authentication authentication,
                                  final @PathVariable("platformId") Long platformId,
                                  final @PathVariable("subAssignmentId") Long subAssignmentId) {
@@ -193,3 +259,4 @@ public class RepositoryEndpoint extends BaseEndpoint {
         repositoryService.deleteAssignment(getUserId(authentication), platformId, subAssignmentId);
     }
 }
+
