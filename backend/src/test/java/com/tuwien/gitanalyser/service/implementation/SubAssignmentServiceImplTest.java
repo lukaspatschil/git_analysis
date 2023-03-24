@@ -2,6 +2,7 @@ package com.tuwien.gitanalyser.service.implementation;
 
 import com.tuwien.gitanalyser.entity.Assignment;
 import com.tuwien.gitanalyser.entity.SubAssignment;
+import com.tuwien.gitanalyser.entity.SubAssignmentFactory;
 import com.tuwien.gitanalyser.exception.ConflictException;
 import com.tuwien.gitanalyser.exception.NotFoundException;
 import com.tuwien.gitanalyser.repository.SubAssignmentRepository;
@@ -20,11 +21,13 @@ class SubAssignmentServiceImplTest {
 
     private SubAssignmentServiceImpl sut;
     private SubAssignmentRepository subAssignmentRepository;
+    private SubAssignmentFactory subAssignmentFactory;
 
     @BeforeEach
     void setUp() {
         subAssignmentRepository = mock(SubAssignmentRepository.class);
-        sut = new SubAssignmentServiceImpl(subAssignmentRepository);
+        subAssignmentFactory = mock(SubAssignmentFactory.class);
+        sut = new SubAssignmentServiceImpl(subAssignmentRepository, subAssignmentFactory);
     }
 
     @Test
@@ -32,9 +35,10 @@ class SubAssignmentServiceImplTest {
         // Given
         Assignment assignment = mock(Assignment.class);
         SubAssignment subAssignment = mock(SubAssignment.class);
+        when(subAssignmentFactory.create()).thenReturn(subAssignment);
 
         // When
-        sut.addSubAssignment(assignment, subAssignment);
+        sut.addSubAssignment(assignment, Randoms.alpha());
 
         // Then
         verify(subAssignmentRepository).save(subAssignment);
@@ -45,12 +49,13 @@ class SubAssignmentServiceImplTest {
         // Given
         Assignment assignment = mock(Assignment.class);
         SubAssignment subAssignment = mock(SubAssignment.class);
+        when(subAssignmentFactory.create()).thenReturn(subAssignment);
 
         // When
         when(subAssignmentRepository.save(subAssignment)).thenThrow(new RuntimeException("Assignment already exists"));
 
         // Then
-        assertThrows(ConflictException.class, () -> sut.addSubAssignment(assignment, subAssignment));
+        assertThrows(ConflictException.class, () -> sut.addSubAssignment(assignment, Randoms.alpha()));
     }
 
     @Test

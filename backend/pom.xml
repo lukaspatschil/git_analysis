@@ -359,7 +359,7 @@
                     <excludedClasses>
                         <param>com.tuwien.gitanalyser.configuration.*</param>
                         <param>com.tuwien.gitanalyser.endpoints.dtos.*</param>
-                        <param>com.tuwien.gitanalyser.security.oAuth2.*</param>
+                        <param>com.tuwien.gitanalyser.security.oauth2.*</param>
                     </excludedClasses>
                 </configuration>
             </plugin>

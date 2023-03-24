@@ -125,7 +125,8 @@ class GitHubAPITest {
 
     @Disabled
     @Test
-    void getRepositoryById_gitlabLibraryReturnsOneRepository_sutReturnsRepository() throws IOException, GitHubException {
+    void getRepositoryById_gitlabLibraryReturnsOneRepository_sutReturnsRepository()
+        throws IOException, GitHubException {
         // Given
         long queryRepositoryId = firstRepository.getId();
 
@@ -156,16 +157,16 @@ class GitHubAPITest {
         assertThat(result, is(empty()));
     }
 
-
     private GitHub mockFactory() throws IOException {
         GitHub github = mock(GitHub.class);
         when(gitHubAPIFactory.createObject(accessToken)).thenReturn(github);
         return github;
     }
 
-    private GHRepository mockRepository(long id, String name, String httpTransportUrl) {
+    private GHRepository mockRepository(Long id, String name, String httpTransportUrl) {
         GHRepository repository = mock(GHRepository.class);
-        // when(repository.getId()).thenReturn(id);
+        //doReturn(id).when(repository).getId();
+        //when(repository.getId()).thenReturn(id);
         when(repository.getName()).thenReturn(name);
         when(repository.getHttpTransportUrl()).thenReturn(httpTransportUrl);
         return repository;
