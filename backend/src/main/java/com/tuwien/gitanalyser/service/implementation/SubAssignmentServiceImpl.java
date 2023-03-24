@@ -2,6 +2,7 @@ package com.tuwien.gitanalyser.service.implementation;
 
 import com.tuwien.gitanalyser.entity.Assignment;
 import com.tuwien.gitanalyser.entity.SubAssignment;
+import com.tuwien.gitanalyser.entity.SubAssignmentFactory;
 import com.tuwien.gitanalyser.exception.ConflictException;
 import com.tuwien.gitanalyser.exception.NotFoundException;
 import com.tuwien.gitanalyser.repository.SubAssignmentRepository;
@@ -18,14 +19,20 @@ public class SubAssignmentServiceImpl implements SubAssignmentService {
     private static final Logger LOGGER = LoggerFactory.getLogger(SubAssignmentService.class);
 
     private final SubAssignmentRepository subAssignmentRepository;
+    private final SubAssignmentFactory subAssignmentFactory;
 
-    public SubAssignmentServiceImpl(final SubAssignmentRepository subAssignmentRepository) {
+    public SubAssignmentServiceImpl(final SubAssignmentRepository subAssignmentRepository,
+                                    final SubAssignmentFactory subAssignmentFactory) {
         this.subAssignmentRepository = subAssignmentRepository;
+        this.subAssignmentFactory = subAssignmentFactory;
     }
 
     @Override
-    public SubAssignment addSubAssignment(final Assignment assignment, final SubAssignment subAssignment) {
-        LOGGER.info("addSubAssignment with assignment {} and subAssignment {}", assignment, subAssignment);
+    public SubAssignment addSubAssignment(final Assignment assignment, final String assignedName) {
+        LOGGER.info("addSubAssignment with assignment {} and assignedName {}", assignment, assignedName);
+
+        SubAssignment subAssignment = subAssignmentFactory.create();
+        subAssignment.setAssignedName(assignedName);
         subAssignment.setAssignment(assignment);
 
         try {

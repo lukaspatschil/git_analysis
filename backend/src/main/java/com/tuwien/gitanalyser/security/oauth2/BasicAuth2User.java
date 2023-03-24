@@ -1,4 +1,4 @@
-package com.tuwien.gitanalyser.security.oAuth2;
+package com.tuwien.gitanalyser.security.oauth2;
 
 import com.tuwien.gitanalyser.entity.utils.AuthenticationProvider;
 import org.springframework.security.oauth2.core.user.OAuth2User;

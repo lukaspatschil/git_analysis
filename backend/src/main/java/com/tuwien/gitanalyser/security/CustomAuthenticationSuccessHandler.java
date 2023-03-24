@@ -2,9 +2,9 @@ package com.tuwien.gitanalyser.security;
 
 import com.tuwien.gitanalyser.entity.User;
 import com.tuwien.gitanalyser.security.jwt.JWTTokenProvider;
-import com.tuwien.gitanalyser.security.oAuth2.BasicAuth2User;
-import com.tuwien.gitanalyser.security.oAuth2.GitHubOAuth2User;
-import com.tuwien.gitanalyser.security.oAuth2.GitLabOAuth2User;
+import com.tuwien.gitanalyser.security.oauth2.BasicAuth2User;
+import com.tuwien.gitanalyser.security.oauth2.GitHubOAuth2User;
+import com.tuwien.gitanalyser.security.oauth2.GitLabOAuth2User;
 import com.tuwien.gitanalyser.service.UserService;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;

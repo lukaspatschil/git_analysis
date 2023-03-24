@@ -4,8 +4,6 @@ import com.tuwien.gitanalyser.endpoints.dtos.assignment.CreateAssignmentDTO;
 import com.tuwien.gitanalyser.entity.Assignment;
 import com.tuwien.gitanalyser.entity.Repository;
 import com.tuwien.gitanalyser.entity.RepositoryFactory;
-import com.tuwien.gitanalyser.entity.SubAssignment;
-import com.tuwien.gitanalyser.entity.SubAssignmentFactory;
 import com.tuwien.gitanalyser.entity.User;
 import com.tuwien.gitanalyser.exception.NotFoundException;
 import com.tuwien.gitanalyser.repository.RepositoryRepository;
@@ -36,7 +34,6 @@ class RepositoryServiceImplTest {
     private RepositoryRepository repositoryRepository;
     private AssignmentService assignmentService;
     private SubAssignmentService subAssignmentService;
-    private SubAssignmentFactory subAssignmentFactory;
     private RepositoryFactory repositoryFactory;
 
     @BeforeEach
@@ -45,13 +42,11 @@ class RepositoryServiceImplTest {
         repositoryRepository = mock(RepositoryRepository.class);
         assignmentService = mock(AssignmentService.class);
         subAssignmentService = mock(SubAssignmentService.class);
-        subAssignmentFactory = mock(SubAssignmentFactory.class);
         repositoryFactory = mock(RepositoryFactory.class);
         sut = new RepositoryServiceImpl(userService,
                                         repositoryRepository,
                                         assignmentService,
                                         subAssignmentService,
-                                        subAssignmentFactory,
                                         repositoryFactory);
     }
 
@@ -62,9 +57,8 @@ class RepositoryServiceImplTest {
         long platformId = Randoms.getLong();
         CreateAssignmentDTO createDTO = CreateAssignmentDTOs.random();
         Repository repositoryEntity = new Repository();
-        SubAssignment subAssignment = new SubAssignment();
 
-        prepareFactories(repositoryEntity, subAssignment);
+        prepareRepositoryFactory(repositoryEntity);
 
         // When
         sut.assignCommitter(user.getId(), platformId, createDTO);
@@ -77,9 +71,8 @@ class RepositoryServiceImplTest {
         long platformId = Randoms.getLong();
         CreateAssignmentDTO createDTO = CreateAssignmentDTOs.random();
         Repository repositoryEntity = new Repository();
-        SubAssignment subAssignment = new SubAssignment();
 
-        prepareFactories(repositoryEntity, subAssignment);
+        prepareRepositoryFactory(repositoryEntity);
         mockRepositoryFindByUserAndPlatformIdEmpty(user, platformId);
 
         // When
@@ -96,10 +89,8 @@ class RepositoryServiceImplTest {
         long platformId = Randoms.getLong();
         CreateAssignmentDTO createDTO = CreateAssignmentDTOs.random();
         Repository repository = new Repository();
-        SubAssignment subAssignment = new SubAssignment();
 
         mockRepositoryFindByUserAndPlatformId(user, platformId, repository);
-        prepareSubAssignmentFactory(subAssignment);
 
         // When
         sut.assignCommitter(user.getId(), platformId, createDTO);
@@ -115,18 +106,16 @@ class RepositoryServiceImplTest {
         long platformId = Randoms.getLong();
         CreateAssignmentDTO createDTO = CreateAssignmentDTOs.random();
         Repository repository = new Repository();
-        SubAssignment subAssignment = new SubAssignment();
         Assignment assignment = new Assignment();
 
         mockRepositoryFindByUserAndPlatformId(user, platformId, repository);
         prepareAssignment(repository, createDTO, assignment);
-        prepareSubAssignmentFactory(subAssignment);
 
         // When
         sut.assignCommitter(user.getId(), platformId, createDTO);
 
         // Then
-        verify(subAssignmentService).addSubAssignment(assignment, subAssignment);
+        verify(subAssignmentService).addSubAssignment(assignment, createDTO.getAssignedName());
     }
 
     @Test
@@ -264,11 +253,6 @@ class RepositoryServiceImplTest {
         when(assignmentService.getOrCreateAssignment(repository, createDTO.getKey())).thenReturn(assignment);
     }
 
-    private void prepareFactories(Repository repositoryEntity, SubAssignment subAssignmentEntity) {
-        prepareRepositoryFactory(repositoryEntity);
-        prepareSubAssignmentFactory(subAssignmentEntity);
-    }
-
     private void mockRepositoryFindByUserAndPlatformId(User user, long platformId, Repository repository) {
         when(repositoryRepository.findByUserAndPlatformId(user, platformId)).thenReturn(Optional.of(repository));
     }
@@ -283,11 +267,6 @@ class RepositoryServiceImplTest {
         when(user.getId()).thenReturn(userId);
         when(userService.getUser(userId)).thenReturn(user);
         return user;
-    }
-
-    private SubAssignment prepareSubAssignmentFactory(SubAssignment subAssignment) {
-        when(subAssignmentFactory.create()).thenReturn(subAssignment);
-        return subAssignment;
     }
 
     private void prepareRepositoryFactory(Repository repository) {

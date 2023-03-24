@@ -37,7 +37,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 
         String token = jwtTokenProviderImpl.resolveToken(request);
 
-        LOGGER.info("request: {}, token: {}", request.getRequestURI(), token);
+        //LOGGER.info("request: {}, token: {}", request.getRequestURI(), token);
         try {
             if (token != null && jwtTokenProviderImpl.validateToken(token)) {
                 Authentication auth = jwtTokenProviderImpl.getAuthentication(token);

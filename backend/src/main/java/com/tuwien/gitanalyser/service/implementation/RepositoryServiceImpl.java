@@ -4,8 +4,6 @@ import com.tuwien.gitanalyser.endpoints.dtos.assignment.CreateAssignmentDTO;
 import com.tuwien.gitanalyser.entity.Assignment;
 import com.tuwien.gitanalyser.entity.Repository;
 import com.tuwien.gitanalyser.entity.RepositoryFactory;
-import com.tuwien.gitanalyser.entity.SubAssignment;
-import com.tuwien.gitanalyser.entity.SubAssignmentFactory;
 import com.tuwien.gitanalyser.entity.User;
 import com.tuwien.gitanalyser.exception.NotFoundException;
 import com.tuwien.gitanalyser.repository.RepositoryRepository;
@@ -28,20 +26,17 @@ public class RepositoryServiceImpl implements RepositoryService {
     private final RepositoryRepository repositoryRepository;
     private final AssignmentService assignmentService;
     private final SubAssignmentService subAssignmentService;
-    private final SubAssignmentFactory subAssignmentFactory;
     private final RepositoryFactory repositoryFactory;
 
     public RepositoryServiceImpl(final UserService userService,
                                  final RepositoryRepository repositoryRepository,
                                  final AssignmentService assignmentService,
                                  final SubAssignmentService subAssignmentService,
-                                 final SubAssignmentFactory subAssignmentFactory,
                                  final RepositoryFactory repositoryFactory) {
         this.userService = userService;
         this.repositoryRepository = repositoryRepository;
         this.assignmentService = assignmentService;
         this.subAssignmentService = subAssignmentService;
-        this.subAssignmentFactory = subAssignmentFactory;
         this.repositoryFactory = repositoryFactory;
     }
 
@@ -59,9 +54,7 @@ public class RepositoryServiceImpl implements RepositoryService {
 
         Assignment assignment = assignmentService.getOrCreateAssignment(repositoryEntity, dto.getKey());
 
-        SubAssignment subAssignment = subAssignmentFactory.create();
-        subAssignment.setAssignedName(dto.getAssignedName());
-        subAssignmentService.addSubAssignment(assignment, subAssignment);
+        subAssignmentService.addSubAssignment(assignment, dto.getAssignedName());
     }
 
     @Override
@@ -123,4 +116,6 @@ public class RepositoryServiceImpl implements RepositoryService {
         repositoryRepository.save(repositoryEntity);
         return repositoryEntity;
     }
+
+    // aspect für logger
 }
