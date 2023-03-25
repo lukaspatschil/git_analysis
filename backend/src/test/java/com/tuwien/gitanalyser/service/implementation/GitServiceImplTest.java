@@ -3,6 +3,7 @@ package com.tuwien.gitanalyser.service.implementation;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitterInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.NotSavedRepositoryInternalDTO;
+import com.tuwien.gitanalyser.endpoints.dtos.internal.StatsInternalDTO;
 import com.tuwien.gitanalyser.entity.User;
 import com.tuwien.gitanalyser.entity.utils.AuthenticationProvider;
 import com.tuwien.gitanalyser.exception.GitException;
@@ -24,9 +25,12 @@ import java.util.List;
 import java.util.Set;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hobsoft.hamcrest.compose.ComposeMatchers.hasFeature;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -375,7 +379,7 @@ class GitServiceImplTest {
         long repositoryId = Randoms.getLong();
 
         String accessToken = prepareUserService(userId, AuthenticationProvider.GITHUB);
-        mockGitApiGetAllCommits(gitHubAPI, repositoryId, accessToken);
+        mockGitApiGetAllCommits(gitHubAPI, repositoryId, accessToken, defaultBranch);
 
         // When
         List<CommitInternalDTO> allCommits = sut.getAllCommits(userId, repositoryId, defaultBranch);
@@ -393,7 +397,7 @@ class GitServiceImplTest {
         CommitInternalDTO commit = mock(CommitInternalDTO.class);
 
         String accessToken = prepareUserService(userId, AuthenticationProvider.GITHUB);
-        mockGitApiGetAllCommits(gitHubAPI, repositoryId, accessToken, commit);
+        mockGitApiGetAllCommits(gitHubAPI, repositoryId, accessToken, defaultBranch, commit);
 
         // When
         List<CommitInternalDTO> allCommits = sut.getAllCommits(userId, repositoryId, defaultBranch);
@@ -412,7 +416,7 @@ class GitServiceImplTest {
         CommitInternalDTO commit2 = mock(CommitInternalDTO.class);
 
         String accessToken = prepareUserService(userId, AuthenticationProvider.GITHUB);
-        mockGitApiGetAllCommits(gitHubAPI, repositoryId, accessToken, commit1, commit2);
+        mockGitApiGetAllCommits(gitHubAPI, repositoryId, accessToken, defaultBranch, commit1, commit2);
 
         // When
         List<CommitInternalDTO> allCommits = sut.getAllCommits(userId, repositoryId, defaultBranch);
@@ -445,7 +449,7 @@ class GitServiceImplTest {
         long repositoryId = Randoms.getLong();
 
         String accessToken = prepareUserService(userId, AuthenticationProvider.GITLAB);
-        mockGitApiGetAllCommits(gitLabAPI, repositoryId, accessToken);
+        mockGitApiGetAllCommits(gitLabAPI, repositoryId, accessToken, defaultBranch);
 
         // When
         List<CommitInternalDTO> allCommits = sut.getAllCommits(userId, repositoryId, defaultBranch);
@@ -463,7 +467,7 @@ class GitServiceImplTest {
         CommitInternalDTO commit = mock(CommitInternalDTO.class);
 
         String accessToken = prepareUserService(userId, AuthenticationProvider.GITLAB);
-        mockGitApiGetAllCommits(gitLabAPI, repositoryId, accessToken, commit);
+        mockGitApiGetAllCommits(gitLabAPI, repositoryId, accessToken, defaultBranch, commit);
 
         // When
         List<CommitInternalDTO> allCommits = sut.getAllCommits(userId, repositoryId, defaultBranch);
@@ -482,7 +486,7 @@ class GitServiceImplTest {
         CommitInternalDTO commit2 = mock(CommitInternalDTO.class);
 
         String accessToken = prepareUserService(userId, AuthenticationProvider.GITLAB);
-        mockGitApiGetAllCommits(gitLabAPI, repositoryId, accessToken, commit1, commit2);
+        mockGitApiGetAllCommits(gitLabAPI, repositoryId, accessToken, defaultBranch, commit1, commit2);
 
         // When
         List<CommitInternalDTO> allCommits = sut.getAllCommits(userId, repositoryId, defaultBranch);
@@ -515,7 +519,7 @@ class GitServiceImplTest {
         long repositoryId = Randoms.getLong();
 
         String accessToken = prepareUserService(userId, AuthenticationProvider.GITLAB);
-        mockGitApiGetAllCommits(gitLabAPI, repositoryId, accessToken);
+        mockGitApiGetAllCommits(gitLabAPI, repositoryId, accessToken, defaultBranch);
 
         // When
         Set<CommitterInternalDTO> result = sut.getAllCommitters(userId, repositoryId, defaultBranch);
@@ -534,7 +538,7 @@ class GitServiceImplTest {
         CommitterInternalDTO committerInternalDTO = new CommitterInternalDTO(commit.getAuthor());
 
         String accessToken = prepareUserService(userId, AuthenticationProvider.GITLAB);
-        mockGitApiGetAllCommits(gitLabAPI, repositoryId, accessToken, commit);
+        mockGitApiGetAllCommits(gitLabAPI, repositoryId, accessToken, defaultBranch, commit);
 
         // When
         Set<CommitterInternalDTO> result = sut.getAllCommitters(userId, repositoryId, defaultBranch);
@@ -555,7 +559,7 @@ class GitServiceImplTest {
         CommitterInternalDTO committerInternalDTO2 = new CommitterInternalDTO(commit2.getAuthor());
 
         String accessToken = prepareUserService(userId, AuthenticationProvider.GITLAB);
-        mockGitApiGetAllCommits(gitLabAPI, repositoryId, accessToken, commit1, commit2);
+        mockGitApiGetAllCommits(gitLabAPI, repositoryId, accessToken, defaultBranch, commit1, commit2);
 
         // When
         Set<CommitterInternalDTO> result = sut.getAllCommitters(userId, repositoryId, defaultBranch);
@@ -576,7 +580,7 @@ class GitServiceImplTest {
         CommitterInternalDTO committerInternalDTO1 = new CommitterInternalDTO(commit1.getAuthor());
 
         String accessToken = prepareUserService(userId, AuthenticationProvider.GITLAB);
-        mockGitApiGetAllCommits(gitLabAPI, repositoryId, accessToken, commit1, commit2);
+        mockGitApiGetAllCommits(gitLabAPI, repositoryId, accessToken, defaultBranch, commit1, commit2);
 
         // When
         Set<CommitterInternalDTO> result = sut.getAllCommitters(userId, repositoryId, defaultBranch);
@@ -609,7 +613,7 @@ class GitServiceImplTest {
         long repositoryId = Randoms.getLong();
 
         String accessToken = prepareUserService(userId, AuthenticationProvider.GITHUB);
-        mockGitApiGetAllCommits(gitHubAPI, repositoryId, accessToken);
+        mockGitApiGetAllCommits(gitHubAPI, repositoryId, accessToken, defaultBranch);
 
         // When
         Set<CommitterInternalDTO> result = sut.getAllCommitters(userId, repositoryId, defaultBranch);
@@ -628,7 +632,7 @@ class GitServiceImplTest {
         CommitterInternalDTO committerInternalDTO = new CommitterInternalDTO(commit.getAuthor());
 
         String accessToken = prepareUserService(userId, AuthenticationProvider.GITHUB);
-        mockGitApiGetAllCommits(gitHubAPI, repositoryId, accessToken, commit);
+        mockGitApiGetAllCommits(gitHubAPI, repositoryId, accessToken, defaultBranch, commit);
 
         // When
         Set<CommitterInternalDTO> result = sut.getAllCommitters(userId, repositoryId, defaultBranch);
@@ -649,7 +653,7 @@ class GitServiceImplTest {
         CommitterInternalDTO committerInternalDTO2 = new CommitterInternalDTO(commit2.getAuthor());
 
         String accessToken = prepareUserService(userId, AuthenticationProvider.GITHUB);
-        mockGitApiGetAllCommits(gitHubAPI, repositoryId, accessToken, commit1, commit2);
+        mockGitApiGetAllCommits(gitHubAPI, repositoryId, accessToken, defaultBranch, commit1, commit2);
 
         // When
         Set<CommitterInternalDTO> result = sut.getAllCommitters(userId, repositoryId, defaultBranch);
@@ -670,13 +674,251 @@ class GitServiceImplTest {
         CommitterInternalDTO committerInternalDTO1 = new CommitterInternalDTO(commit1.getAuthor());
 
         String accessToken = prepareUserService(userId, AuthenticationProvider.GITHUB);
-        mockGitApiGetAllCommits(gitHubAPI, repositoryId, accessToken, commit1, commit2);
+        mockGitApiGetAllCommits(gitHubAPI, repositoryId, accessToken, defaultBranch, commit1, commit2);
 
         // When
         Set<CommitterInternalDTO> result = sut.getAllCommitters(userId, repositoryId, defaultBranch);
 
         // Then
         assertThat(result, equalTo(Set.of(committerInternalDTO1)));
+    }
+
+    @Test
+    void getStats_gitHubAuthorizationAndOneCommit_shouldReturnOneStatsObject() throws GitException,
+                                                                                      NoProviderFoundException {
+        // Given
+        long userId = Randoms.getLong();
+        long platformId = Randoms.getLong();
+        String name = Randoms.alpha();
+        CommitInternalDTO commit = mockCommitInternalDTO(name);
+
+        String accessToken = prepareUserService(userId, AuthenticationProvider.GITHUB);
+        mockGitApiGetAllCommits(gitHubAPI, platformId, accessToken, defaultBranch, commit);
+
+        // When
+        List<StatsInternalDTO> result = sut.getStats(userId, platformId, defaultBranch);
+
+        // Then
+        assertThat(result, hasSize(1));
+        assertThat(result, containsInAnyOrder(allOf(
+            hasFeature("name", StatsInternalDTO::getCommitter, equalTo(name)),
+            hasFeature("numberOfCommits", StatsInternalDTO::getNumberOfCommits, equalTo(1)),
+            hasFeature("numberOfAdditions", StatsInternalDTO::getNumberOfAdditions, equalTo(commit.getAdditions())),
+            hasFeature("numberOfDeletions", StatsInternalDTO::getNumberOfDeletions, equalTo(commit.getDeletions()))
+        )));
+    }
+
+    @Test
+    void getStats_gitHubAuthorizationAndTwoCommitsWithSameName_shouldReturnOneStatsObject()
+        throws GitException, NoProviderFoundException {
+        // Given
+        long userId = Randoms.getLong();
+        long platformId = Randoms.getLong();
+        String name = Randoms.alpha();
+
+        CommitInternalDTO commit1 = mockCommitInternalDTO(name);
+        CommitInternalDTO commit2 = mockCommitInternalDTO(name);
+
+        String accessToken = prepareUserService(userId, AuthenticationProvider.GITHUB);
+        mockGitApiGetAllCommits(gitHubAPI, platformId, accessToken, defaultBranch, commit1, commit2);
+
+        // When
+        List<StatsInternalDTO> result = sut.getStats(userId, platformId, defaultBranch);
+
+        // Then
+        assertThat(result, hasSize(1));
+        assertThat(result, containsInAnyOrder(allOf(
+            hasFeature("name", StatsInternalDTO::getCommitter, equalTo(name)),
+            hasFeature("numberOfCommits", StatsInternalDTO::getNumberOfCommits, equalTo(2)),
+            hasFeature("numberOfAdditions", StatsInternalDTO::getNumberOfAdditions,
+                       equalTo(commit1.getAdditions() + commit2.getAdditions())),
+            hasFeature("numberOfDeletions",
+                       StatsInternalDTO::getNumberOfDeletions,
+                       equalTo(commit1.getDeletions() + commit2.getDeletions()))
+        )));
+    }
+
+    @Test
+    void getStats_gitHubAuthorizationAndTwoCommitsWithDifferentName_shouldReturnTwoStatsObject()
+        throws GitException, NoProviderFoundException {
+        // Given
+        long userId = Randoms.getLong();
+        long platformId = Randoms.getLong();
+        String name1 = Randoms.alpha();
+        String name2 = Randoms.alpha();
+
+        CommitInternalDTO commit1 = mockCommitInternalDTO(name1);
+        CommitInternalDTO commit2 = mockCommitInternalDTO(name2);
+
+        String accessToken = prepareUserService(userId, AuthenticationProvider.GITHUB);
+        mockGitApiGetAllCommits(gitHubAPI, platformId, accessToken, defaultBranch, commit1, commit2);
+
+        // When
+        List<StatsInternalDTO> result = sut.getStats(userId, platformId, defaultBranch);
+
+        // Then
+        assertThat(result, hasSize(2));
+        assertThat(result, containsInAnyOrder(
+            allOf(
+                hasFeature("name", StatsInternalDTO::getCommitter, equalTo(name1)),
+                hasFeature("numberOfCommits", StatsInternalDTO::getNumberOfCommits,
+                           equalTo(1)),
+                hasFeature("numberOfAdditions",
+                           StatsInternalDTO::getNumberOfAdditions,
+                           equalTo(commit1.getAdditions())),
+                hasFeature("numberOfDeletions",
+                           StatsInternalDTO::getNumberOfDeletions,
+                           equalTo(commit1.getDeletions()))
+            ),
+            allOf(
+                hasFeature("name", StatsInternalDTO::getCommitter, equalTo(name2)),
+                hasFeature("numberOfCommits",
+                           StatsInternalDTO::getNumberOfCommits,
+                           equalTo(1)),
+                hasFeature("numberOfAdditions",
+                           StatsInternalDTO::getNumberOfAdditions,
+                           equalTo(commit2.getAdditions())),
+                hasFeature("numberOfDeletions",
+                           StatsInternalDTO::getNumberOfDeletions,
+                           equalTo(commit2.getDeletions()))
+            ))
+        );
+    }
+
+    @Test
+    void getStats_gitHubAuthorizationAndNoCommitsAvailable_shouldReturnEmptyList()
+        throws GitException, NoProviderFoundException {
+        // Given
+        long userId = Randoms.getLong();
+        long platformId = Randoms.getLong();
+
+        String accessToken = prepareUserService(userId, AuthenticationProvider.GITHUB);
+        mockGitApiGetAllCommits(gitHubAPI, platformId, accessToken, defaultBranch);
+
+        // When
+        List<StatsInternalDTO> result = sut.getStats(userId, platformId, defaultBranch);
+
+        // Then
+        assertThat(result, hasSize(0));
+    }
+
+    @Test
+    void getStats_gitLabAuthorizationAndOneCommit_shouldReturnOneStatsObject()
+        throws GitException, NoProviderFoundException {
+        // Given
+        long userId = Randoms.getLong();
+        long platformId = Randoms.getLong();
+        String name = Randoms.alpha();
+        CommitInternalDTO commit = mockCommitInternalDTO(name);
+
+        String accessToken = prepareUserService(userId, AuthenticationProvider.GITLAB);
+        mockGitApiGetAllCommits(gitLabAPI, platformId, accessToken, defaultBranch, commit);
+
+        // When
+        List<StatsInternalDTO> result = sut.getStats(userId, platformId, defaultBranch);
+
+        // Then
+        assertThat(result, hasSize(1));
+        assertThat(result, containsInAnyOrder(allOf(
+            hasFeature("name", StatsInternalDTO::getCommitter, equalTo(name)),
+            hasFeature("numberOfCommits", StatsInternalDTO::getNumberOfCommits, equalTo(1)),
+            hasFeature("numberOfAdditions", StatsInternalDTO::getNumberOfAdditions, equalTo(commit.getAdditions())),
+            hasFeature("numberOfDeletions", StatsInternalDTO::getNumberOfDeletions, equalTo(commit.getDeletions()))
+        )));
+    }
+
+    @Test
+    void getStats_gitLabAuthorizationAndTwoCommitsWithSameName_shouldReturnOneStatsObject()
+        throws GitException, NoProviderFoundException {
+        // Given
+        long userId = Randoms.getLong();
+        long platformId = Randoms.getLong();
+        String name = Randoms.alpha();
+
+        CommitInternalDTO commit1 = mockCommitInternalDTO(name);
+        CommitInternalDTO commit2 = mockCommitInternalDTO(name);
+
+        String accessToken = prepareUserService(userId, AuthenticationProvider.GITLAB);
+        mockGitApiGetAllCommits(gitLabAPI, platformId, accessToken, defaultBranch, commit1, commit2);
+
+        // When
+        List<StatsInternalDTO> result = sut.getStats(userId, platformId, defaultBranch);
+
+        // Then
+        assertThat(result, hasSize(1));
+        assertThat(result, containsInAnyOrder(allOf(
+            hasFeature("name", StatsInternalDTO::getCommitter, equalTo(name)),
+            hasFeature("numberOfCommits", StatsInternalDTO::getNumberOfCommits, equalTo(2)),
+            hasFeature("numberOfAdditions", StatsInternalDTO::getNumberOfAdditions,
+                       equalTo(commit1.getAdditions() + commit2.getAdditions())),
+            hasFeature("numberOfDeletions",
+                       StatsInternalDTO::getNumberOfDeletions,
+                       equalTo(commit1.getDeletions() + commit2.getDeletions()))
+        )));
+    }
+
+    @Test
+    void getStats_gitLabAuthorizationAndTwoCommitsWithDifferentName_shouldReturnTwoStatsObject()
+        throws GitException, NoProviderFoundException {
+        // Given
+        long userId = Randoms.getLong();
+        long platformId = Randoms.getLong();
+        String name1 = Randoms.alpha();
+        String name2 = Randoms.alpha();
+
+        CommitInternalDTO commit1 = mockCommitInternalDTO(name1);
+        CommitInternalDTO commit2 = mockCommitInternalDTO(name2);
+
+        String accessToken = prepareUserService(userId, AuthenticationProvider.GITLAB);
+        mockGitApiGetAllCommits(gitLabAPI, platformId, accessToken, defaultBranch, commit1, commit2);
+
+        // When
+        List<StatsInternalDTO> result = sut.getStats(userId, platformId, defaultBranch);
+
+        // Then
+        assertThat(result, hasSize(2));
+        assertThat(result, containsInAnyOrder(
+            allOf(
+                hasFeature("name", StatsInternalDTO::getCommitter, equalTo(name1)),
+                hasFeature("numberOfCommits", StatsInternalDTO::getNumberOfCommits,
+                           equalTo(1)),
+                hasFeature("numberOfAdditions",
+                           StatsInternalDTO::getNumberOfAdditions,
+                           equalTo(commit1.getAdditions())),
+                hasFeature("numberOfDeletions",
+                           StatsInternalDTO::getNumberOfDeletions,
+                           equalTo(commit1.getDeletions()))
+            ),
+            allOf(
+                hasFeature("name", StatsInternalDTO::getCommitter, equalTo(name2)),
+                hasFeature("numberOfCommits",
+                           StatsInternalDTO::getNumberOfCommits,
+                           equalTo(1)),
+                hasFeature("numberOfAdditions",
+                           StatsInternalDTO::getNumberOfAdditions,
+                           equalTo(commit2.getAdditions())),
+                hasFeature("numberOfDeletions",
+                           StatsInternalDTO::getNumberOfDeletions,
+                           equalTo(commit2.getDeletions()))
+            ))
+        );
+    }
+
+    @Test
+    void getStats_gitLabAuthorizationAndNoCommitsAvailable_shouldReturnEmptyList()
+        throws GitException, NoProviderFoundException {
+        // Given
+        long userId = Randoms.getLong();
+        long platformId = Randoms.getLong();
+
+        String accessToken = prepareUserService(userId, AuthenticationProvider.GITLAB);
+        mockGitApiGetAllCommits(gitLabAPI, platformId, accessToken, defaultBranch);
+
+        // When
+        List<StatsInternalDTO> result = sut.getStats(userId, platformId, defaultBranch);
+
+        // Then
+        assertThat(result, hasSize(0));
     }
 
     private String prepareUserService(long userId, AuthenticationProvider authenticationProvider)
@@ -708,15 +950,18 @@ class GitServiceImplTest {
     private void mockGitApiGetAllCommits(GitAPI gitHubAPI,
                                          long repositoryId,
                                          String accessToken,
+                                         String branch,
                                          CommitInternalDTO... commits)
         throws GitException {
-        when(gitHubAPI.getAllCommits(accessToken, repositoryId, defaultBranch))
+        when(gitHubAPI.getAllCommits(accessToken, repositoryId, branch))
             .thenReturn(Arrays.stream(commits).toList());
     }
 
     private CommitInternalDTO mockCommitInternalDTO(String name) {
         CommitInternalDTO commit = mock(CommitInternalDTO.class);
         when(commit.getAuthor()).thenReturn(name);
+        when(commit.getAdditions()).thenReturn(Randoms.integer(0, 10));
+        when(commit.getDeletions()).thenReturn(Randoms.integer(0, 10));
         return commit;
     }
 

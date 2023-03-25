@@ -5,6 +5,7 @@ import com.tuwien.gitanalyser.endpoints.dtos.CommitDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.CommitterDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.NotSavedRepositoryDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.RepositoryDTO;
+import com.tuwien.gitanalyser.endpoints.dtos.StatsDTO;
 import com.tuwien.gitanalyser.entity.Repository;
 import io.restassured.response.Response;
 import org.gitlab4j.api.CommitsApi;
@@ -52,6 +53,8 @@ public class GitIntegrationTest extends BaseIntegrationTest {
     private static final String COMMITS_ENDPOINT_EXTENSION = "commit";
 
     private static final String COMMITTER_ENDPOINT_EXTENSION = "committer";
+
+    private static final String STATS_ENDPOINT_EXTENSION = "stats";
 
     // TODO: positive test case for github
 
@@ -199,6 +202,8 @@ public class GitIntegrationTest extends BaseIntegrationTest {
         ));
     }
 
+
+    // TODO: positive test case for github
     @Test
     public void queryAllBranches_userGitHubUserExists_shouldSend200() throws IOException {
         // Given
@@ -214,8 +219,6 @@ public class GitIntegrationTest extends BaseIntegrationTest {
         // Then
         assertThat(response.getStatusCode(), is(HttpStatus.OK.value()));
     }
-
-    // TODO: positive test case for github
 
     @Test
     public void queryAllBranches_userGitHubUserExistsAndNoBranchesExist_shouldReturnEmptyList() throws IOException {
@@ -414,6 +417,7 @@ public class GitIntegrationTest extends BaseIntegrationTest {
     }
 
     // TODO positive tests for get commits from github
+
     @Test
     public void queryAllCommitter_gitLabUser_shouldCallGitLabService() throws GitLabApiException {
         // Given
@@ -434,7 +438,6 @@ public class GitIntegrationTest extends BaseIntegrationTest {
         // Then
         verify(gitLabApi).getCommitsApi();
     }
-
     @Test
     public void queryAllCommitter_gitLabUserAndOneCommitAvailable_shouldReturnCommitter() throws GitLabApiException {
         // Given
@@ -558,6 +561,94 @@ public class GitIntegrationTest extends BaseIntegrationTest {
         assertThat(response.as(CommitterDTO[].class).length, equalTo(0));
     }
 
+    @Test
+    public void queryStats_gitLabUserAndOneCommitAvailable_shouldReturnCorrectStats() throws GitLabApiException {
+        // Given
+        long repositoryId = Randoms.getLong();
+        String branch = Randoms.alpha();
+
+        GitLabApi gitLabApi = gitLabMockFactory();
+        CommitsApi commitsApi = gitLabMockCommitsApi(gitLabApi);
+
+        Commit commit = mockCommit();
+
+        gitLabMockGetCommits(commitsApi, repositoryId, branch, commit);
+
+        // When
+        Response response = callGetRestEndpoint(gitLabUserToken,
+                                                REPOSITORY_ENDPOINT + "/" + repositoryId + "/"
+                                                    + STATS_ENDPOINT_EXTENSION
+                                                    + "?branch=" + branch);
+
+        // Then
+        assertThat(response.as(StatsDTO[].class).length, equalTo(1));
+        StatsDTO[] stats = response.as(StatsDTO[].class);
+
+        assertThat(Arrays.asList(stats), containsInAnyOrder(
+            statsDTOMatcher(commit)
+        ));
+    }
+
+    @Test
+    public void queryStats_gitLabUserAndTwoCommitsAvailable_shouldReturnCorrectStats() throws GitLabApiException {
+        // Given
+        long repositoryId = Randoms.getLong();
+        String branch = Randoms.alpha();
+
+        GitLabApi gitLabApi = gitLabMockFactory();
+        CommitsApi commitsApi = gitLabMockCommitsApi(gitLabApi);
+
+        Commit commit1 = mockCommit();
+        Commit commit2 = mockCommit();
+
+        gitLabMockGetCommits(commitsApi, repositoryId, branch, commit1, commit2);
+
+        // When
+        Response response = callGetRestEndpoint(gitLabUserToken,
+                                                REPOSITORY_ENDPOINT + "/" + repositoryId + "/"
+                                                    + STATS_ENDPOINT_EXTENSION
+                                                    + "?branch=" + branch);
+
+        // Then
+        assertThat(response.as(StatsDTO[].class).length, equalTo(2));
+        StatsDTO[] stats = response.as(StatsDTO[].class);
+
+        assertThat(Arrays.asList(stats), containsInAnyOrder(
+            statsDTOMatcher(commit1),
+            statsDTOMatcher(commit2)
+        ));
+    }
+
+    @Test
+    public void queryStats_gitLabUserAndTwoCommitsWithTheSameNameAvailable_shouldReturnCorrectStats()
+        throws GitLabApiException {
+        // Given
+        long repositoryId = Randoms.getLong();
+        String branch = Randoms.alpha();
+
+        GitLabApi gitLabApi = gitLabMockFactory();
+        CommitsApi commitsApi = gitLabMockCommitsApi(gitLabApi);
+
+        Commit commit1 = mockCommit();
+        Commit commit2 = mockCommit(commit1.getAuthorName());
+
+        gitLabMockGetCommits(commitsApi, repositoryId, branch, commit1, commit2);
+
+        // When
+        Response response = callGetRestEndpoint(gitLabUserToken,
+                                                REPOSITORY_ENDPOINT + "/" + repositoryId + "/"
+                                                    + STATS_ENDPOINT_EXTENSION
+                                                    + "?branch=" + branch);
+
+        // Then
+        assertThat(response.as(StatsDTO[].class).length, equalTo(1));
+        StatsDTO[] stats = response.as(StatsDTO[].class);
+
+        assertThat(Arrays.asList(stats), containsInAnyOrder(
+            statsDTOMatcher(commit1, commit2)
+        ));
+    }
+
     private CommitDTO mockCommitDTO(Commit commit) {
         return CommitDTO.builder()
                         .id(commit.getId())
@@ -651,6 +742,32 @@ public class GitIntegrationTest extends BaseIntegrationTest {
 
     private Matcher<CommitterDTO> committerDTOMatcher(CommitterDTO committerDTO) {
         return hasFeature("name", CommitterDTO::getName, equalTo(committerDTO.getName()));
+    }
+
+    private Matcher<StatsDTO> statsDTOMatcher(Commit commit) {
+        return allOf(
+            hasFeature("additions", StatsDTO::getNumberOfAdditions, equalTo(commit.getStats().getAdditions())),
+            hasFeature("deletions", StatsDTO::getNumberOfDeletions, equalTo(commit.getStats().getDeletions())),
+            hasFeature("committer", StatsDTO::getCommitter, equalTo(commit.getAuthorName())),
+            hasFeature("committer", StatsDTO::getNumberOfCommits, equalTo(1))
+        );
+    }
+
+    private Matcher<StatsDTO> statsDTOMatcher(Commit... commits) {
+        int additions = 0;
+        int deletions = 0;
+
+        for(Commit commit : commits){
+            additions += commit.getStats().getAdditions();
+            deletions += commit.getStats().getDeletions();
+        }
+
+        return allOf(
+            hasFeature("additions", StatsDTO::getNumberOfAdditions, equalTo(additions)),
+            hasFeature("deletions", StatsDTO::getNumberOfDeletions, equalTo(deletions)),
+            hasFeature("committer", StatsDTO::getCommitter, equalTo(commits[0].getAuthorName())),
+            hasFeature("committer", StatsDTO::getNumberOfCommits, equalTo(commits.length))
+        );
     }
 }
 

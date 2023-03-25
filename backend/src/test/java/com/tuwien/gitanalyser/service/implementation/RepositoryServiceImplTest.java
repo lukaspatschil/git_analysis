@@ -36,6 +36,10 @@ class RepositoryServiceImplTest {
     private SubAssignmentService subAssignmentService;
     private RepositoryFactory repositoryFactory;
 
+    private static Repository createRepository() {
+        return Repository.builder().platformId(Randoms.getLong()).build();
+    }
+
     @BeforeEach
     void setUp() {
         userService = mock(UserService.class);
@@ -47,7 +51,8 @@ class RepositoryServiceImplTest {
                                         repositoryRepository,
                                         assignmentService,
                                         subAssignmentService,
-                                        repositoryFactory);
+                                        repositoryFactory
+        );
     }
 
     @Test
@@ -243,10 +248,6 @@ class RepositoryServiceImplTest {
         // Then
         verify(repositoryRepository).delete(repository1);
         verify(repositoryRepository).delete(repository2);
-    }
-
-    private static Repository createRepository() {
-        return Repository.builder().platformId(Randoms.getLong()).build();
     }
 
     private void prepareAssignment(Repository repository, CreateAssignmentDTO createDTO, Assignment assignment) {
