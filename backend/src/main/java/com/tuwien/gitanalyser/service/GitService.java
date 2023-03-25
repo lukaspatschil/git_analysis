@@ -4,6 +4,7 @@ import com.tuwien.gitanalyser.endpoints.dtos.internal.BranchInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitterInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.NotSavedRepositoryInternalDTO;
+import com.tuwien.gitanalyser.endpoints.dtos.internal.StatsInternalDTO;
 import com.tuwien.gitanalyser.exception.GitException;
 import com.tuwien.gitanalyser.exception.NoProviderFoundException;
 
@@ -27,4 +28,7 @@ public interface GitService {
         throws GitException, NoProviderFoundException;
 
     boolean repositoryAccessibleByUser(long userId, Long platformId) throws NoProviderFoundException;
+
+    List<StatsInternalDTO> getStats(long userId, Long platformId, String branch)
+        throws NoProviderFoundException, GitException;
 }

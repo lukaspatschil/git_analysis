@@ -4,6 +4,7 @@ import com.tuwien.gitanalyser.endpoints.dtos.internal.BranchInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitterInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.NotSavedRepositoryInternalDTO;
+import com.tuwien.gitanalyser.endpoints.dtos.internal.StatsInternalDTO;
 import com.tuwien.gitanalyser.entity.User;
 import com.tuwien.gitanalyser.exception.GitException;
 import com.tuwien.gitanalyser.exception.NoProviderFoundException;
@@ -19,9 +20,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 public class GitServiceImpl implements GitService {
@@ -137,6 +141,46 @@ public class GitServiceImpl implements GitService {
         }
         LOGGER.info("repositoryAccessibleByUser for user {} and repository {} finished positive", userId, platformId);
         return result;
+    }
+
+    @Override
+    public List<StatsInternalDTO> getStats(final long userId, final Long platformId, final String branch)
+        throws NoProviderFoundException, GitException {
+
+        HashMap<String, List<CommitInternalDTO>> groupedByAuthor = new HashMap<>();
+        List<StatsInternalDTO> stats = new ArrayList<>();
+
+        List<CommitInternalDTO> allCommits = getAllCommits(userId, platformId, branch);
+
+        for (CommitInternalDTO commit : allCommits) {
+            /*if (groupedByAuthor.containsKey(commit.getAuthor())) {
+                groupedByAuthor.get(commit.getAuthor()).add(commit);
+            } else {
+                groupedByAuthor.put(commit.getAuthor(), List.of(commit));
+            }*/
+            groupedByAuthor.computeIfAbsent(commit.getAuthor(), k -> new ArrayList<>()).add(commit);
+        }
+
+        for (String author : groupedByAuthor.keySet()) {
+            List<CommitInternalDTO> allCommitsForAuthor = groupedByAuthor.get(author);
+            AtomicInteger numberOfCommits = new AtomicInteger();
+            AtomicInteger numberOfAdditions = new AtomicInteger();
+            AtomicInteger numberOfDeletions = new AtomicInteger();
+            /*for (CommitInternalDTO commit : allCommitsForAuthor) {
+                numberOfCommits.getAndIncrement();
+                numberOfAdditions.addAndGet(commit.getAdditions());
+                numberOfDeletions.addAndGet(commit.getDeletions());
+            }*/
+            allCommitsForAuthor.forEach(commit -> {
+                numberOfCommits.getAndIncrement();
+                numberOfAdditions.addAndGet(commit.getAdditions());
+                numberOfDeletions.addAndGet(commit.getDeletions());
+            });
+            stats.add(new StatsInternalDTO(author, numberOfCommits.get(), numberOfAdditions.get(),
+                                           numberOfDeletions.get()));
+        }
+
+        return stats;
     }
 
     private GitAPI getAPI(final Long userId) throws NoProviderFoundException {

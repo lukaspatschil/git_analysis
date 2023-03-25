@@ -4,18 +4,21 @@ import com.tuwien.gitanalyser.endpoints.dtos.BranchDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.CommitDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.CommitterDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.NotSavedRepositoryDTO;
+import com.tuwien.gitanalyser.endpoints.dtos.StatsDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.assignment.AssignmentDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.assignment.CreateAssignmentDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.BranchInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitterInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.NotSavedRepositoryInternalDTO;
+import com.tuwien.gitanalyser.endpoints.dtos.internal.StatsInternalDTO;
 import com.tuwien.gitanalyser.entity.Assignment;
 import com.tuwien.gitanalyser.entity.mapper.AssignmentMapper;
 import com.tuwien.gitanalyser.entity.mapper.BranchMapper;
 import com.tuwien.gitanalyser.entity.mapper.CommitMapper;
 import com.tuwien.gitanalyser.entity.mapper.CommitterMapper;
 import com.tuwien.gitanalyser.entity.mapper.NotSavedRepositoryMapper;
+import com.tuwien.gitanalyser.entity.mapper.StatsMapper;
 import com.tuwien.gitanalyser.exception.BadRequestException;
 import com.tuwien.gitanalyser.exception.GitException;
 import com.tuwien.gitanalyser.exception.InternalServerErrorException;
@@ -61,6 +64,7 @@ public class RepositoryEndpoint extends BaseEndpoint {
     private final CommitMapper commitsMapper;
     private final CommitterMapper committerMapper;
     private final AssignmentMapper assignmentMapper;
+    private final StatsMapper statsMapper;
 
     public RepositoryEndpoint(final RepositoryService repositoryService,
                               final GitService gitService,
@@ -68,7 +72,8 @@ public class RepositoryEndpoint extends BaseEndpoint {
                               final BranchMapper branchMapper,
                               final CommitMapper commitMapper,
                               final CommitterMapper committerMapper,
-                              final AssignmentMapper assignmentMapper) {
+                              final AssignmentMapper assignmentMapper,
+                              final StatsMapper statsMapper) {
         this.repositoryService = repositoryService;
         this.gitService = gitService;
         this.notSavedRepositoryMapper = notSavedRepositoryMapper;
@@ -76,6 +81,7 @@ public class RepositoryEndpoint extends BaseEndpoint {
         this.commitsMapper = commitMapper;
         this.committerMapper = committerMapper;
         this.assignmentMapper = assignmentMapper;
+        this.statsMapper = statsMapper;
     }
 
     @GetMapping
@@ -196,8 +202,7 @@ public class RepositoryEndpoint extends BaseEndpoint {
                     platformId, branch);
         Set<CommitterInternalDTO> committers;
         try {
-            committers = gitService.getAllCommitters(getUserId(authentication),
-                                                     platformId, branch);
+            committers = gitService.getAllCommitters(getUserId(authentication), platformId, branch);
         } catch (NoProviderFoundException e) {
             throw new InternalServerErrorException();
         } catch (GitException e) {
@@ -239,6 +244,33 @@ public class RepositoryEndpoint extends BaseEndpoint {
         List<Assignment> assignments = repositoryService.getAssignments(getUserId(authentication),
                                                                         platformId);
         return assignmentMapper.entitiesToDTO(assignments);
+    }
+
+    @GetMapping("/{platformId}/stats")
+    @Operation(description = "Get statistics for repository and branch", responses = {
+        @ApiResponse(responseCode = "200", content = @Content(
+            array = @ArraySchema(schema = @Schema(implementation = StatsDTO.class)),
+            mediaType = "application/json")),
+        @ApiResponse(responseCode = "400", content = @Content(
+            mediaType = "application/json",
+            schema = @Schema(hidden = true)))
+    })
+    public List<StatsDTO> getStats(final Authentication authentication,
+                                   final @PathVariable Long platformId,
+                                   final @RequestParam(name = "branch", required = false) String branch)
+        throws InternalServerErrorException, BadRequestException {
+        LOGGER.info("GET /repository/{id}/stats - get statistics from repository by platform id {} and branch {} ",
+                    platformId, branch);
+
+        List<StatsInternalDTO> stats;
+        try {
+            stats = gitService.getStats(getUserId(authentication), platformId, branch);
+        } catch (NoProviderFoundException e) {
+            throw new InternalServerErrorException();
+        } catch (GitException e) {
+            throw new BadRequestException();
+        }
+        return statsMapper.dtosToDTOs(stats);
     }
 
     @DeleteMapping("/{platformId}/assignment/{subAssignmentId}")

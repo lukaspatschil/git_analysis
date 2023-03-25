@@ -20,15 +20,20 @@ public class Randoms {
                      .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append).toString();
     }
 
-    public static Integer integer(){
+    public static Integer integer() {
         Random random = new Random();
         return random.nextInt();
     }
 
-    public static long getLong(){
+    public static Integer integer(int min, int max) {
+        Random random = new Random();
+        return random.nextInt(min, max);
+    }
+
+    public static long getLong() {
         Random random = new Random();
         long value = random.nextLong();
-        if(value < 0){
+        if (value < 0) {
             value = value * -1;
         }
         return value;
