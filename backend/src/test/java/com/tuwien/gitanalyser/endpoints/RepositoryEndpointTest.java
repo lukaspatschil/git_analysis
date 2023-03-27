@@ -683,8 +683,9 @@ class RepositoryEndpointTest {
         verify(repositoryService).deleteAssignment(userId, platformId, subAssignmentId);
     }
 
-    @Test
-    void getStats_always_shouldCallService()
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void getStats_always_shouldCallService(boolean mapByAssignments)
         throws InternalServerErrorException, BadRequestException, GitException, NoProviderFoundException {
         // Given
         long userId = Randoms.getLong();
@@ -694,14 +695,15 @@ class RepositoryEndpointTest {
         mockUserId(userId, authentication);
 
         // When
-        sut.getStats(authentication, platformId, defaultBranch);
+        sut.getStats(authentication, platformId, defaultBranch, mapByAssignments);
 
         // Then
-        verify(gitService).getStats(userId, platformId, defaultBranch);
+        verify(repositoryService).getStats(userId, platformId, defaultBranch, mapByAssignments);
     }
 
-    @Test
-    void getStats_serviceReturnSingleInternalStatsDTO_shouldReturnListSingleStatsDTO()
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void getStats_serviceReturnSingleInternalStatsDTO_shouldReturnListSingleStatsDTO(boolean mapByAssignments)
         throws InternalServerErrorException, BadRequestException, GitException, NoProviderFoundException {
         // Given
         long userId = Randoms.getLong();
@@ -713,18 +715,19 @@ class RepositoryEndpointTest {
         StatsInternalDTO internalDTO = randomStatsInternalDTO();
         StatsDTO dto = statsInternalDTOToStatsDTO(internalDTO);
 
-        mockStatsService(userId, platformId, List.of(internalDTO));
+        mockStatsService(userId, platformId, mapByAssignments, List.of(internalDTO));
         mockStatsMapper(List.of(internalDTO), List.of(dto));
 
         // When
-        List<StatsDTO> result = sut.getStats(authentication, platformId, defaultBranch);
+        List<StatsDTO> result = sut.getStats(authentication, platformId, defaultBranch, mapByAssignments);
 
         // Then
         assertThat(result, containsInAnyOrder(equalTo(dto)));
     }
 
-    @Test
-    void getStats_serviceReturnTwoInternalStatsDTO_shouldReturnListTwoStatsDTO()
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void getStats_serviceReturnTwoInternalStatsDTO_shouldReturnListTwoStatsDTO(boolean mapByAssignments)
         throws InternalServerErrorException, BadRequestException, GitException, NoProviderFoundException {
         // Given
         long userId = Randoms.getLong();
@@ -739,18 +742,19 @@ class RepositoryEndpointTest {
         StatsInternalDTO internalDTO2 = randomStatsInternalDTO();
         StatsDTO dto2 = statsInternalDTOToStatsDTO(internalDTO2);
 
-        mockStatsService(userId, platformId, List.of(internalDTO1, internalDTO2));
+        mockStatsService(userId, platformId, mapByAssignments, List.of(internalDTO1, internalDTO2));
         mockStatsMapper(List.of(internalDTO1, internalDTO2), List.of(dto1, dto2));
 
         // When
-        List<StatsDTO> result = sut.getStats(authentication, platformId, defaultBranch);
+        List<StatsDTO> result = sut.getStats(authentication, platformId, defaultBranch, mapByAssignments);
 
         // Then
         assertThat(result, containsInAnyOrder(equalTo(dto1), equalTo(dto2)));
     }
 
-    @Test
-    void getStats_serviceReturnsEmptyList_shouldReturnEmptyList()
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void getStats_serviceReturnsEmptyList_shouldReturnEmptyList(boolean mapByAssignments)
         throws InternalServerErrorException, BadRequestException, GitException, NoProviderFoundException {
         // Given
         long userId = Randoms.getLong();
@@ -759,11 +763,11 @@ class RepositoryEndpointTest {
         Authentication authentication = mock(Authentication.class);
         mockUserId(userId, authentication);
 
-        mockStatsService(userId, platformId, List.of());
+        mockStatsService(userId, platformId, mapByAssignments, List.of());
         mockStatsMapper(List.of(), List.of());
 
         // When
-        List<StatsDTO> result = sut.getStats(authentication, platformId, defaultBranch);
+        List<StatsDTO> result = sut.getStats(authentication, platformId, defaultBranch, mapByAssignments);
 
         // Then
         assertThat(result, hasSize(0));
@@ -771,8 +775,8 @@ class RepositoryEndpointTest {
 
     @ParameterizedTest
     @ValueSource(classes = {GitLabException.class, GitHubException.class})
-    void getStats_serviceThrowsGitException_throwsBadRequestException(Class<? extends GitException> exception)
-        throws GitException, NoProviderFoundException {
+    void getStats_serviceThrowsGitExceptionAndMappedParameterTrue_throwsBadRequestException(
+        Class<? extends GitException> exception) throws GitException, NoProviderFoundException {
         // Given
         long platformId = Randoms.getLong();
         long userId = Randoms.getLong();
@@ -780,15 +784,34 @@ class RepositoryEndpointTest {
         Authentication authentication = mock(Authentication.class);
 
         mockUserId(userId, authentication);
-        prepareGetStatsThrows(platformId, userId, defaultBranch, exception);
+        prepareGetStatsThrows(platformId, userId, defaultBranch, true, exception);
 
         // When + Then
         assertThrows(BadRequestException.class,
-                     () -> sut.getStats(authentication, platformId, defaultBranch));
+                     () -> sut.getStats(authentication, platformId, defaultBranch, true));
     }
 
-    @Test
-    void getStats_serviceThrowsNoProviderFound_throwsInternalServerErrorException()
+    @ParameterizedTest
+    @ValueSource(classes = {GitLabException.class, GitHubException.class})
+    void getStats_serviceThrowsGitExceptionAndMappedParameterFalse_throwsBadRequestException(
+        Class<? extends GitException> exception) throws GitException, NoProviderFoundException {
+        // Given
+        long platformId = Randoms.getLong();
+        long userId = Randoms.getLong();
+
+        Authentication authentication = mock(Authentication.class);
+
+        mockUserId(userId, authentication);
+        prepareGetStatsThrows(platformId, userId, defaultBranch, false, exception);
+
+        // When + Then
+        assertThrows(BadRequestException.class,
+                     () -> sut.getStats(authentication, platformId, defaultBranch, false));
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void getStats_serviceThrowsNoProviderFound_throwsInternalServerErrorException(boolean mapByAssignments)
         throws GitException, NoProviderFoundException {
         // Given
         long userId = Randoms.getLong();
@@ -797,16 +820,16 @@ class RepositoryEndpointTest {
         Authentication authentication = mock(Authentication.class);
 
         mockUserId(userId, authentication);
-        prepareGetStatsThrows(platformId, userId, defaultBranch, NoProviderFoundException.class);
+        prepareGetStatsThrows(platformId, userId, defaultBranch, mapByAssignments, NoProviderFoundException.class);
 
         // When + Then
         assertThrows(InternalServerErrorException.class,
-                     () -> sut.getStats(authentication, platformId, defaultBranch));
+                     () -> sut.getStats(authentication, platformId, defaultBranch, mapByAssignments));
     }
 
-    private void mockStatsService(long userId, long platformId, List<StatsInternalDTO> result)
+    private void mockStatsService(long userId, long platformId, boolean mapByAssignments, List<StatsInternalDTO> result)
         throws NoProviderFoundException, GitException {
-        when(gitService.getStats(userId, platformId, defaultBranch)).thenReturn(result);
+        when(repositoryService.getStats(userId, platformId, defaultBranch, mapByAssignments)).thenReturn(result);
     }
 
     private void mockStatsMapper(List<StatsInternalDTO> input, List<StatsDTO> output) {
@@ -853,10 +876,10 @@ class RepositoryEndpointTest {
         when(gitService.getAllCommits(userId, platformId, branch)).thenThrow(exceptionClass);
     }
 
-    private void prepareGetStatsThrows(long platformId, long userId, String branch,
-                                           Class<? extends Exception> exceptionClass)
+    private void prepareGetStatsThrows(long platformId, long userId, String branch, boolean mapByAssignments,
+                                       Class<? extends Exception> exceptionClass)
         throws GitException, NoProviderFoundException {
-        when(gitService.getStats(userId, platformId, branch)).thenThrow(exceptionClass);
+        when(repositoryService.getStats(userId, platformId, branch, mapByAssignments)).thenThrow(exceptionClass);
     }
 
     private void prepareGetAllBranches(long platformId, long userId, List<BranchInternalDTO> result)

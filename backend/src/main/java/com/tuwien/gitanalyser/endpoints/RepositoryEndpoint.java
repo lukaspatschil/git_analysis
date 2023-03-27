@@ -257,14 +257,16 @@ public class RepositoryEndpoint extends BaseEndpoint {
     })
     public List<StatsDTO> getStats(final Authentication authentication,
                                    final @PathVariable Long platformId,
-                                   final @RequestParam(name = "branch", required = false) String branch)
+                                   final @RequestParam(name = "branch", required = false) String branch,
+                                   final @RequestParam(name = "mappedByAssignments", required = false,
+                                       defaultValue = "false") Boolean mappedByAssignments)
         throws InternalServerErrorException, BadRequestException {
         LOGGER.info("GET /repository/{id}/stats - get statistics from repository by platform id {} and branch {} ",
                     platformId, branch);
 
         List<StatsInternalDTO> stats;
         try {
-            stats = gitService.getStats(getUserId(authentication), platformId, branch);
+            stats = repositoryService.getStats(getUserId(authentication), platformId, branch, mappedByAssignments);
         } catch (NoProviderFoundException e) {
             throw new InternalServerErrorException();
         } catch (GitException e) {

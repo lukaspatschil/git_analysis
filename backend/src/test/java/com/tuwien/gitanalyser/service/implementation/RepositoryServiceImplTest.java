@@ -1,13 +1,18 @@
 package com.tuwien.gitanalyser.service.implementation;
 
 import com.tuwien.gitanalyser.endpoints.dtos.assignment.CreateAssignmentDTO;
+import com.tuwien.gitanalyser.endpoints.dtos.internal.StatsInternalDTO;
 import com.tuwien.gitanalyser.entity.Assignment;
 import com.tuwien.gitanalyser.entity.Repository;
 import com.tuwien.gitanalyser.entity.RepositoryFactory;
+import com.tuwien.gitanalyser.entity.SubAssignment;
 import com.tuwien.gitanalyser.entity.User;
+import com.tuwien.gitanalyser.exception.GitException;
+import com.tuwien.gitanalyser.exception.NoProviderFoundException;
 import com.tuwien.gitanalyser.exception.NotFoundException;
 import com.tuwien.gitanalyser.repository.RepositoryRepository;
 import com.tuwien.gitanalyser.service.AssignmentService;
+import com.tuwien.gitanalyser.service.GitService;
 import com.tuwien.gitanalyser.service.SubAssignmentService;
 import com.tuwien.gitanalyser.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,6 +20,7 @@ import org.junit.jupiter.api.Test;
 import utils.CreateAssignmentDTOs;
 import utils.Randoms;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,6 +33,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static utils.Matchers.statsInternalDTOMatcher;
 
 class RepositoryServiceImplTest {
     private RepositoryServiceImpl sut;
@@ -35,10 +42,7 @@ class RepositoryServiceImplTest {
     private AssignmentService assignmentService;
     private SubAssignmentService subAssignmentService;
     private RepositoryFactory repositoryFactory;
-
-    private static Repository createRepository() {
-        return Repository.builder().platformId(Randoms.getLong()).build();
-    }
+    private GitService gitService;
 
     @BeforeEach
     void setUp() {
@@ -47,10 +51,12 @@ class RepositoryServiceImplTest {
         assignmentService = mock(AssignmentService.class);
         subAssignmentService = mock(SubAssignmentService.class);
         repositoryFactory = mock(RepositoryFactory.class);
+        gitService = mock(GitService.class);
         sut = new RepositoryServiceImpl(userService,
                                         repositoryRepository,
                                         assignmentService,
                                         subAssignmentService,
+                                        gitService,
                                         repositoryFactory
         );
     }
@@ -250,6 +256,134 @@ class RepositoryServiceImplTest {
         verify(repositoryRepository).delete(repository2);
     }
 
+    @Test
+    void getStats_repositoryExistsAndAssignmentExistsAndShouldNotBeMapped_returnsUnmappedStats()
+        throws GitException, NoProviderFoundException {
+        // Given
+        long platformId = Randoms.getLong();
+
+        User user = prepareUserService();
+
+        String branch = Randoms.alpha();
+
+        Assignment assignment = mock(Assignment.class);
+        prepareExistingRepository(List.of(assignment), platformId, user);
+
+        StatsInternalDTO stats1 = mockStatsInternalDTO();
+        StatsInternalDTO stats2 = mockStatsInternalDTO();
+
+        prepareGitServiceGetStats(platformId, user, branch, List.of(stats1, stats2));
+
+        // When
+        List<StatsInternalDTO> result = sut.getStats(user.getId(), platformId, branch, false);
+
+        // Then
+        assertThat(result, containsInAnyOrder(stats1, stats2));
+    }
+
+    @Test
+    void getStats_oneStatsObjectAndShouldBeMapped_returnsMappedStats()
+        throws GitException, NoProviderFoundException {
+        // Given
+        long platformId = Randoms.getLong();
+        String branch = Randoms.alpha();
+        String assignedName = Randoms.alpha();
+        String key = Randoms.alpha();
+
+        User user = prepareUserService();
+
+        prepareAssignments(platformId, key, user, assignedName);
+
+        StatsInternalDTO stats = mockStatsInternalDTO(assignedName);
+
+        StatsInternalDTO resultStats = mockStatsInternalDTO(key, stats);
+
+        prepareGitServiceGetStats(platformId, user, branch, List.of(stats));
+
+        // When
+        List<StatsInternalDTO> result = sut.getStats(user.getId(), platformId, branch, true);
+
+        // Then
+        assertThat(result, containsInAnyOrder(statsInternalDTOMatcher(resultStats)));
+    }
+
+    @Test
+    void getStats_twoStatsObjectAndShouldBeMapped_returnsMappedStats()
+        throws GitException, NoProviderFoundException {
+        // Given
+        long platformId = Randoms.getLong();
+        String branch = Randoms.alpha();
+        String assignedName1 = Randoms.alpha();
+        String assignedName2 = Randoms.alpha();
+        String key = Randoms.alpha();
+
+        User user = prepareUserService();
+
+        prepareAssignments(platformId, key, user, assignedName1, assignedName2);
+
+        StatsInternalDTO stats1 = mockStatsInternalDTO(assignedName1);
+        StatsInternalDTO stats2 = mockStatsInternalDTO(assignedName2);
+
+        StatsInternalDTO resultStats = mockStatsInternalDTO(key, stats1, stats2);
+
+        prepareGitServiceGetStats(platformId, user, branch, List.of(stats1, stats2));
+
+        // When
+        List<StatsInternalDTO> result = sut.getStats(user.getId(), platformId, branch, true);
+
+        // Then
+        assertThat(result, containsInAnyOrder(
+            statsInternalDTOMatcher(resultStats)
+        ));
+    }
+
+    @Test
+    void getStats_threeStatsObjectAnd2ShouldBeMapped_returnsMappedStats()
+        throws GitException, NoProviderFoundException {
+        // Given
+        long platformId = Randoms.getLong();
+        String branch = Randoms.alpha();
+        String assignedName1 = Randoms.alpha();
+        String assignedName2 = Randoms.alpha();
+        String key = Randoms.alpha();
+
+        User user = prepareUserService();
+
+        prepareAssignments(platformId, key, user, assignedName1, assignedName2);
+
+        StatsInternalDTO stats1 = mockStatsInternalDTO(assignedName1);
+        StatsInternalDTO stats2 = mockStatsInternalDTO(assignedName2);
+        StatsInternalDTO stats3 = mockStatsInternalDTO();
+
+        StatsInternalDTO resultStats = mockStatsInternalDTO(key, stats1, stats2);
+
+        prepareGitServiceGetStats(platformId, user, branch, List.of(stats1, stats2, stats3));
+
+        // When
+        List<StatsInternalDTO> result = sut.getStats(user.getId(), platformId, branch, true);
+
+        // Then
+        assertThat(result, containsInAnyOrder(
+            statsInternalDTOMatcher(resultStats),
+            statsInternalDTOMatcher(stats3)
+        ));
+    }
+
+    private void prepareAssignments(long platformId, String key, User user, String ... assignedNames) {
+        Assignment assignment = createAssignment(key);
+        List<SubAssignment> subAssignments = new ArrayList<>();
+        for (String assignedName : assignedNames) {
+            subAssignments.add(mockSubAssignment(assignedName, assignment));
+        }
+        when(assignment.getSubAssignments()).thenReturn(subAssignments);
+        Repository repository = prepareExistingRepository(List.of(assignment), platformId, user);
+    }
+
+    private void prepareGitServiceGetStats(long platformId, User user, String branch, List<StatsInternalDTO> stats)
+        throws NoProviderFoundException, GitException {
+        when(gitService.getStats(user.getId(), platformId, branch)).thenReturn(stats);
+    }
+
     private void prepareAssignment(Repository repository, CreateAssignmentDTO createDTO, Assignment assignment) {
         when(assignmentService.getOrCreateAssignment(repository, createDTO.getKey())).thenReturn(assignment);
     }
@@ -277,7 +411,60 @@ class RepositoryServiceImplTest {
     private Repository prepareExistingRepository(List<Assignment> assignments, long platformId, User user) {
         Repository repository = mock(Repository.class);
         when(repository.getAssignments()).thenReturn(assignments);
+        when(repository.getUser()).thenReturn(user);
+        when(repository.getPlatformId()).thenReturn(platformId);
         mockRepositoryFindByUserAndPlatformId(user, platformId, repository);
         return repository;
+    }
+
+    private Repository createRepository() {
+        return Repository.builder().platformId(Randoms.getLong()).build();
+    }
+
+    private StatsInternalDTO mockStatsInternalDTO(String name) {
+        StatsInternalDTO statsInternalDTO = mock(StatsInternalDTO.class);
+        when(statsInternalDTO.getCommitter()).thenReturn(name);
+        when(statsInternalDTO.getNumberOfCommits()).thenReturn(Randoms.integer(0, 10));
+        when(statsInternalDTO.getNumberOfDeletions()).thenReturn(Randoms.integer(0, 10));
+        when(statsInternalDTO.getNumberOfAdditions()).thenReturn(Randoms.integer(0, 10));
+        return statsInternalDTO;
+    }
+
+    private StatsInternalDTO mockStatsInternalDTO(String name, StatsInternalDTO... stats) {
+        StatsInternalDTO statsInternalDTO = mock(StatsInternalDTO.class);
+        when(statsInternalDTO.getCommitter()).thenReturn(name);
+
+        int numberOfCommits = 0;
+        int numberOfDeletions = 0;
+        int numberOfAdditions = 0;
+
+        for (StatsInternalDTO stat : stats) {
+            numberOfCommits += stat.getNumberOfCommits();
+            numberOfAdditions += stat.getNumberOfAdditions();
+            numberOfDeletions += stat.getNumberOfDeletions();
+        }
+
+        when(statsInternalDTO.getNumberOfCommits()).thenReturn(numberOfCommits);
+        when(statsInternalDTO.getNumberOfDeletions()).thenReturn(numberOfDeletions);
+        when(statsInternalDTO.getNumberOfAdditions()).thenReturn(numberOfAdditions);
+        return statsInternalDTO;
+    }
+
+    private StatsInternalDTO mockStatsInternalDTO() {
+        return mockStatsInternalDTO(Randoms.alpha());
+    }
+
+    private SubAssignment mockSubAssignment(String assignedName, Assignment assignment) {
+        SubAssignment subAssignment = mock(SubAssignment.class);
+        when(subAssignment.getAssignedName()).thenReturn(assignedName);
+        when(subAssignment.getAssignment()).thenReturn(assignment);
+        return subAssignment;
+    }
+
+    private Assignment createAssignment(String key) {
+        Assignment assignment = mock(Assignment.class);
+        when(assignment.getKey()).thenReturn(key);
+
+        return assignment;
     }
 }
