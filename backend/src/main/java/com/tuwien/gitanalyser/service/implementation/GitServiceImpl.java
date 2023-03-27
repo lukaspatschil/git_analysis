@@ -18,6 +18,7 @@ import com.tuwien.gitanalyser.service.apiCalls.GitHubAPI;
 import com.tuwien.gitanalyser.service.apiCalls.GitLabAPI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -38,7 +39,7 @@ public class GitServiceImpl implements GitService {
     private final GitLabAPI gitLabAPI;
 
     public GitServiceImpl(final UserService userService,
-                          final RepositoryService repositoryService,
+                          @Lazy final RepositoryService repositoryService,
                           final GitHubAPI gitHubAPI,
                           final GitLabAPI gitLabAPI) {
         this.userService = userService;
@@ -153,11 +154,6 @@ public class GitServiceImpl implements GitService {
         List<CommitInternalDTO> allCommits = getAllCommits(userId, platformId, branch);
 
         for (CommitInternalDTO commit : allCommits) {
-            /*if (groupedByAuthor.containsKey(commit.getAuthor())) {
-                groupedByAuthor.get(commit.getAuthor()).add(commit);
-            } else {
-                groupedByAuthor.put(commit.getAuthor(), List.of(commit));
-            }*/
             groupedByAuthor.computeIfAbsent(commit.getAuthor(), k -> new ArrayList<>()).add(commit);
         }
 
@@ -166,11 +162,6 @@ public class GitServiceImpl implements GitService {
             AtomicInteger numberOfCommits = new AtomicInteger();
             AtomicInteger numberOfAdditions = new AtomicInteger();
             AtomicInteger numberOfDeletions = new AtomicInteger();
-            /*for (CommitInternalDTO commit : allCommitsForAuthor) {
-                numberOfCommits.getAndIncrement();
-                numberOfAdditions.addAndGet(commit.getAdditions());
-                numberOfDeletions.addAndGet(commit.getDeletions());
-            }*/
             allCommitsForAuthor.forEach(commit -> {
                 numberOfCommits.getAndIncrement();
                 numberOfAdditions.addAndGet(commit.getAdditions());

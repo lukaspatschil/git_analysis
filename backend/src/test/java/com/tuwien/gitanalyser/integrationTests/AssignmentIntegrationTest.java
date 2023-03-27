@@ -2,7 +2,6 @@ package com.tuwien.gitanalyser.integrationTests;
 
 import com.tuwien.gitanalyser.endpoints.dtos.assignment.AssignmentDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.assignment.CreateAssignmentDTO;
-import com.tuwien.gitanalyser.endpoints.dtos.assignment.SubAssignmentDTO;
 import com.tuwien.gitanalyser.entity.Assignment;
 import com.tuwien.gitanalyser.entity.Repository;
 import com.tuwien.gitanalyser.entity.SubAssignment;
@@ -12,7 +11,6 @@ import org.gitlab4j.api.GitLabApi;
 import org.gitlab4j.api.GitLabApiException;
 import org.gitlab4j.api.ProjectApi;
 import org.gitlab4j.api.models.Project;
-import org.hamcrest.Matcher;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import utils.Randoms;
@@ -32,20 +30,15 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.hobsoft.hamcrest.compose.ComposeMatchers.hasFeature;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static utils.Matchers.assignmentMatcher;
+import static utils.Matchers.subAssignmentDTOMatcher;
+import static utils.Matchers.subAssignmentMatcher;
 
 public class AssignmentIntegrationTest extends BaseIntegrationTest {
 
     private static final String REPOSITORY_ENDPOINT = "/apiV1/repository";
 
     private static final String ASSIGNMENT_EXTENSION = "/assignment";
-
-    private static Matcher<SubAssignmentDTO> subAssignmentDTOMatcher(SubAssignment subAssignment12) {
-        return allOf(
-            hasFeature("name", SubAssignmentDTO::getName,
-                       equalTo(subAssignment12.getAssignedName())),
-            hasFeature("id", SubAssignmentDTO::getId, equalTo(subAssignment12.getId()))
-        );
-    }
 
     @Test
     public void addAssignment_userAllowedToAccessRepositoryAndNoRepositoryExists_shouldCreateNewRepositoryWithOneAssignmentAndOneSubAssignment()
@@ -387,7 +380,7 @@ public class AssignmentIntegrationTest extends BaseIntegrationTest {
         assertThat(assignments, containsInAnyOrder(
             assignmentMatcher(key1, subAssignment11, subAssignment12),
             assignmentMatcher(key2, subAssignment21, subAssignment22)
-            ));
+        ));
     }
 
     @Test
@@ -514,25 +507,6 @@ public class AssignmentIntegrationTest extends BaseIntegrationTest {
         assertThat(result.get().getSubAssignments(), containsInAnyOrder(
             subAssignmentMatcher(subAssignment2)
         ));
-    }
-
-    private static Matcher<SubAssignment> subAssignmentMatcher(SubAssignment subAssignment2) {
-        return allOf(
-            hasFeature("id", SubAssignment::getId, equalTo(subAssignment2.getId())),
-            hasFeature("name", SubAssignment::getAssignedName, equalTo(subAssignment2.getAssignedName()))
-        );
-    }
-
-    private static Matcher<AssignmentDTO> assignmentMatcher(String key1, SubAssignment subAssignment21,
-                                                                  SubAssignment subAssignment22) {
-        return allOf(
-            hasFeature("key", AssignmentDTO::getKey, equalTo(key1)),
-            hasFeature("subAssignment", AssignmentDTO::getAssignedNames, containsInAnyOrder(
-                           subAssignmentDTOMatcher(subAssignment21),
-                           subAssignmentDTOMatcher(subAssignment22)
-                       )
-            )
-        );
     }
 
     private void assertRepository(Repository createdRepository, long platformId, User user, int numberOfAssignments) {
