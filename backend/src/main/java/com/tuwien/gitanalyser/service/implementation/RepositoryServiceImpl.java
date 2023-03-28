@@ -1,6 +1,7 @@
 package com.tuwien.gitanalyser.service.implementation;
 
 import com.tuwien.gitanalyser.endpoints.dtos.assignment.CreateAssignmentDTO;
+import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.StatsInternalDTO;
 import com.tuwien.gitanalyser.entity.Assignment;
 import com.tuwien.gitanalyser.entity.Repository;
@@ -134,6 +135,44 @@ public class RepositoryServiceImpl implements RepositoryService {
             }
         }
         return stats;
+    }
+
+    @Override
+    public List<CommitInternalDTO> getCommits(final long userId, final Long platformId, final String branch,
+                                              final Boolean mappedByAssignments)
+        throws GitException, NoProviderFoundException {
+        LOGGER.info("getAllCommits with userId {} and platformId {} and branch {} and mappedByAssignments {}",
+                    userId, platformId, branch, mappedByAssignments);
+
+        List<CommitInternalDTO> commits = gitService.getAllCommits(userId, platformId, branch);
+
+        if (mappedByAssignments) {
+            try {
+                List<Assignment> assignments = getAssignments(userId, platformId);
+                commits = mapCommitsByAssignments(commits, assignments);
+            } catch (NotFoundException e) {
+                LOGGER.info("getAllCommits finished with empty repository for platformId {}", platformId);
+            }
+        }
+
+        return commits;
+    }
+
+    private List<CommitInternalDTO> mapCommitsByAssignments(final List<CommitInternalDTO> commits,
+                                                            final List<Assignment> assignments) {
+        for (CommitInternalDTO commit : commits) {
+            for (Assignment assignment : assignments) {
+
+                String key = assignment.getKey();
+
+                for (SubAssignment subAssignment : assignment.getSubAssignments()) {
+                    if (commit.getAuthor().equals(subAssignment.getAssignedName())) {
+                        commit.setAuthor(key);
+                    }
+                }
+            }
+        }
+        return commits;
     }
 
     private List<StatsInternalDTO> mapStatsByAssignments(final List<StatsInternalDTO> stats,

@@ -7,6 +7,7 @@ import com.tuwien.gitanalyser.endpoints.dtos.NotSavedRepositoryDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.StatsDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.assignment.AssignmentDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.assignment.SubAssignmentDTO;
+import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.StatsInternalDTO;
 import com.tuwien.gitanalyser.entity.SubAssignment;
 import org.gitlab4j.api.models.Branch;
@@ -90,6 +91,19 @@ public class Matchers {
             hasFeature("isMergeCommit", CommitDTO::isMergeCommit, equalTo(commitDTO.isMergeCommit())),
             hasFeature("additions", CommitDTO::getAdditions, equalTo(commitDTO.getAdditions())),
             hasFeature("deletions", CommitDTO::getDeletions, equalTo(commitDTO.getDeletions()))
+        );
+    }
+
+    public static Matcher<CommitInternalDTO> commitInteralDTOMatcher(CommitInternalDTO commit) {
+        return allOf(
+            hasFeature("id", CommitInternalDTO::getId, equalTo(commit.getId())),
+            hasFeature("message", CommitInternalDTO::getMessage, equalTo(commit.getMessage())),
+            hasFeature("author", CommitInternalDTO::getAuthor, equalTo(commit.getAuthor())),
+            hasFeature("timestamp", CommitInternalDTO::getTimestamp, equalTo(commit.getTimestamp())),
+            hasFeature("additions", CommitInternalDTO::getAdditions, equalTo(commit.getAdditions())),
+            hasFeature("deletions", CommitInternalDTO::getDeletions, equalTo(commit.getDeletions())),
+            hasFeature("isMergeCommit", CommitInternalDTO::isMergeCommit, equalTo(commit.isMergeCommit())),
+            hasFeature("parentIds", CommitInternalDTO::getParentIds, equalTo(commit.getParentIds()))
         );
     }
 

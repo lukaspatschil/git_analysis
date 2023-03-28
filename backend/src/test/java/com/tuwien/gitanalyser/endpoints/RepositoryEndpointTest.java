@@ -378,8 +378,9 @@ class RepositoryEndpointTest {
                      () -> sut.getBranchesByRepositoryId(authentication, platformId));
     }
 
-    @Test
-    void getCommitsByRepositoryId_always_shouldCallService()
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void getCommitsByRepositoryId_always_shouldCallRepositoryService(boolean mappedByAssignment)
         throws GitException, BadRequestException, InternalServerErrorException, NoProviderFoundException {
         // Given
         long platformId = Randoms.getLong();
@@ -390,14 +391,15 @@ class RepositoryEndpointTest {
         mockUserId(userId, authentication);
 
         // When
-        sut.getCommitsByRepositoryId(authentication, platformId, defaultBranch);
+        sut.getCommitsByRepositoryId(authentication, platformId, defaultBranch, mappedByAssignment);
 
         // Then
-        verify(gitService).getAllCommits(userId, platformId, defaultBranch);
+        verify(repositoryService).getCommits(userId, platformId, defaultBranch, mappedByAssignment);
     }
 
-    @Test
-    void getCommitsByRepositoryId_givenOneCommit_returnsListWithOneCommit()
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void getCommitsByRepositoryId_givenOneCommit_returnsListWithOneCommit(boolean mappedByAssignment)
         throws GitException, NoProviderFoundException, BadRequestException, InternalServerErrorException {
         // Given
         long platformId = Randoms.getLong();
@@ -408,18 +410,22 @@ class RepositoryEndpointTest {
         mockUserId(userId, authentication);
         CommitInternalDTO commit = mock(CommitInternalDTO.class);
         CommitDTO commitDTO = mock(CommitDTO.class);
-        prepareGetAllCommits(platformId, userId, defaultBranch, List.of(commit));
+        prepareRepositoryGetAllCommits(platformId, userId, defaultBranch, mappedByAssignment, List.of(commit));
         prepareCommitsMapper(List.of(commit), List.of(commitDTO));
 
         // When
-        List<CommitDTO> commits = sut.getCommitsByRepositoryId(authentication, platformId, defaultBranch);
+        List<CommitDTO> commits = sut.getCommitsByRepositoryId(authentication,
+                                                               platformId,
+                                                               defaultBranch,
+                                                               mappedByAssignment);
 
         // Then
         assertThat(commits, containsInAnyOrder(commitDTO));
     }
 
-    @Test
-    void getCommitsByRepositoryId_givenTwoCommits_returnsListWithTwoCommits()
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void getCommitsByRepositoryId_givenTwoCommits_returnsListWithTwoCommits(boolean mappedByAssignment)
         throws GitException, NoProviderFoundException, BadRequestException, InternalServerErrorException {
         // Given
         long platformId = Randoms.getLong();
@@ -428,11 +434,15 @@ class RepositoryEndpointTest {
         Authentication authentication = mock(Authentication.class);
 
         mockUserId(userId, authentication);
-        prepareGetAllCommits(platformId, userId, defaultBranch, List.of(commit1, commit2));
+        prepareRepositoryGetAllCommits(platformId, userId, defaultBranch, mappedByAssignment, List.of(commit1,
+                                                                                                      commit2));
         prepareCommitsMapper(List.of(commit1, commit2), List.of(commitDTO1, commitDTO2));
 
         // When
-        List<CommitDTO> branches = sut.getCommitsByRepositoryId(authentication, platformId, defaultBranch);
+        List<CommitDTO> branches = sut.getCommitsByRepositoryId(authentication,
+                                                                platformId,
+                                                                defaultBranch,
+                                                                mappedByAssignment);
 
         // Then
         assertThat(branches, equalTo(List.of(commitDTO1, commitDTO2)));
@@ -440,7 +450,7 @@ class RepositoryEndpointTest {
 
     @ParameterizedTest
     @ValueSource(classes = {GitLabException.class, GitHubException.class})
-    void getCommitsByRepositoryId_serviceThrowsGitException_throwsBadRequestException(
+    void getCommitsByRepositoryId_serviceThrowsGitExceptionAndShouldBeMapped_throwsBadRequestException(
         Class<? extends GitException> exception)
         throws GitException, NoProviderFoundException {
         // Given
@@ -450,15 +460,36 @@ class RepositoryEndpointTest {
         Authentication authentication = mock(Authentication.class);
 
         mockUserId(userId, authentication);
-        prepareGetAllCommitsThrows(platformId, userId, defaultBranch, exception);
+        prepareRepositoryServiceGetAllCommitsThrows(platformId, userId, defaultBranch, true, exception);
 
         // When + Then
         assertThrows(BadRequestException.class,
-                     () -> sut.getCommitsByRepositoryId(authentication, platformId, defaultBranch));
+                     () -> sut.getCommitsByRepositoryId(authentication, platformId, defaultBranch, true));
     }
 
-    @Test
-    void getCommitsByRepositoryId_serviceThrowsNoProviderFound_throwsInternalServerErrorException()
+    @ParameterizedTest
+    @ValueSource(classes = {GitLabException.class, GitHubException.class})
+    void getCommitsByRepositoryId_serviceThrowsGitExceptionAndShouldNotBeMapped_throwsBadRequestException(
+        Class<? extends GitException> exception)
+        throws GitException, NoProviderFoundException {
+        // Given
+        long platformId = Randoms.getLong();
+        long userId = Randoms.getLong();
+
+        Authentication authentication = mock(Authentication.class);
+
+        mockUserId(userId, authentication);
+        prepareRepositoryServiceGetAllCommitsThrows(platformId, userId, defaultBranch, false, exception);
+
+        // When + Then
+        assertThrows(BadRequestException.class,
+                     () -> sut.getCommitsByRepositoryId(authentication, platformId, defaultBranch, false));
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void getCommitsByRepositoryId_serviceThrowsNoProviderFound_throwsInternalServerErrorException(
+        boolean mappedByAssignment)
         throws GitException, NoProviderFoundException {
         // Given
         long userId = Randoms.getLong();
@@ -467,11 +498,12 @@ class RepositoryEndpointTest {
         Authentication authentication = mock(Authentication.class);
 
         mockUserId(userId, authentication);
-        prepareGetAllCommitsThrows(platformId, userId, defaultBranch, NoProviderFoundException.class);
+        prepareRepositoryServiceGetAllCommitsThrows(platformId, userId, defaultBranch,
+                                                    mappedByAssignment, NoProviderFoundException.class);
 
         // When + Then
         assertThrows(InternalServerErrorException.class,
-                     () -> sut.getCommitsByRepositoryId(authentication, platformId, defaultBranch));
+                     () -> sut.getCommitsByRepositoryId(authentication, platformId, defaultBranch, mappedByAssignment));
     }
 
     @Test
@@ -865,15 +897,20 @@ class RepositoryEndpointTest {
         when(repositoryService.getAssignments(userId, platformId)).thenReturn(output);
     }
 
-    private void prepareGetAllCommits(long platformId, long userId, String branch, List<CommitInternalDTO> output)
+    private void prepareRepositoryGetAllCommits(long platformId, long userId, String branch,
+                                                boolean mappedByAssignments, List<CommitInternalDTO> output)
         throws GitException, NoProviderFoundException {
-        when(gitService.getAllCommits(userId, platformId, branch)).thenReturn(output);
+        when(repositoryService.getCommits(userId, platformId, branch, mappedByAssignments)).thenReturn(output);
     }
 
-    private void prepareGetAllCommitsThrows(long platformId, long userId, String branch,
-                                            Class<? extends Exception> exceptionClass)
+    private void prepareRepositoryServiceGetAllCommitsThrows(long platformId, long userId, String branch,
+                                                             boolean mappedByAssignments,
+                                                             Class<? extends Exception> exceptionClass)
         throws GitException, NoProviderFoundException {
-        when(gitService.getAllCommits(userId, platformId, branch)).thenThrow(exceptionClass);
+        when(repositoryService.getCommits(userId,
+                                          platformId,
+                                          branch,
+                                          mappedByAssignments)).thenThrow(exceptionClass);
     }
 
     private void prepareGetStatsThrows(long platformId, long userId, String branch, boolean mapByAssignments,
