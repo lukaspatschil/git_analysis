@@ -1,7 +1,6 @@
 package com.tuwien.gitanalyser.integrationTests;
 
 import com.tuwien.gitanalyser.endpoints.dtos.BranchDTO;
-import com.tuwien.gitanalyser.endpoints.dtos.CommitDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.CommitterDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.NotSavedRepositoryDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.RepositoryDTO;
@@ -39,7 +38,6 @@ import static org.hamcrest.core.Is.is;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static utils.Matchers.CommitDTOMatcher;
 import static utils.Matchers.branchDTOMatcher;
 import static utils.Matchers.committerDTOMatcher;
 import static utils.Matchers.repositoryMatcher;
@@ -49,8 +47,6 @@ public class GitIntegrationTest extends BaseIntegrationTest {
     private static final String REPOSITORY_ENDPOINT = "/apiV1/repository";
 
     private static final String BRANCHES_ENDPOINT_EXTENSION = "branch";
-
-    private static final String COMMITS_ENDPOINT_EXTENSION = "commit";
 
     private static final String COMMITTER_ENDPOINT_EXTENSION = "committer";
 
@@ -295,125 +291,6 @@ public class GitIntegrationTest extends BaseIntegrationTest {
         ));
     }
 
-    @Test
-    public void queryAllCommits_gitLabUser_shouldCallGitLabService() throws GitLabApiException {
-        // Given
-        long repositoryId = Randoms.getLong();
-        String branch = Randoms.alpha();
-
-        GitLabApi gitLabApi = gitLabMockFactory();
-        CommitsApi commitsApi = gitLabMockCommitsApi(gitLabApi);
-
-        Commit commit = mockCommit();
-
-        gitLabMockGetCommits(commitsApi, repositoryId, branch, commit);
-
-        // When
-        callGetRestEndpoint(gitLabUserToken,
-                            REPOSITORY_ENDPOINT + "/" + repositoryId + "/" + COMMITS_ENDPOINT_EXTENSION
-                                + "?branch=" + branch);
-
-        // Then
-        verify(gitLabApi).getCommitsApi();
-    }
-
-    @Test
-    public void queryAllCommits_gitLabUserAndOneCommitAvailable_shouldReturnCommit() throws GitLabApiException {
-        // Given
-        long repositoryId = Randoms.getLong();
-        String branch = Randoms.alpha();
-
-        GitLabApi gitLabApi = gitLabMockFactory();
-        CommitsApi commitsApi = gitLabMockCommitsApi(gitLabApi);
-
-        Commit commit = mockCommit();
-        CommitDTO commitDTO = mockCommitDTO(commit);
-
-        gitLabMockGetCommits(commitsApi, repositoryId, branch, commit);
-
-        // When
-        Response response = callGetRestEndpoint(gitLabUserToken,
-                                                REPOSITORY_ENDPOINT + "/" + repositoryId + "/"
-                                                    + COMMITS_ENDPOINT_EXTENSION
-                                                    + "?branch=" + branch);
-
-        // Then
-        assertThat(response.as(CommitDTO[].class).length, equalTo(1));
-        CommitDTO[] commits = response.as(CommitDTO[].class);
-
-        assertThat(Arrays.asList(commits), containsInAnyOrder(
-            CommitDTOMatcher(commitDTO)
-        ));
-    }
-
-    @Test
-    public void queryAllCommits_gitLabUserAndTwoCommitsAvailable_shouldReturnCommits() throws GitLabApiException {
-        // Given
-        long repositoryId = Randoms.getLong();
-        String branch = Randoms.alpha();
-
-        GitLabApi gitLabApi = gitLabMockFactory();
-        CommitsApi commitsApi = gitLabMockCommitsApi(gitLabApi);
-
-        Commit commit1 = mockCommit();
-        CommitDTO commitDTO1 = mockCommitDTO(commit1);
-        Commit commit2 = mockCommit();
-        CommitDTO commitDTO2 = mockCommitDTO(commit2);
-
-        gitLabMockGetCommits(commitsApi, repositoryId, branch, commit1, commit2);
-
-        // When
-        Response response = callGetRestEndpoint(gitLabUserToken,
-                                                REPOSITORY_ENDPOINT + "/" + repositoryId + "/"
-                                                    + COMMITS_ENDPOINT_EXTENSION
-                                                    + "?branch=" + branch);
-
-        // Then
-        assertThat(response.as(CommitDTO[].class).length, equalTo(2));
-        CommitDTO[] commits = response.as(CommitDTO[].class);
-
-        assertThat(Arrays.asList(commits), containsInAnyOrder(commitDTO1, commitDTO2));
-    }
-
-    @Test
-    public void queryAllCommits_gitHubUser_shouldCallGitHubService() throws IOException {
-        // Given
-        long repositoryId = Randoms.getLong();
-        String branch = Randoms.alpha();
-
-        GitHub gitHubApi = gitHubMockFactory();
-        gitHubMockGHRepository(gitHubApi, repositoryId);
-
-        // When
-        callGetRestEndpoint(gitHubUserToken,
-                            REPOSITORY_ENDPOINT + "/" + repositoryId + "/" + COMMITS_ENDPOINT_EXTENSION
-                                + "?branch=" + branch);
-
-        // Then
-        verify(gitHubApi).getRepositoryById(repositoryId);
-    }
-
-    @Test
-    public void queryAllCommits_gitHubUserOneCommitExists_shouldReturnOneCommit() throws IOException {
-        // Given
-        long repositoryId = Randoms.getLong();
-        String branch = Randoms.alpha();
-
-        GitHub gitHubApi = gitHubMockFactory();
-        GHRepository ghRepository = gitHubMockGHRepository(gitHubApi, repositoryId);
-
-        mockQueryCommits(branch, ghRepository);
-
-        // When
-        Response response = callGetRestEndpoint(gitHubUserToken,
-                                                REPOSITORY_ENDPOINT + "/" + repositoryId + "/"
-                                                    + COMMITS_ENDPOINT_EXTENSION
-                                                    + "?branch=" + branch);
-
-        // Then
-        assertThat(response.as(CommitDTO[].class).length, equalTo(0));
-    }
-
     // TODO positive tests for get commits from github
 
     @Test
@@ -557,19 +434,6 @@ public class GitIntegrationTest extends BaseIntegrationTest {
 
         // Then
         assertThat(response.as(CommitterDTO[].class).length, equalTo(0));
-    }
-
-    private CommitDTO mockCommitDTO(Commit commit) {
-        return CommitDTO.builder()
-                        .id(commit.getId())
-                        .message(commit.getMessage())
-                        .timestamp(commit.getCommittedDate())
-                        .author(commit.getAuthorName())
-                        .parentIds(commit.getParentIds())
-                        .isMergeCommit(commit.getParentIds().size() > 1)
-                        .additions(commit.getStats().getAdditions())
-                        .deletions(commit.getStats().getDeletions())
-                        .build();
     }
 
     private CommitterDTO mockCommitterDTO(Commit commit) {

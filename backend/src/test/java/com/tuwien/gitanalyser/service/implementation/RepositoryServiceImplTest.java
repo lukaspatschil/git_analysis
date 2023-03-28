@@ -1,6 +1,7 @@
 package com.tuwien.gitanalyser.service.implementation;
 
 import com.tuwien.gitanalyser.endpoints.dtos.assignment.CreateAssignmentDTO;
+import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.StatsInternalDTO;
 import com.tuwien.gitanalyser.entity.Assignment;
 import com.tuwien.gitanalyser.entity.Repository;
@@ -21,6 +22,7 @@ import utils.CreateAssignmentDTOs;
 import utils.Randoms;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -33,9 +35,11 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static utils.Matchers.commitInteralDTOMatcher;
 import static utils.Matchers.statsInternalDTOMatcher;
 
 class RepositoryServiceImplTest {
+    Date DATE = new Date();
     private RepositoryServiceImpl sut;
     private UserService userService;
     private RepositoryRepository repositoryRepository;
@@ -369,14 +373,130 @@ class RepositoryServiceImplTest {
         ));
     }
 
-    private void prepareAssignments(long platformId, String key, User user, String ... assignedNames) {
+    @Test
+    void getCommits_repositoryExistsAndAssignmentExistsAndShouldNotBeMapped_returnsUnmappedCommits()
+        throws GitException, NoProviderFoundException {
+        // Given
+        long platformId = Randoms.getLong();
+
+        User user = prepareUserService();
+
+        String branch = Randoms.alpha();
+
+        Assignment assignment = mock(Assignment.class);
+        prepareExistingRepository(List.of(assignment), platformId, user);
+
+        CommitInternalDTO commit1 = mockCommitInternalDTO();
+        CommitInternalDTO commit2 = mockCommitInternalDTO();
+
+        prepareGitServiceGetCommits(platformId, user, branch, List.of(commit1, commit2));
+
+        // When
+        List<CommitInternalDTO> result = sut.getCommits(user.getId(), platformId, branch, false);
+
+        // Then
+        assertThat(result, containsInAnyOrder(commitInteralDTOMatcher(commit1), commitInteralDTOMatcher(commit2)));
+    }
+
+    @Test
+    void getCommits_oneStatsObjectAndShouldBeMapped_returnsMappedCommits()
+        throws GitException, NoProviderFoundException {
+        // Given
+        long platformId = Randoms.getLong();
+        String branch = Randoms.alpha();
+        String assignedName = Randoms.alpha();
+        String key = Randoms.alpha();
+
+        User user = prepareUserService();
+
+        prepareAssignments(platformId, key, user, assignedName);
+
+        CommitInternalDTO commit = mockCommitInternalDTO(assignedName);
+
+        CommitInternalDTO resultCommit = mockCommitInternalDTO(key, commit);
+
+        prepareGitServiceGetCommits(platformId, user, branch, List.of(commit));
+
+        // When
+        List<CommitInternalDTO> result = sut.getCommits(user.getId(), platformId, branch, true);
+
+        // Then
+        assertThat(result, containsInAnyOrder(commitInteralDTOMatcher(resultCommit)));
+    }
+
+    @Test
+    void getCommits_twoStatsObjectAndShouldBeMapped_returnsMappedCommits()
+        throws GitException, NoProviderFoundException {
+        // Given
+        long platformId = Randoms.getLong();
+        String branch = Randoms.alpha();
+        String assignedName1 = Randoms.alpha();
+        String assignedName2 = Randoms.alpha();
+        String key = Randoms.alpha();
+
+        User user = prepareUserService();
+
+        prepareAssignments(platformId, key, user, assignedName1, assignedName2);
+
+        CommitInternalDTO commit1 = mockCommitInternalDTO(assignedName1);
+        CommitInternalDTO commit2 = mockCommitInternalDTO(assignedName2);
+
+        CommitInternalDTO resultCommit1 = mockCommitInternalDTO(key, commit1);
+        CommitInternalDTO resultCommit2 = mockCommitInternalDTO(key, commit2);
+
+        prepareGitServiceGetCommits(platformId, user, branch, List.of(commit1, commit2));
+
+        // When
+        List<CommitInternalDTO> result = sut.getCommits(user.getId(), platformId, branch, true);
+
+        // Then
+        assertThat(result, containsInAnyOrder(commitInteralDTOMatcher(resultCommit1),
+                                              commitInteralDTOMatcher(resultCommit2)
+        ));
+    }
+
+    @Test
+    void getCommits_threeStatsObjectAnd2ShouldBeMapped_returnsMappedCommits()
+        throws GitException, NoProviderFoundException {
+        // Given
+        long platformId = Randoms.getLong();
+        String branch = Randoms.alpha();
+        String assignedName1 = Randoms.alpha();
+        String assignedName2 = Randoms.alpha();
+        String key = Randoms.alpha();
+
+        User user = prepareUserService();
+
+        prepareAssignments(platformId, key, user, assignedName1, assignedName2);
+
+        CommitInternalDTO commit1 = mockCommitInternalDTO(assignedName1);
+        CommitInternalDTO commit2 = mockCommitInternalDTO(assignedName2);
+        CommitInternalDTO commit3 = mockCommitInternalDTO();
+
+        CommitInternalDTO resultCommit1 = mockCommitInternalDTO(key, commit1);
+        CommitInternalDTO resultCommit2 = mockCommitInternalDTO(key, commit2);
+
+        prepareGitServiceGetCommits(platformId, user, branch, List.of(commit1, commit2, commit3));
+
+        // When
+        List<CommitInternalDTO> result = sut.getCommits(user.getId(), platformId, branch, true);
+
+        // Then
+        assertThat(result, containsInAnyOrder(
+            commitInteralDTOMatcher(resultCommit1),
+            commitInteralDTOMatcher(resultCommit2),
+            commitInteralDTOMatcher(commit3)
+        ));
+    }
+
+    private void prepareAssignments(long platformId, String key, User user, String... assignedNames) {
         Assignment assignment = createAssignment(key);
         List<SubAssignment> subAssignments = new ArrayList<>();
         for (String assignedName : assignedNames) {
             subAssignments.add(mockSubAssignment(assignedName, assignment));
         }
         when(assignment.getSubAssignments()).thenReturn(subAssignments);
-        Repository repository = prepareExistingRepository(List.of(assignment), platformId, user);
+        prepareExistingRepository(List.of(assignment), platformId, user);
     }
 
     private void prepareGitServiceGetStats(long platformId, User user, String branch, List<StatsInternalDTO> stats)
@@ -466,5 +586,42 @@ class RepositoryServiceImplTest {
         when(assignment.getKey()).thenReturn(key);
 
         return assignment;
+    }
+
+    private CommitInternalDTO mockCommitInternalDTO(String name) {
+
+        return CommitInternalDTO.builder()
+                                .author(name)
+                                .additions(Randoms.integer(0, 10))
+                                .deletions(Randoms.integer(0, 10))
+                                .message(Randoms.alpha())
+                                .timestamp(DATE)
+                                .parentIds(List.of(Randoms.alpha(), Randoms.alpha()))
+                                .isMergeCommit(true)
+                                .id(Randoms.alpha())
+                                .build();
+    }
+
+    private CommitInternalDTO mockCommitInternalDTO(String name, CommitInternalDTO refCommit) {
+
+        return CommitInternalDTO.builder()
+                                .author(name)
+                                .additions(refCommit.getAdditions())
+                                .deletions(refCommit.getDeletions())
+                                .message(refCommit.getMessage())
+                                .timestamp(refCommit.getTimestamp())
+                                .parentIds(refCommit.getParentIds())
+                                .isMergeCommit(refCommit.isMergeCommit())
+                                .id(refCommit.getId())
+                                .build();
+    }
+
+    private CommitInternalDTO mockCommitInternalDTO() {
+        return mockCommitInternalDTO(Randoms.alpha());
+    }
+
+    private void prepareGitServiceGetCommits(long platformId, User user, String branch, List<CommitInternalDTO> commits)
+        throws GitException, NoProviderFoundException {
+        when(gitService.getAllCommits(user.getId(), platformId, branch)).thenReturn(commits);
     }
 }
