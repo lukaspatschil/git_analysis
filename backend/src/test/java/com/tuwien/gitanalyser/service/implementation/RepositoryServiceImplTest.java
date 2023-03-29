@@ -9,6 +9,7 @@ import com.tuwien.gitanalyser.entity.RepositoryFactory;
 import com.tuwien.gitanalyser.entity.SubAssignment;
 import com.tuwien.gitanalyser.entity.User;
 import com.tuwien.gitanalyser.exception.GitException;
+import com.tuwien.gitanalyser.exception.IllegalArgumentException;
 import com.tuwien.gitanalyser.exception.NoProviderFoundException;
 import com.tuwien.gitanalyser.exception.NotFoundException;
 import com.tuwien.gitanalyser.repository.RepositoryRepository;
@@ -66,7 +67,7 @@ class RepositoryServiceImplTest {
     }
 
     @Test
-    void assignCommitters_always_shouldNotThrowException() {
+    void addAssignment_always_shouldNotThrowException() throws IllegalArgumentException {
         // Given
         User user = prepareUserService();
         long platformId = Randoms.getLong();
@@ -76,11 +77,11 @@ class RepositoryServiceImplTest {
         prepareRepositoryFactory(repositoryEntity);
 
         // When
-        sut.assignCommitter(user.getId(), platformId, createDTO);
+        sut.addAssignment(user.getId(), platformId, createDTO);
     }
 
     @Test
-    void assignCommitters_repositoryDoesNotExist_createsRepository() {
+    void addAssignment_repositoryDoesNotExist_createsRepository() throws IllegalArgumentException {
         // Given
         User user = prepareUserService();
         long platformId = Randoms.getLong();
@@ -91,14 +92,14 @@ class RepositoryServiceImplTest {
         mockRepositoryFindByUserAndPlatformIdEmpty(user, platformId);
 
         // When
-        sut.assignCommitter(user.getId(), platformId, createDTO);
+        sut.addAssignment(user.getId(), platformId, createDTO);
 
         // Then
         verify(repositoryRepository).save(repositoryEntity);
     }
 
     @Test
-    void assignCommitters_repositoryExists_shouldNotCreateRepository() {
+    void addAssignment_repositoryExists_shouldNotCreateRepository() throws IllegalArgumentException {
         // Given
         User user = prepareUserService();
         long platformId = Randoms.getLong();
@@ -108,14 +109,14 @@ class RepositoryServiceImplTest {
         mockRepositoryFindByUserAndPlatformId(user, platformId, repository);
 
         // When
-        sut.assignCommitter(user.getId(), platformId, createDTO);
+        sut.addAssignment(user.getId(), platformId, createDTO);
 
         // Then
         verify(repositoryRepository, never()).save(any());
     }
 
     @Test
-    void assignCommitters_repositoryExists_shouldAddSubAssignmentToAssignment() {
+    void addAssignment_repositoryExists_shouldAddSubAssignmentToAssignment() throws IllegalArgumentException {
         // Given
         User user = prepareUserService();
         long platformId = Randoms.getLong();
@@ -127,10 +128,106 @@ class RepositoryServiceImplTest {
         prepareAssignment(repository, createDTO, assignment);
 
         // When
-        sut.assignCommitter(user.getId(), platformId, createDTO);
+        sut.addAssignment(user.getId(), platformId, createDTO);
 
         // Then
         verify(subAssignmentService).addSubAssignment(assignment, createDTO.getAssignedName());
+    }
+
+    @Test
+    void addAssignment_repositoryExistsAndKeyAndAssignedNameIsTheSame_throwIllegalArgumentException() {
+        // Given
+        User user = prepareUserService();
+        long platformId = Randoms.getLong();
+        String keyAndAssignedName = Randoms.alpha();
+        CreateAssignmentDTO createDTO = CreateAssignmentDTO.builder()
+                                                           .key(keyAndAssignedName)
+                                                           .assignedName(keyAndAssignedName)
+                                                           .build();
+        Repository repository = new Repository();
+
+        mockRepositoryFindByUserAndPlatformId(user, platformId, repository);
+
+        // When + Then
+        assertThrows(IllegalArgumentException.class, () -> sut.addAssignment(user.getId(), platformId, createDTO));
+    }
+
+    @Test
+    void addAssignment_repositoryExistsAndNameIsAlreadyAssignedToASubAssignment_throwIllegalArgumentException() {
+        // Given
+        User user = prepareUserService();
+        long platformId = Randoms.getLong();
+        String key = Randoms.alpha();
+        String assignedName = Randoms.alpha();
+        CreateAssignmentDTO createDTO = CreateAssignmentDTO.builder()
+                                                           .key(key)
+                                                           .assignedName(assignedName)
+                                                           .build();
+        Repository repository = new Repository();
+        Assignment assignment =
+            Assignment.builder()
+                      .key(Randoms.alpha())
+                      .subAssignments(List.of(SubAssignment.builder().assignedName(assignedName).build()))
+                      .build();
+        repository.setAssignments(List.of(assignment));
+        prepareAssignment(repository, createDTO, assignment);
+
+        mockRepositoryFindByUserAndPlatformId(user, platformId, repository);
+
+        // When + Then
+        assertThrows(IllegalArgumentException.class, () -> sut.addAssignment(user.getId(), platformId, createDTO));
+    }
+
+    @Test
+    void addAssignment_repositoryExistsAndNameIsAlreadyAssignedToKey_throwIllegalArgumentException() {
+        // Given
+        User user = prepareUserService();
+        long platformId = Randoms.getLong();
+        String key = Randoms.alpha();
+        String assignedName = Randoms.alpha();
+        CreateAssignmentDTO createDTO = CreateAssignmentDTO.builder()
+                                                           .key(key)
+                                                           .assignedName(assignedName)
+                                                           .build();
+        Repository repository = new Repository();
+        Assignment assignment =
+            Assignment.builder()
+                      .key(assignedName)
+                      .subAssignments(List.of(SubAssignment.builder().assignedName(Randoms.alpha()).build()))
+                      .build();
+        repository.setAssignments(List.of(assignment));
+        prepareAssignment(repository, createDTO, assignment);
+
+        mockRepositoryFindByUserAndPlatformId(user, platformId, repository);
+
+        // When + Then
+        assertThrows(IllegalArgumentException.class, () -> sut.addAssignment(user.getId(), platformId, createDTO));
+    }
+
+    @Test
+    void addAssignment_repositoryExistsAndKeyIsAssignedToASubAssignment_throwIllegalArgumentException() {
+        // Given
+        User user = prepareUserService();
+        long platformId = Randoms.getLong();
+        String key = Randoms.alpha();
+        String assignedName = Randoms.alpha();
+        CreateAssignmentDTO createDTO = CreateAssignmentDTO.builder()
+                                                           .key(key)
+                                                           .assignedName(assignedName)
+                                                           .build();
+        Repository repository = new Repository();
+        Assignment assignment =
+            Assignment.builder()
+                      .key(Randoms.alpha())
+                      .subAssignments(List.of(SubAssignment.builder().assignedName(key).build()))
+                      .build();
+        repository.setAssignments(List.of(assignment));
+        prepareAssignment(repository, createDTO, assignment);
+
+        mockRepositoryFindByUserAndPlatformId(user, platformId, repository);
+
+        // When + Then
+        assertThrows(IllegalArgumentException.class, () -> sut.addAssignment(user.getId(), platformId, createDTO));
     }
 
     @Test

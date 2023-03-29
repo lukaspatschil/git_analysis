@@ -20,7 +20,9 @@ import com.tuwien.gitanalyser.entity.mapper.CommitterMapper;
 import com.tuwien.gitanalyser.entity.mapper.NotSavedRepositoryMapper;
 import com.tuwien.gitanalyser.entity.mapper.StatsMapper;
 import com.tuwien.gitanalyser.exception.BadRequestException;
+import com.tuwien.gitanalyser.exception.ConflictException;
 import com.tuwien.gitanalyser.exception.GitException;
+import com.tuwien.gitanalyser.exception.IllegalArgumentException;
 import com.tuwien.gitanalyser.exception.InternalServerErrorException;
 import com.tuwien.gitanalyser.exception.NoProviderFoundException;
 import com.tuwien.gitanalyser.security.SecurityAnnotations;
@@ -228,8 +230,12 @@ public class RepositoryEndpoint extends BaseEndpoint {
         LOGGER.info("POST /repository/{id}/assignment - assign committer to repository by platform id {} "
                         + "values {}", platformId, createAssignmentDTO.toString());
 
-        repositoryService.assignCommitter(getUserId(authentication), platformId,
-                                          createAssignmentDTO);
+        try {
+            repositoryService.addAssignment(getUserId(authentication), platformId,
+                                            createAssignmentDTO);
+        } catch (IllegalArgumentException e) {
+            throw new ConflictException(e.getMessage());
+        }
     }
 
     @GetMapping("/{platformId}/assignment")
