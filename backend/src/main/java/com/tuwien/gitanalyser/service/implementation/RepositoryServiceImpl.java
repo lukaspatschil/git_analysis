@@ -9,6 +9,7 @@ import com.tuwien.gitanalyser.entity.RepositoryFactory;
 import com.tuwien.gitanalyser.entity.SubAssignment;
 import com.tuwien.gitanalyser.entity.User;
 import com.tuwien.gitanalyser.exception.GitException;
+import com.tuwien.gitanalyser.exception.IllegalArgumentException;
 import com.tuwien.gitanalyser.exception.NoProviderFoundException;
 import com.tuwien.gitanalyser.exception.NotFoundException;
 import com.tuwien.gitanalyser.repository.RepositoryRepository;
@@ -55,7 +56,8 @@ public class RepositoryServiceImpl implements RepositoryService {
     }
 
     @Override
-    public void assignCommitter(final long userId, final Long platformId, final CreateAssignmentDTO dto) {
+    public void addAssignment(final long userId, final Long platformId, final CreateAssignmentDTO dto)
+        throws IllegalArgumentException {
         LOGGER.info("assignCommitter with userId {} and platformId {} and DTO {}", userId, platformId, dto);
 
         User user = userService.getUser(userId);
@@ -65,6 +67,8 @@ public class RepositoryServiceImpl implements RepositoryService {
 
         // Create Repository if it does NotExist
         repositoryEntity = repositoryOptional.orElseGet(() -> createRepository(platformId, user));
+
+        checkIAssignmentsDoesNotProduceCircularAssignments(dto, repositoryEntity);
 
         Assignment assignment = assignmentService.getOrCreateAssignment(repositoryEntity, dto.getKey());
 
@@ -156,6 +160,35 @@ public class RepositoryServiceImpl implements RepositoryService {
         }
 
         return commits;
+    }
+
+    private void checkIAssignmentsDoesNotProduceCircularAssignments(final CreateAssignmentDTO dto,
+                                                                    final Repository repositoryEntity)
+        throws IllegalArgumentException {
+
+        if (dto.getKey().equals(dto.getAssignedName())) {
+            throw new IllegalArgumentException("Assignment key and assigned name must not be equal");
+        }
+
+        if (repositoryEntity.getAssignments() == null) {
+            return;
+        }
+        for (Assignment assignment : repositoryEntity.getAssignments()) {
+            if (assignment.getKey().equals(dto.getAssignedName())) {
+                throw new IllegalArgumentException("Assigned name must not be equal to an existing assignment key");
+            }
+            for (SubAssignment subAssignment : assignment.getSubAssignments()) {
+                if (subAssignment.getAssignedName().equals(dto.getAssignedName())) {
+                    throw new IllegalArgumentException(
+                        "Assigned name must not be equal to an existing sub assignment name");
+                }
+                if (subAssignment.getAssignedName().equals(dto.getKey())) {
+                    throw new IllegalArgumentException(
+                        "Assignment key must not be equal to an existing sub assignment name");
+                }
+            }
+        }
+
     }
 
     private List<CommitInternalDTO> mapCommitsByAssignments(final List<CommitInternalDTO> commits,

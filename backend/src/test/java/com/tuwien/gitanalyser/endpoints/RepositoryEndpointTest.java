@@ -20,9 +20,11 @@ import com.tuwien.gitanalyser.entity.mapper.CommitterMapper;
 import com.tuwien.gitanalyser.entity.mapper.NotSavedRepositoryMapper;
 import com.tuwien.gitanalyser.entity.mapper.StatsMapper;
 import com.tuwien.gitanalyser.exception.BadRequestException;
+import com.tuwien.gitanalyser.exception.ConflictException;
 import com.tuwien.gitanalyser.exception.GitException;
 import com.tuwien.gitanalyser.exception.GitHubException;
 import com.tuwien.gitanalyser.exception.GitLabException;
+import com.tuwien.gitanalyser.exception.IllegalArgumentException;
 import com.tuwien.gitanalyser.exception.InternalServerErrorException;
 import com.tuwien.gitanalyser.exception.NoProviderFoundException;
 import com.tuwien.gitanalyser.service.GitService;
@@ -42,6 +44,7 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -606,7 +609,7 @@ class RepositoryEndpointTest {
     }
 
     @Test
-    void assignCommitterByRepositoryId_givenCommitter_returnsSavedItem() {
+    void assignCommitterByRepositoryId_givenCommitter_returnsSavedItem() throws IllegalArgumentException {
         // Given
         long platformId = Randoms.getLong();
         long userId = Randoms.getLong();
@@ -620,7 +623,40 @@ class RepositoryEndpointTest {
         sut.assignCommitters(authentication, platformId, createAssignmentDTO);
 
         // Then
-        verify(repositoryService).assignCommitter(userId, platformId, createAssignmentDTO);
+        verify(repositoryService).addAssignment(userId, platformId, createAssignmentDTO);
+    }
+
+    @Test
+    void assignCommitterByRepositoryId_serviceThrowsIllegalArgumentException_throwsConflictException()
+        throws IllegalArgumentException {
+        // Given
+        long platformId = Randoms.getLong();
+        long userId = Randoms.getLong();
+
+        Authentication authentication = mock(Authentication.class);
+        mockUserId(userId, authentication);
+        CreateAssignmentDTO createAssignmentDTO = mock(CreateAssignmentDTO.class);
+
+        String exceptionMessage = "message";
+        prepareRepositoryServiceAddAssignmentsThrowsIllegalArgumentException(platformId,
+                                                                             userId,
+                                                                             createAssignmentDTO,
+                                                                             exceptionMessage);
+
+        // When + Then
+        ConflictException conflictException = assertThrows(ConflictException.class,
+                                                           () -> sut.assignCommitters(authentication,
+                                                                                      platformId,
+                                                                                      createAssignmentDTO));
+        assertThat(conflictException.getMessage(), equalTo(exceptionMessage));
+    }
+
+    private void prepareRepositoryServiceAddAssignmentsThrowsIllegalArgumentException(long platformId, long userId,
+                                                                                      CreateAssignmentDTO createAssignmentDTO,
+                                                                                      String exceptionMessage)
+        throws IllegalArgumentException {
+        doThrow(new IllegalArgumentException(exceptionMessage)).when(repositoryService)
+                                                               .addAssignment(userId, platformId, createAssignmentDTO);
     }
 
     @Test

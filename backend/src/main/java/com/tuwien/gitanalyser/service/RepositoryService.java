@@ -5,13 +5,14 @@ import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.StatsInternalDTO;
 import com.tuwien.gitanalyser.entity.Assignment;
 import com.tuwien.gitanalyser.exception.GitException;
+import com.tuwien.gitanalyser.exception.IllegalArgumentException;
 import com.tuwien.gitanalyser.exception.NoProviderFoundException;
 
 import java.util.List;
 
 public interface RepositoryService {
 
-    void assignCommitter(long userId, Long platformId, CreateAssignmentDTO dto);
+    void addAssignment(long userId, Long platformId, CreateAssignmentDTO dto) throws IllegalArgumentException;
 
     List<Assignment> getAssignments(long userId, Long platformId);
 
