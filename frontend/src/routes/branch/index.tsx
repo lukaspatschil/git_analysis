@@ -8,6 +8,7 @@ export default function Index() {
 
     const navigation = [
         {name: 'Overview', href: `/repository/${repositoryId}/${branchName}`, current: true},
+        {name: 'Committer Stats', href: `/repository/${repositoryId}/${branchName}/committerStats`, current: false},
         {name: 'Commits', href: `/repository/${repositoryId}/${branchName}/commits`, current: false},
         {name: 'Committer', href: `/repository/${repositoryId}/${branchName}/committer`, current: false},
     ];
@@ -18,7 +19,7 @@ export default function Index() {
                 <Navbar />
                 <Body title='Index details' navigation={navigation}>
                     <div className="px-4 py-6 sm:px-0">
-                        <div className="h-[70vh] rounded-lg border-4 border-dashed border-gray-200 overflow-auto">
+                        <div className="h-[80vh] rounded-lg border-4 border-dashed border-gray-200 overflow-auto p-1">
                             <Outlet />
                         </div>
                     </div>

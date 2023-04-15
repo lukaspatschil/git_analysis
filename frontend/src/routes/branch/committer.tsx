@@ -62,8 +62,8 @@ export default function Committer() {
     };
 
     return (
-        <form onSubmit={handleSetAssignment}>
-            <AsyncDataHandler isLoading={isLoading} error={error} data={data}>
+        <AsyncDataHandler isLoading={isLoading} error={error} data={data}>
+            <form onSubmit={handleSetAssignment}>
                 {<ul className='p-6'>
                     {data?.map(committer => <li key={committer.name}>
                         <label className='flex gap-2 items-center'>
@@ -99,7 +99,7 @@ export default function Committer() {
                 >
                     Combine with name
                 </button>
-            </AsyncDataHandler>
-        </form>
+            </form>
+        </AsyncDataHandler>
     );
 }
