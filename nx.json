@@ -23,7 +23,8 @@
     }
   },
   "workspaceLayout": {
-    "appsDir": "."
+    "appsDir": ".",
+    "libsDir": "./packages"
   },
   "affected": {
     "defaultBase": "main"

@@ -1,0 +1,29 @@
+spring:
+  main:
+    allow-circular-references: true
+    allow-bean-definition-overriding: true
+  datasource:
+    url: jdbc:h2:file:./database/backend;AUTO_SERVER=TRUE;MODE=MySQL;NON_KEYWORDS=USER,KEY
+    username: admin
+    password: password
+    driverClassName: org.h2.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    show-sql: true
+    generate-ddl: true
+    hibernate:
+      ddl-auto: create
+  h2:
+    console.enabled: true
+    console.path: /h2-console
+  mvc:
+    log-request-details: true
+    throw-exception-if-no-handler-found: true
+logging:
+  level:
+    org.springframework.web: DEBUG
+    org.hibernate.type: DEBUG
+springdoc:
+  show-login-endpoint: true
+  swagger-ui:
+    operationsSorter: alpha

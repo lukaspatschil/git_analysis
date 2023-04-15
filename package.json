@@ -8,11 +8,12 @@
   },
   "workspaces": [
     "backend",
-    "frontend"
+    "frontend",
+    "packages/git-visulizer"
   ],
   "contributors": [
     {
-      "name": "Simon Hofbauer",
+      "name": "Simon Andreas Hofbauer",
       "email": "simon.hofbauer@tuwien.ac.at"
     },
     {
@@ -29,17 +30,22 @@
   "devDependencies": {
     "@commitlint/cli": "^17.1.2",
     "@commitlint/config-conventional": "^17.1.0",
-    "@nrwl/nx-cloud": "latest",
-    "@nxrocks/nx-spring-boot": "^5.0.2",
+    "@nrwl/nx-cloud": "14.7.0",
     "@semantic-release/changelog": "^6.0.1",
     "@semantic-release/git": "^10.0.1",
     "@semantic-release/npm": "^9.0.1",
     "husky": "^8.0.1",
     "nx": "14.7.6",
-    "semantic-release": "^19.0.5"
+    "semantic-release": "^19.0.5",
+    "@nrwl/cli": "^14.8.6",
+    "@nxrocks/nx-spring-boot": "^6.0.0"
   },
   "scripts": {
-    "semantic-release": "semantic-release"
+    "semantic-release": "semantic-release",
+    "nx:workspace-lint": "nx workspace-lint",
+    "nx:lint": "nx affected --target=lint --parallel=3",
+    "nx:test": "nx affected --target=test --parallel=3",
+    "nx:build": "nx affected --target=build --parallel=3"
   },
   "publishConfig": {
     "access": "restricted"
