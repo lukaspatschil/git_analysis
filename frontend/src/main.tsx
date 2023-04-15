@@ -10,7 +10,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Repository from "./routes/repository";
 import Index from './routes/branch';
 import Commits from './routes/branch/commits';
-import Commiter from "./routes/branch/commiter";
+import Committer from "./routes/branch/commiter";
 import BranchOverview from "./routes/branch/branchOverview";
 
 const router = createBrowserRouter([
@@ -20,7 +20,7 @@ const router = createBrowserRouter([
   { path: '/repository/:repositoryId/:branchName', element: <ProtectedRoute><Index /></ProtectedRoute>, children: [
       { path: '', element: <BranchOverview />},
       { path: 'commits', element: <Commits />},
-      { path: 'commiter', element: <Commiter />},
+      { path: 'committer', element: <Committer />},
     ]},
   { path: '/stats', element: <ProtectedRoute><Stats /></ProtectedRoute> },
   { path: '/login', element: <Login /> }

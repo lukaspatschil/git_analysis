@@ -7,8 +7,9 @@ export default function Index() {
     const { repositoryId, branchName} = useParams();
 
     const navigation = [
+        {name: 'Overview', href: `/repository/${repositoryId}/${branchName}`, current: true},
         {name: 'Commits', href: `/repository/${repositoryId}/${branchName}/commits`, current: false},
-        {name: 'Commiter', href: `/repository/${repositoryId}/${branchName}/commiter`, current: false},
+        {name: 'Committer', href: `/repository/${repositoryId}/${branchName}/committer`, current: false},
     ];
 
     return (

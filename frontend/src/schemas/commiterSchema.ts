@@ -1,7 +1,7 @@
 import {z} from 'zod';
 
-export const commiterSchema = z.object({
+export const committerSchema = z.object({
     name: z.string()
 });
 
-export const commitersSchema = z.array(commiterSchema);
+export const committersSchema = z.array(committerSchema);

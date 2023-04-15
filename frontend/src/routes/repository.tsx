@@ -47,9 +47,9 @@ export default function Repository() {
                 <Navbar />
                 <Body title='Repository details'>
                     <div className="px-4 py-6 sm:px-0">
-                        <div className="h-[70vh] rounded-lg border-4 border-dashed border-gray-200 overflow-auto">
+                        <div className="h-[70vh] rounded-lg border-4 border-dashed border-gray-200 overflow-auto p-2">
                             <AsyncDataHandler isLoading={isLoading} error={error} data={data}>
-                                {data?.name}
+                                <h2 className="text-2xl">{data?.name}</h2>
                             </AsyncDataHandler>
                             <AsyncDataHandler isLoading={branches.isLoading} error={branches.error} data={branches.data}>
                                 {<ul className='p-6'>
