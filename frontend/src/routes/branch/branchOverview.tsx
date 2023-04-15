@@ -8,6 +8,7 @@ import { Line } from "react-chartjs-2";
 import { ChartData, Point } from "chart.js";
 import {dateFormatter} from "../../utils/dateFormatter";
 import {useEffect, useState} from "react";
+import {red, green} from 'tailwindcss/colors';
 
 export default function BranchOverview() {
     const { token } = useAuthStore();
@@ -52,14 +53,14 @@ export default function BranchOverview() {
                     {
                         label: 'Additions',
                         data: [],
-                        borderColor: 'rgb(100,189,44)',
-                        backgroundColor: 'rgba(53,235,68,0.5)'
+                        borderColor: green["400"],
+                        backgroundColor: green["200"]
                     },
                     {
                         label: 'Deletions',
                         data: [],
-                        borderColor: 'rgb(255, 99, 132)',
-                        backgroundColor: 'rgba(255, 99, 132, 0.5)'
+                        borderColor: red["400"],
+                        backgroundColor: red["200"]
                     }
                 ]};
             data
