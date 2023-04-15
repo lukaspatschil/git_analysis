@@ -1,7 +1,7 @@
 import AsyncDataHandler from "../../components/AsyncDataHandler";
 import {useAuthStore} from "../../stores/useAuthStore";
 import {useParams} from "react-router-dom";
-import useSWR from "swr";
+import useSWR, {mutate} from "swr";
 import {committersSchema} from "../../schemas/commiterSchema";
 import useDocumentTitle from "../../hooks/useDocumentTitle";
 import {FormEventHandler, useState} from "react";
@@ -60,6 +60,7 @@ export default function Committer() {
         })) ?? [];
 
         await Promise.all(updateNameQueries);
+        mutate(`${import.meta.env.VITE_BASE_API_URL}apiV1/repository/${repositoryId}/assignment`);
     };
 
     return (
