@@ -12,6 +12,26 @@ import Index from './routes/branch';
 import Commits from './routes/branch/commits';
 import Committer from "./routes/branch/commiter";
 import BranchOverview from "./routes/branch/branchOverview";
+import {
+    Chart as ChartJS,
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    LineElement,
+    Title,
+    Tooltip,
+    Legend,
+} from 'chart.js';
+
+ChartJS.register(
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    LineElement,
+    Title,
+    Tooltip,
+    Legend
+);
 
 const router = createBrowserRouter([
   { path: '/', element: <Home /> },
