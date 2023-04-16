@@ -46,6 +46,7 @@
         <springdoc-openapi-security.version>${springdoc-openapi-ui.version}</springdoc-openapi-security.version>
         <springdoc-openapi-ui.version>1.6.15</springdoc-openapi-ui.version>
         <swagger-annotations-jakarta.version>2.2.8</swagger-annotations-jakarta.version>
+        <hamcrest.version>2.2</hamcrest.version>
     </properties>
 
     <dependencies>
@@ -261,6 +262,12 @@
             <groupId>io.swagger.core.v3</groupId>
             <artifactId>swagger-annotations-jakarta</artifactId>
             <version>${swagger-annotations-jakarta.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest</artifactId>
+            <version>${hamcrest.version}</version>
+            <scope>test</scope>
         </dependency>
 
     </dependencies>

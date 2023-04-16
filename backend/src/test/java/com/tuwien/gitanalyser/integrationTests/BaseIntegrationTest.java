@@ -10,6 +10,7 @@ import com.tuwien.gitanalyser.repository.RepositoryRepository;
 import com.tuwien.gitanalyser.repository.SubAssignmentRepository;
 import com.tuwien.gitanalyser.repository.UserRepository;
 import com.tuwien.gitanalyser.security.AuthenticationConstants;
+import com.tuwien.gitanalyser.security.jwt.FingerprintService;
 import com.tuwien.gitanalyser.security.jwt.JWTTokenProvider;
 import com.tuwien.gitanalyser.service.apiCalls.factory.GitHubAPIFactory;
 import com.tuwien.gitanalyser.service.apiCalls.factory.GitLabAPIFactory;
@@ -54,11 +55,26 @@ public abstract class BaseIntegrationTest {
 
     private static final String SERVER_HOST = "http://localhost";
 
+    protected static final String GITHUB_LOGIN_ENDPOINT = "/oauth2/authorization/github";
+    protected static final String GITLAB_LOGIN_ENDPOINT = "/oauth2/authorization/gitlab";
+    protected static final String REPOSITORY_ENDPOINT = "/apiV1/repository";
+    protected static final String REFRESH_ENDPOINT = "/apiV1/refresh";
+    protected static final String USER_ENDPOINT = "/apiV1/user";
+    protected static final String ASSIGNMENT_EXTENSION = "/assignment";
+    protected static final String BRANCHES_ENDPOINT_EXTENSION = "branch";
+    protected static final String COMMITTER_ENDPOINT_EXTENSION = "committer";
+    protected static final String STATS_ENDPOINT_EXTENSION = "stats";
+    protected static final String COMMITS_ENDPOINT_EXTENSION = "commit";
+
     protected String gitHubUserToken;
     protected String gitHubAccessToken;
 
     protected String gitLabUserToken;
     protected String gitLabAccessToken;
+    protected String gitLabFingerprint;
+    protected String gitHubFingerprint;
+    protected String gitHubRefreshToken;
+    protected String gitLabRefreshToken;
 
     @Autowired
     protected GitHubAPIFactory gitHubAPIFactory;
@@ -76,6 +92,8 @@ public abstract class BaseIntegrationTest {
     protected SubAssignmentRepository subAssignmentRepository;
     @Autowired
     private JWTTokenProvider jwtTokenProvider;
+    @Autowired
+    private FingerprintService fingerPrintService;
     @LocalServerPort
     private int port;
 
@@ -89,18 +107,22 @@ public abstract class BaseIntegrationTest {
         gitHubAccessToken = "JohnsRandomAccessToken";
         gitLabAccessToken = "TomsRandomAccessToken";
 
+        gitHubFingerprint = "gitHub";
+        gitLabFingerprint = "gitLab";
+
         gitHubUser = createUser("John", "john@random.com", gitHubAccessToken, Randoms.integer(),
-                                AuthenticationProvider.GITHUB, "https://github.com/pictureURL");
+                                AuthenticationProvider.GITHUB, "https://github.com/pictureURL", gitHubFingerprint);
         gitHubUserToken = Strings.join(AuthenticationConstants.TOKEN_PREFIX,
-                                       jwtTokenProvider.createToken(gitHubUser.getId()))
+                                       jwtTokenProvider.createAccessToken(gitHubUser.getId()))
                                  .with(" ");
+        gitHubRefreshToken = jwtTokenProvider.createRefreshToken(gitHubUser.getId());
 
         gitLabUser = createUser("Tom", "tom@random.com", gitLabAccessToken, Randoms.integer(),
-                                AuthenticationProvider.GITLAB, "https://gitlab.com/pictureURL");
+                                AuthenticationProvider.GITLAB, "https://gitlab.com/pictureURL", gitLabFingerprint);
         gitLabUserToken = Strings.join(AuthenticationConstants.TOKEN_PREFIX,
-                                       jwtTokenProvider.createToken(gitLabUser.getId()))
+                                       jwtTokenProvider.createAccessToken(gitLabUser.getId()))
                                  .with(" ");
-
+        gitLabRefreshToken = jwtTokenProvider.createRefreshToken(gitLabUser.getId());
     }
 
     @After
@@ -112,13 +134,14 @@ public abstract class BaseIntegrationTest {
     }
 
     private User createUser(String username, String email, String accessToken, Integer platformId,
-                            AuthenticationProvider authenticationProvider, String pictureUrl) {
+                            AuthenticationProvider authenticationProvider, String pictureUrl, String fingerprint) {
         User user = User.builder()
                         .username(username)
                         .email(email)
                         .accessToken(accessToken)
                         .platformId(platformId)
                         .authenticationProvider(authenticationProvider)
+                        .fingerPrintHash(fingerPrintService.sha256(fingerprint))
                         .pictureUrl(pictureUrl)
                         .build();
 
