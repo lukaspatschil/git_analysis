@@ -19,9 +19,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.codehaus.groovy.runtime.DefaultGroovyMethods.any;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -42,7 +42,7 @@ class JWTTokenProviderImplTest {
     }
 
     @Test
-    void createToken_always_shouldReturnString() {
+    void createAccessToken_always_shouldReturnString() {
         // When
         long randomTime = Randoms.getLong();
         Date date = new Date();
@@ -52,10 +52,10 @@ class JWTTokenProviderImplTest {
         when(dateService.create()).thenReturn(date);
 
         // Given
-        String result = sut.createToken(userId);
+        String result = sut.createAccessToken(userId);
 
         // Then
-        assertThat(result, notNullValue());
+        assertThat(result, any(String.class));
     }
 
     @Test
@@ -134,7 +134,7 @@ class JWTTokenProviderImplTest {
 
         Claims claims = Jwts.claims().setSubject(id.toString());
 
-        Date validity = new Date(now.getTime() + AuthenticationConstants.JWT_VALIDITY_IN_MILLISECONDS);
+        Date validity = new Date(now.getTime() + AuthenticationConstants.JWT_ACCESS_TOKEN_VALIDITY_IN_MILLISECONDS);
 
         return Jwts.builder()
                    .setClaims(claims)

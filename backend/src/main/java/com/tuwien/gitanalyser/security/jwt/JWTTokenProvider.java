@@ -10,9 +10,17 @@ public interface JWTTokenProvider {
      * creates a JWT token for the given user id.
      *
      * @param id of the user in the database
-     * @return JWT token string
+     * @return JWT access token string
      */
-    String createToken(Long id);
+    String createAccessToken(Long id);
+
+    /**
+     * creates a refresh token for the given user id.
+     *
+     * @param id of the user in the database
+     * @return JWT refresh token string
+     */
+    String createRefreshToken(Long id);
 
     /**
      * creates an authentication if the jwt is valid and the user is in the database.

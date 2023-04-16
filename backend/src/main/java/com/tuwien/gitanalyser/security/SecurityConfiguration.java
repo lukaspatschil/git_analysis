@@ -61,11 +61,12 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(
                     authorize -> {
                         authorize
-                            .antMatchers("/login/oauth2/code/**", "/oauth2/authorization/**").permitAll()
-                            .antMatchers("/v3/api-docs/**",
-                                         "/swagger-ui/**",
-                                         "/swagger-ui.html").permitAll()
-                            .anyRequest().authenticated();
+                            .antMatchers("/login/oauth2/code/**", "/oauth2/authorization/**", "/apiV1/refresh")
+                            .permitAll()
+                            .antMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
+                            .permitAll()
+                            .anyRequest()
+                            .authenticated();
                     }
                 )
                 .oauth2Login(settings -> {
@@ -87,7 +88,7 @@ public class SecurityConfiguration {
             return (web) -> web.ignoring()
                                // Spring Security should completely ignore URLs starting with /h2-console
                                .antMatchers(H_2_CONSOLE_PATH + "/**")
-                               .antMatchers("/login/oauth2/authorization/**")
+                               .antMatchers("/login/oauth2/authorization/**", "/apiV1/refresh")
                                .antMatchers("/v3/api-docs/**",
                                             "/swagger-ui/**",
                                             "/swagger-ui.html");

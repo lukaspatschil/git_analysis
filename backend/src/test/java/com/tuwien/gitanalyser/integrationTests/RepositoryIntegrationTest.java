@@ -34,10 +34,6 @@ import static utils.Matchers.statsDTOMatcher;
 
 public class RepositoryIntegrationTest extends BaseIntegrationTest {
 
-    private static final String REPOSITORY_ENDPOINT = "/apiV1/repository";
-    private static final String STATS_ENDPOINT_EXTENSION = "stats";
-    private static final String COMMITS_ENDPOINT_EXTENSION = "commit";
-
     @Test
     public void queryStats_gitLabUserAndOneCommitAvailable_shouldReturnCorrectStats() throws GitLabApiException {
         // Given

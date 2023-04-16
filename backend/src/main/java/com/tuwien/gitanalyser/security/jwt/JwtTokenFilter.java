@@ -25,11 +25,6 @@ public class JwtTokenFilter extends OncePerRequestFilter {
         this.jwtTokenProviderImpl = jwtTokenProviderImpl;
     }
 
-    private static void handleUnauthorized(final HttpServletResponse response) throws IOException {
-        SecurityContextHolder.clearContext();
-        response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
-    }
-
     @Override
     protected void doFilterInternal(final HttpServletRequest request,
                                     final HttpServletResponse response,
@@ -37,7 +32,6 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 
         String token = jwtTokenProviderImpl.resolveToken(request);
 
-        //LOGGER.info("request: {}, token: {}", request.getRequestURI(), token);
         try {
             if (token != null && jwtTokenProviderImpl.validateToken(token)) {
                 Authentication auth = jwtTokenProviderImpl.getAuthentication(token);
@@ -51,4 +45,8 @@ public class JwtTokenFilter extends OncePerRequestFilter {
         }
     }
 
+    private void handleUnauthorized(final HttpServletResponse response) throws IOException {
+        SecurityContextHolder.clearContext();
+        response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+    }
 }

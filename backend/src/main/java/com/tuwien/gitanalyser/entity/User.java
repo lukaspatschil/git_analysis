@@ -53,6 +53,8 @@ public class User {
     private String accessToken;
     @Column(name = "refresh_token")
     private String refreshToken;
+    @Column(name = "finger_print_hash")
+    private String fingerPrintHash;
     @OneToMany(mappedBy = "user")
     private List<Repository> repositories = new ArrayList<>();
 
