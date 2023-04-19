@@ -16,8 +16,8 @@ services:
 
   webclient:
     build:
-      context: .
-      dockerfile: ./frontend/Dockerfile
+      context: ./frontend
+      dockerfile: ./Dockerfile
     volumes:
       - /usr/src/app/node_modules
     ports:
