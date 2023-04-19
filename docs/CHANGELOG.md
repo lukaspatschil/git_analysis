@@ -1,3 +1,10 @@
+## [1.5.1](https://github.com/lukaspatschil/git_analysis/compare/v1.5.0...v1.5.1) (2023-04-19)
+
+
+### Bug Fixes
+
+* events ([99ac5d8](https://github.com/lukaspatschil/git_analysis/commit/99ac5d86dfda2db304226f985df8d1cf5a02ae14))
+
 # [1.5.0](https://github.com/lukaspatschil/git_analysis/compare/v1.4.0...v1.5.0) (2023-04-19)
 
 
