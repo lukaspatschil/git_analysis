@@ -1,6 +1,5 @@
 package com.tuwien.gitanalyser.security;
 
-import com.tuwien.gitanalyser.entity.User;
 import com.tuwien.gitanalyser.security.jwt.JWTTokenProvider;
 import com.tuwien.gitanalyser.security.oauth2.BasicAuth2User;
 import com.tuwien.gitanalyser.security.oauth2.GitHubOAuth2User;
@@ -15,6 +14,7 @@ import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepo
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -62,12 +62,18 @@ public class CustomAuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                                                             authentication,
                                                             request);
 
-        // TODO get refresh token
+        var userFingerprintPair = userService.processOAuthPostLogin(oauthUser,
+                                                                    authorizedClient.getAccessToken().getTokenValue());
 
-        User user = userService.processOAuthPostLogin(oauthUser, authorizedClient.getAccessToken().getTokenValue());
+        Cookie fingerprintCookie = new Cookie("fingerprint", userFingerprintPair.getFingerprintPair().getFingerprint());
+        fingerprintCookie.setHttpOnly(false);
+        response.addCookie(fingerprintCookie);
 
-        response.sendRedirect(AuthenticationConstants.FRONTEND_REDIRECT_AFTER_LOGIN_URL
-                                  + "#"
-                                  + jwtTokenProviderImpl.createToken(user.getId()));
+        response.sendRedirect(AuthenticationConstants.FRONTEND_REDIRECT_AFTER_LOGIN_URL + "#"
+                                  //+ jwtTokenProviderImpl.createAccessToken(user.getId()));
+                                  + "accessToken="
+                                  + jwtTokenProviderImpl.createAccessToken(userFingerprintPair.getUser().getId()) + "&"
+                                  + "refreshToken="
+                                  + jwtTokenProviderImpl.createRefreshToken(userFingerprintPair.getUser().getId()));
     }
 }

@@ -36,10 +36,6 @@ import static utils.Matchers.subAssignmentMatcher;
 
 public class AssignmentIntegrationTest extends BaseIntegrationTest {
 
-    private static final String REPOSITORY_ENDPOINT = "/apiV1/repository";
-
-    private static final String ASSIGNMENT_EXTENSION = "/assignment";
-
     @Test
     public void addAssignment_userAllowedToAccessRepositoryAndNoRepositoryExists_shouldCreateNewRepositoryWithOneAssignmentAndOneSubAssignment()
         throws GitLabApiException {

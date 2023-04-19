@@ -1,6 +1,8 @@
 package com.tuwien.gitanalyser.service;
 
+import com.tuwien.gitanalyser.endpoints.dtos.internal.RefreshAuthenticationInternalDTO;
 import com.tuwien.gitanalyser.entity.User;
+import com.tuwien.gitanalyser.entity.utils.UserFingerprintPair;
 import com.tuwien.gitanalyser.exception.NotFoundException;
 import com.tuwien.gitanalyser.security.oauth2.BasicAuth2User;
 
@@ -21,5 +23,7 @@ public interface UserService {
      * @param accessToken access token
      * @return user with database id
      */
-    User processOAuthPostLogin(BasicAuth2User auth2User, String accessToken);
+    UserFingerprintPair processOAuthPostLogin(BasicAuth2User auth2User, String accessToken);
+
+    RefreshAuthenticationInternalDTO refreshAccessToken(String refreshToken, String fingerprint);
 }

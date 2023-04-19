@@ -11,7 +11,6 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -22,6 +21,7 @@ import org.springframework.stereotype.Component;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Component
@@ -33,38 +33,44 @@ public class JWTTokenProviderImpl implements JWTTokenProvider {
                                                                               "ROLE_USER");
     private final UserService userService;
     private final DateService dateService;
+    private final long refreshTokenValidityInDays;
     /**
      * THIS IS NOT A SECURE PRACTICE! For simplicity, we are storing a static key here. Ideally, in a
      * microservices' environment, this key would be kept on a config-server.
      */
-    @Value("${security.jwt.token.expire-length:3600000}")
-    private long validityInMilliseconds;
+    private final long accessTokenValidityInMilliseconds;
 
     public JWTTokenProviderImpl(final UserService userService, final DateService dateService) {
         this.userService = userService;
         this.dateService = dateService;
 
-        validityInMilliseconds = AuthenticationConstants.JWT_VALIDITY_IN_MILLISECONDS;
+        accessTokenValidityInMilliseconds = AuthenticationConstants.JWT_ACCESS_TOKEN_VALIDITY_IN_MILLISECONDS;
+        refreshTokenValidityInDays = AuthenticationConstants.JWT_REFRESH_TOKEN_VALIDITY_IN_DAYS;
     }
 
-    public String createToken(final Long id) {
+    @Override
+    public String createAccessToken(final Long id) {
 
         Date now = dateService.create();
 
-        Claims claims = Jwts.claims().setSubject(id.toString());
+        Claims claims = createClaims(id);
 
-        Date validity = new Date(now.getTime() + validityInMilliseconds);
+        Date validity = new Date(now.getTime() + accessTokenValidityInMilliseconds);
 
-        return Jwts.builder()
-                   .setClaims(claims)
-                   .claim("authorities",
-                          GRANTED_AUTHORITIES.stream()
-                                             .map(GrantedAuthority::getAuthority)
-                                             .collect(Collectors.toList()))
-                   .setIssuedAt(now)
-                   .setExpiration(validity)
-                   .signWith(SignatureAlgorithm.HS256, AuthenticationConstants.JWT_SECRET_KEY)
-                   .compact();
+        return createToken(now, claims, validity);
+    }
+
+    @Override
+    public String createRefreshToken(final Long id) {
+
+        Date now = dateService.create();
+
+        Claims claims = createClaims(id);
+
+        Date validity = new Date(
+            now.getTime() + TimeUnit.MILLISECONDS.convert(refreshTokenValidityInDays, TimeUnit.DAYS));
+
+        return createToken(now, claims, validity);
     }
 
     @Override
@@ -81,6 +87,7 @@ public class JWTTokenProviderImpl implements JWTTokenProvider {
 
     }
 
+    @Override
     public Long getUserId(final String token) {
         try {
             return Long.parseLong(
@@ -96,6 +103,7 @@ public class JWTTokenProviderImpl implements JWTTokenProvider {
         }
     }
 
+    @Override
     public String resolveToken(final HttpServletRequest request) {
         LOGGER.info(request.getRequestURI());
         String bearerToken = request.getHeader(HttpHeaders.AUTHORIZATION);
@@ -105,6 +113,7 @@ public class JWTTokenProviderImpl implements JWTTokenProvider {
         return null;
     }
 
+    @Override
     public boolean validateToken(final String token) {
         try {
             Jwts.parser().setSigningKey(AuthenticationConstants.JWT_SECRET_KEY).parseClaimsJws(token);
@@ -114,4 +123,21 @@ public class JWTTokenProviderImpl implements JWTTokenProvider {
         }
     }
 
+    private String createToken(final Date now, final Claims claims, final Date validity) {
+        return Jwts.builder()
+                   .setClaims(claims)
+                   .claim("authorities",
+                          GRANTED_AUTHORITIES.stream()
+                                             .map(GrantedAuthority::getAuthority)
+                                             .collect(Collectors.toList()))
+                   .setIssuedAt(now)
+                   .setExpiration(validity)
+                   .signWith(SignatureAlgorithm.HS256, AuthenticationConstants.JWT_SECRET_KEY)
+                   .compact();
+    }
+
+    private Claims createClaims(final Long id) {
+        Claims claims = Jwts.claims().setSubject(id.toString());
+        return claims;
+    }
 }

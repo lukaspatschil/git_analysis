@@ -44,12 +44,6 @@ import static utils.Matchers.repositoryMatcher;
 
 public class GitIntegrationTest extends BaseIntegrationTest {
 
-    private static final String REPOSITORY_ENDPOINT = "/apiV1/repository";
-
-    private static final String BRANCHES_ENDPOINT_EXTENSION = "branch";
-
-    private static final String COMMITTER_ENDPOINT_EXTENSION = "committer";
-
     // TODO: positive test case for github
 
     @Test

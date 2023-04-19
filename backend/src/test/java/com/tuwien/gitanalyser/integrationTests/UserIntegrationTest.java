@@ -11,8 +11,6 @@ import static org.hamcrest.core.Is.is;
 
 public class UserIntegrationTest extends BaseIntegrationTest {
 
-    private static final String USER_ENDPOINT = "/apiV1/user";
-
     @Test
     public void queryUser_userGitHubUserExists_shouldSend200() {
         // Given
