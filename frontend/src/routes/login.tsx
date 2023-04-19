@@ -6,6 +6,11 @@ import Wrapper from '../components/Wrapper';
 import { useAuthStore } from '../stores/useAuthStore';
 import useDocumentTitle from "../hooks/useDocumentTitle";
 
+export enum Token {
+    ACCESS_TOKEN = 'accessToken',
+    REFRESH_TOKEN = 'refreshToken'
+}
+
 export default function Login() {
   const { setToken } = useAuthStore();
     useDocumentTitle(`login`);
@@ -13,13 +18,17 @@ export default function Login() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = location.hash.substring(1);
+    const urlSearchParams = new URLSearchParams(location.hash.substring(1));
+    const accessToken = urlSearchParams.get(Token.ACCESS_TOKEN);
+    const refreshToken = urlSearchParams.get(Token.REFRESH_TOKEN);
 
-    if (import.meta.env.MODE === 'development') {
-        console.log(token);
+    if (accessToken && refreshToken) {
+        if (import.meta.env.MODE === 'development') {
+            console.log(accessToken);
+        }
+
+        setToken(accessToken, refreshToken).then(() => navigate('/repository'));
     }
-
-    setToken(token).then(() => navigate('/repository'));
   }, []);
 
   return (
