@@ -1,3 +1,11 @@
+# [1.4.0](https://github.com/lukaspatschil/git_analysis/compare/v1.3.2...v1.4.0) (2023-04-19)
+
+
+### Features
+
+* add host ([ac7592f](https://github.com/lukaspatschil/git_analysis/commit/ac7592ffdbef5f79c9352ecae4881ae602eb2ce1))
+* add port to env ([3664026](https://github.com/lukaspatschil/git_analysis/commit/3664026128514d6c0a2cf1a1b1d2c2c0147e8723))
+
 ## [1.3.2](https://github.com/lukaspatschil/git_analysis/compare/v1.3.1...v1.3.2) (2023-04-19)
 
 
