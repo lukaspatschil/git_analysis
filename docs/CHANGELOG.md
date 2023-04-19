@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/lukaspatschil/git_analysis/compare/v1.2.0...v1.3.0) (2023-04-19)
+
+
+### Features
+
+* add refresh capability and docker-compose.yml ([07e28da](https://github.com/lukaspatschil/git_analysis/commit/07e28daa134ed25bb390cf3cfc36cdec7a7bf2ed))
+
 # [1.2.0](https://github.com/lukaspatschil/git_analysis/compare/v1.1.1...v1.2.0) (2023-04-15)
 
 
