@@ -1,3 +1,15 @@
+# [1.5.0](https://github.com/lukaspatschil/git_analysis/compare/v1.4.0...v1.5.0) (2023-04-19)
+
+
+### Bug Fixes
+
+* new try ([2535b3e](https://github.com/lukaspatschil/git_analysis/commit/2535b3e4a42d1e1bc23dc4d8fe673df3ea2a23a5))
+
+
+### Features
+
+* use env ([dc0ee91](https://github.com/lukaspatschil/git_analysis/commit/dc0ee91a4ccc2019bd494e24e72bf0b302117938))
+
 # [1.4.0](https://github.com/lukaspatschil/git_analysis/compare/v1.3.2...v1.4.0) (2023-04-19)
 
 
