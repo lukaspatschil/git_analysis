@@ -1,3 +1,10 @@
+## [1.3.1](https://github.com/lukaspatschil/git_analysis/compare/v1.3.0...v1.3.1) (2023-04-19)
+
+
+### Bug Fixes
+
+* fix docker ([764df31](https://github.com/lukaspatschil/git_analysis/commit/764df3120f392021a4943d103af5d3c499e50c5a))
+
 # [1.3.0](https://github.com/lukaspatschil/git_analysis/compare/v1.2.0...v1.3.0) (2023-04-19)
 
 
