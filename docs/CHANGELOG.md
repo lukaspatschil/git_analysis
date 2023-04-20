@@ -1,3 +1,10 @@
+## [1.5.2](https://github.com/lukaspatschil/git_analysis/compare/v1.5.1...v1.5.2) (2023-04-20)
+
+
+### Bug Fixes
+
+* docker file ([ba83049](https://github.com/lukaspatschil/git_analysis/commit/ba83049eb7bb5e3fa6050fcb0979935f42489342))
+
 ## [1.5.1](https://github.com/lukaspatschil/git_analysis/compare/v1.5.0...v1.5.1) (2023-04-19)
 
 
