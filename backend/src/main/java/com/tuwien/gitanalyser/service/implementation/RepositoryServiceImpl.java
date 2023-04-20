@@ -72,34 +72,58 @@ public class RepositoryServiceImpl implements RepositoryService {
 
         Assignment assignment = assignmentService.getOrCreateAssignment(repositoryEntity, dto.getKey());
 
-        subAssignmentService.addSubAssignment(assignment, dto.getAssignedName());
+        boolean overwritten = false;
+
+        for (Assignment tempAssignment : repositoryEntity.getAssignments()) {
+            for (SubAssignment subAssignment : tempAssignment.getSubAssignments()) {
+                if (subAssignment.getAssignedName().equals(dto.getAssignedName())) {
+                    // overwrite existing assignment
+                    overwriteSubAssignment(dto, repositoryEntity, assignment, subAssignment);
+                    overwritten = true;
+                }
+            }
+        }
+
+        if (!overwritten) {
+            subAssignmentService.addSubAssignment(assignment, dto.getAssignedName());
+        }
+
     }
 
     @Override
     public List<Assignment> getAssignments(final long userId, final Long platformId) {
-        LOGGER.info("getAssignments with userId {} and platformId {}", userId, platformId);
+        LOGGER.info("getAssignments with userId {} and "
+                        + "platformId {}", userId, platformId);
         User user = userService.getUser(userId);
         Optional<Repository> repository = findRepositoryByPlatformIdAndUser(platformId, user);
 
         if (repository.isEmpty()) {
-            LOGGER.info("getAssignments finished with empty repository for platformId {}", platformId);
+            LOGGER.info(
+                "getAssignments finished with empty repository for platformId {}",
+                platformId);
             throw new NotFoundException("Repository not found");
         }
 
-        LOGGER.info("getAssignments finished for platformId {}", platformId);
+        LOGGER.info(
+            "getAssignments finished for platformId {}",
+            platformId);
 
         return repository.get().getAssignments();
     }
 
     @Override
     public void deleteAssignment(final Long userId, final Long platformId, final Long subAssignmentId) {
-        LOGGER.info("deleteAssignment with userId {} and platformId {} and subAssignmentId {}",
+        LOGGER.info("deleteAssignment with "
+                        + "userId {} and platformId {} and "
+                        + "subAssignmentId {}",
                     userId, platformId, subAssignmentId);
         User user = userService.getUser(userId);
         Optional<Repository> repository = findRepositoryByPlatformIdAndUser(platformId, user);
 
         if (repository.isEmpty()) {
-            LOGGER.info("getAssignments finished with empty repository for platformId {}", platformId);
+            LOGGER.info(
+                "getAssignments finished with empty repository for platformId {}",
+                platformId);
             throw new NotFoundException("Repository not found");
         }
 
@@ -108,10 +132,13 @@ public class RepositoryServiceImpl implements RepositoryService {
 
     @Override
     public void deleteAllNotAccessibleRepositoryEntities(final Long userId, final List<Long> gitRepositoryIds) {
-        LOGGER.info("deleteAllNotAccessibleRepositoryEntities with userId {} and gitRepositoryIds {}",
-                    userId, gitRepositoryIds);
+        LOGGER.info(
+            "deleteAllNotAccessibleRepositoryEntities with userId {} and gitRepositoryIds {}",
+            userId,
+            gitRepositoryIds);
 
-        User user = userService.getUser(userId);
+        User user =
+            userService.getUser(userId);
         List<Repository> repositories = repositoryRepository.findByUser(user);
 
         for (Repository repository : repositories) {
@@ -135,7 +162,9 @@ public class RepositoryServiceImpl implements RepositoryService {
                 List<Assignment> assignments = getAssignments(userId, platformId);
                 stats = mapStatsByAssignments(stats, assignments);
             } catch (NotFoundException e) {
-                LOGGER.info("getStats finished with empty repository for platformId {}", platformId);
+                LOGGER.info("getStats finished with empty repository for "
+                                + "platformId {}",
+                            platformId);
             }
         }
         return stats;
@@ -155,11 +184,21 @@ public class RepositoryServiceImpl implements RepositoryService {
                 List<Assignment> assignments = getAssignments(userId, platformId);
                 commits = mapCommitsByAssignments(commits, assignments);
             } catch (NotFoundException e) {
-                LOGGER.info("getAllCommits finished with empty repository for platformId {}", platformId);
+                LOGGER.info("getAllCommits finished with empty repository "
+                                + "for platformId "
+                                + "{}", platformId);
             }
         }
 
         return commits;
+    }
+
+    private void overwriteSubAssignment(final CreateAssignmentDTO dto,
+                                        final Repository repositoryEntity,
+                                        final Assignment assignmentToAddAssignmentTo,
+                                        final SubAssignment subAssignmentToRemoveSubAssignmentFrom) {
+        assignmentService.deleteSubAssignmentById(repositoryEntity, subAssignmentToRemoveSubAssignmentFrom.getId());
+        subAssignmentService.addSubAssignment(assignmentToAddAssignmentTo, dto.getAssignedName());
     }
 
     private void checkIAssignmentsDoesNotProduceCircularAssignments(final CreateAssignmentDTO dto,
@@ -178,10 +217,11 @@ public class RepositoryServiceImpl implements RepositoryService {
                 throw new IllegalArgumentException("Assigned name must not be equal to an existing assignment key");
             }
             for (SubAssignment subAssignment : assignment.getSubAssignments()) {
-                if (subAssignment.getAssignedName().equals(dto.getAssignedName())) {
+                // enables overwriting of existing assignments
+                /*if (subAssignment.getAssignedName().equals(dto.getAssignedName())) {
                     throw new IllegalArgumentException(
                         "Assigned name must not be equal to an existing sub assignment name");
-                }
+                }*/
                 if (subAssignment.getAssignedName().equals(dto.getKey())) {
                     throw new IllegalArgumentException(
                         "Assignment key must not be equal to an existing sub assignment name");
