@@ -25,8 +25,11 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasProperty;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.core.IsNot.not;
 import static org.hobsoft.hamcrest.compose.ComposeMatchers.hasFeature;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -242,6 +245,123 @@ public class AssignmentIntegrationTest extends BaseIntegrationTest {
 
         // Then
         assertThat(response.getStatusCode(), equalTo(HttpStatus.CONFLICT.value()));
+    }
+
+    @Test
+    public void addAssignment_userAllowedToAccessRepositoryAndRepositoryExistsAndAssignmentExistsAndSubAssignmentExistsAndSameName_deleteSubAssignmentAndCreateNewSubAssignmentForCorrectKey()
+        throws GitLabApiException {
+        // Given
+        long platformId = Randoms.getLong();
+        String key = Randoms.alpha();
+        String newKey = Randoms.alpha();
+
+        prepareGitLabAllowedToAccess(platformId);
+        Repository repository = addRepository(gitLabUser, platformId);
+        Assignment assignment = addAssignment(key, repository);
+        SubAssignment subAssignment = addSubAssignment(assignment);
+
+        var createAssignmentDTO = new CreateAssignmentDTO(newKey, subAssignment.getAssignedName());
+
+        // When
+        Response response = callPostRestEndpoint(gitLabUserToken,
+                                                 REPOSITORY_ENDPOINT + "/" + platformId + ASSIGNMENT_EXTENSION,
+                                                 createAssignmentDTO);
+
+        // Then
+        assertThat(response.getStatusCode(), equalTo(HttpStatus.CREATED.value()));
+    }
+
+    @Test
+    public void addAssignment_userAllowedToAccessRepositoryAndRepositoryExistsAndAssignmentExistsAndSubAssignmentExistsAndSameName_shouldRemoveOldSubAssignment()
+        throws GitLabApiException {
+        // Given
+        long platformId = Randoms.getLong();
+        String key = Randoms.alpha();
+        String newKey = Randoms.alpha();
+
+        prepareGitLabAllowedToAccess(platformId);
+        Repository repository = addRepository(gitLabUser, platformId);
+        Assignment assignment = addAssignment(key, repository);
+        SubAssignment subAssignment = addSubAssignment(assignment);
+
+        var createAssignmentDTO = new CreateAssignmentDTO(newKey, subAssignment.getAssignedName());
+
+        // When
+        callPostRestEndpoint(gitLabUserToken,
+                             REPOSITORY_ENDPOINT + "/" + platformId + ASSIGNMENT_EXTENSION,
+                             createAssignmentDTO);
+
+        // Then
+        Optional<Repository> resultRepository = repositoryRepository.findByUserAndPlatformId(gitLabUser, platformId);
+        assertThat(resultRepository, isPresent());
+        assertThat(resultRepository.get().getAssignments().size(), equalTo(1));
+        assertThat(resultRepository.get().getAssignments(), not(hasItem(hasFeature("oldKey", Assignment::getKey, equalTo(key)))));
+    }
+
+    @Test
+    public void addAssignment_userAllowedToAccessRepositoryAndRepositoryExistsAndAssignmentExistsAndSubAssignmentExistsAndSameName_shouldCreateNewAssignmentInDatabase()
+        throws GitLabApiException {
+        // Given
+        long platformId = Randoms.getLong();
+        String key = Randoms.alpha();
+        String newKey = Randoms.alpha();
+
+        prepareGitLabAllowedToAccess(platformId);
+        Repository repository = addRepository(gitLabUser, platformId);
+        Assignment assignment = addAssignment(key, repository);
+        SubAssignment subAssignment = addSubAssignment(assignment);
+
+        var createAssignmentDTO = new CreateAssignmentDTO(newKey, subAssignment.getAssignedName());
+
+        // When
+        callPostRestEndpoint(gitLabUserToken,
+                             REPOSITORY_ENDPOINT + "/" + platformId + ASSIGNMENT_EXTENSION,
+                             createAssignmentDTO);
+
+        // Then
+        Optional<Repository> resultRepository = repositoryRepository.findByUserAndPlatformId(gitLabUser, platformId);
+        assertThat(resultRepository, isPresent());
+        assertThat(resultRepository.get().getAssignments().size(), equalTo(1));
+        assertThat(resultRepository.get().getAssignments(), not(hasItem(hasFeature("oldKey", Assignment::getKey, equalTo(key)))));
+    }
+
+    @Test
+    public void addAssignment_userAllowedToAccessRepositoryAndRepositoryExistsAndAssignmentExistsAndSubAssignmentExistsAndSameName_shouldCreateNewAssignment()
+        throws GitLabApiException {
+        // Given
+        long platformId = Randoms.getLong();
+        String key = Randoms.alpha();
+        String newKey = Randoms.alpha();
+
+        prepareGitLabAllowedToAccess(platformId);
+        Repository repository = addRepository(gitLabUser, platformId);
+        Assignment assignment = addAssignment(key, repository);
+        SubAssignment subAssignment = addSubAssignment(assignment);
+
+        var createAssignmentDTO = new CreateAssignmentDTO(newKey, subAssignment.getAssignedName());
+
+        // When
+        callPostRestEndpoint(gitLabUserToken,
+                             REPOSITORY_ENDPOINT + "/" + platformId + ASSIGNMENT_EXTENSION,
+                             createAssignmentDTO);
+
+        // Then
+        Optional<Repository> resultRepository = repositoryRepository.findByUserAndPlatformId(gitLabUser, platformId);
+        assertThat(resultRepository, isPresent());
+        assertThat(resultRepository.get().getAssignments().size(), equalTo(1));
+        assertThat(resultRepository.get().getAssignments(), hasItem(
+            allOf(
+                hasFeature("key", Assignment::getKey, equalTo(newKey)),
+                allOf(
+                    hasFeature("subAssignments", Assignment::getSubAssignments, hasSize(1)),
+                    hasFeature("subAssignments", Assignment::getSubAssignments, hasItem(
+                        allOf(
+                            hasFeature("assignedName", SubAssignment::getAssignedName, equalTo(subAssignment.getAssignedName()))
+                        )
+                    ))
+                )
+            )
+        ));
     }
 
     @Test

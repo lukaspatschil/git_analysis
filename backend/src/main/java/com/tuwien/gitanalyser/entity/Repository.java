@@ -17,6 +17,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -39,6 +40,6 @@ public class Repository {
     @JoinColumn(name = "user_id")
     private User user;
     @OneToMany(mappedBy = "repository", fetch = FetchType.EAGER)
-    private List<Assignment> assignments;
+    private List<Assignment> assignments = new ArrayList<>();
 
 }

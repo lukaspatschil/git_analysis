@@ -153,7 +153,8 @@ class RepositoryServiceImplTest {
     }
 
     @Test
-    void addAssignment_repositoryExistsAndNameIsAlreadyAssignedToASubAssignment_throwIllegalArgumentException() {
+    void addAssignment_repositoryExistsAndNameIsAlreadyAssignedToASubAssignment_shouldRemoveFormerAssignment()
+        throws IllegalArgumentException {
         // Given
         User user = prepareUserService();
         long platformId = Randoms.getLong();
@@ -164,18 +165,55 @@ class RepositoryServiceImplTest {
                                                            .assignedName(assignedName)
                                                            .build();
         Repository repository = new Repository();
+        SubAssignment subAssignment = SubAssignment.builder().assignedName(assignedName).build();
         Assignment assignment =
             Assignment.builder()
                       .key(Randoms.alpha())
-                      .subAssignments(List.of(SubAssignment.builder().assignedName(assignedName).build()))
+                      .subAssignments(List.of(subAssignment))
                       .build();
         repository.setAssignments(List.of(assignment));
         prepareAssignment(repository, createDTO, assignment);
 
         mockRepositoryFindByUserAndPlatformId(user, platformId, repository);
 
-        // When + Then
-        assertThrows(IllegalArgumentException.class, () -> sut.addAssignment(user.getId(), platformId, createDTO));
+        // When
+        sut.addAssignment(user.getId(), platformId, createDTO);
+
+        // Then
+        verify(assignmentService).deleteSubAssignmentById(repository, subAssignment.getId());
+    }
+
+    @Test
+    void addAssignment_repositoryExistsAndNameIsAlreadyAssignedToASubAssignment_shouldAddItToTheNewAssignment()
+        throws IllegalArgumentException {
+        // Given
+        User user = prepareUserService();
+        long platformId = Randoms.getLong();
+        String key = Randoms.alpha();
+        String assignedName = Randoms.alpha();
+        CreateAssignmentDTO createDTO = CreateAssignmentDTO.builder()
+                                                           .key(key)
+                                                           .assignedName(assignedName)
+                                                           .build();
+        Repository repository = new Repository();
+        SubAssignment subAssignment = SubAssignment.builder().assignedName(assignedName).build();
+        Assignment assignment =
+            Assignment.builder()
+                      .key(Randoms.alpha())
+                      .subAssignments(List.of(subAssignment))
+                      .build();
+        repository.setAssignments(List.of(assignment));
+
+        Assignment newAssignment = Assignment.builder().id(Randoms.getLong()).subAssignments(List.of()).build();
+        prepareAssignment(repository, createDTO, newAssignment);
+
+        mockRepositoryFindByUserAndPlatformId(user, platformId, repository);
+
+        // When
+        sut.addAssignment(user.getId(), platformId, createDTO);
+
+        // Then
+        verify(subAssignmentService).addSubAssignment(newAssignment, assignedName);
     }
 
     @Test
