@@ -7,6 +7,7 @@ import com.tuwien.gitanalyser.endpoints.dtos.NotSavedRepositoryDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.StatsDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.assignment.AssignmentDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.assignment.SubAssignmentDTO;
+import com.tuwien.gitanalyser.endpoints.dtos.internal.BranchInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitAggregatedInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.StatsInternalDTO;
@@ -175,5 +176,9 @@ public class Matchers {
             hasFeature("committer", StatsDTO::getCommitter, equalTo(committerName)),
             hasFeature("committer", StatsDTO::getNumberOfCommits, equalTo(commits.length))
         );
+    }
+
+    public static Matcher<BranchInternalDTO> BranchInternalDTOMatcher(Branch branchMock) {
+        return hasFeature("name", BranchInternalDTO::getName, equalTo(branchMock.getName()));
     }
 }
