@@ -1,6 +1,7 @@
 package com.tuwien.gitanalyser.service.implementation;
 
 import com.tuwien.gitanalyser.endpoints.dtos.assignment.CreateAssignmentDTO;
+import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitAggregatedInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.StatsInternalDTO;
 import com.tuwien.gitanalyser.entity.Assignment;
@@ -36,7 +37,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static utils.Matchers.commitInteralDTOMatcher;
+import static utils.Matchers.commitAggreagteDTOMatcher;
 import static utils.Matchers.statsInternalDTOMatcher;
 
 class RepositoryServiceImplTest {
@@ -527,10 +528,10 @@ class RepositoryServiceImplTest {
         prepareGitServiceGetCommits(platformId, user, branch, List.of(commit1, commit2));
 
         // When
-        List<CommitInternalDTO> result = sut.getCommits(user.getId(), platformId, branch, false);
+        List<CommitAggregatedInternalDTO> result = sut.getCommits(user.getId(), platformId, branch, false);
 
         // Then
-        assertThat(result, containsInAnyOrder(commitInteralDTOMatcher(commit1), commitInteralDTOMatcher(commit2)));
+        assertThat(result, containsInAnyOrder(commitAggreagteDTOMatcher(commit1), commitAggreagteDTOMatcher(commit2)));
     }
 
     @Test
@@ -553,10 +554,10 @@ class RepositoryServiceImplTest {
         prepareGitServiceGetCommits(platformId, user, branch, List.of(commit));
 
         // When
-        List<CommitInternalDTO> result = sut.getCommits(user.getId(), platformId, branch, true);
+        List<CommitAggregatedInternalDTO> result = sut.getCommits(user.getId(), platformId, branch, true);
 
         // Then
-        assertThat(result, containsInAnyOrder(commitInteralDTOMatcher(resultCommit)));
+        assertThat(result, containsInAnyOrder(commitAggreagteDTOMatcher(resultCommit)));
     }
 
     @Test
@@ -582,11 +583,11 @@ class RepositoryServiceImplTest {
         prepareGitServiceGetCommits(platformId, user, branch, List.of(commit1, commit2));
 
         // When
-        List<CommitInternalDTO> result = sut.getCommits(user.getId(), platformId, branch, true);
+        List<CommitAggregatedInternalDTO> result = sut.getCommits(user.getId(), platformId, branch, true);
 
         // Then
-        assertThat(result, containsInAnyOrder(commitInteralDTOMatcher(resultCommit1),
-                                              commitInteralDTOMatcher(resultCommit2)
+        assertThat(result, containsInAnyOrder(commitAggreagteDTOMatcher(resultCommit1),
+                                              commitAggreagteDTOMatcher(resultCommit2)
         ));
     }
 
@@ -614,13 +615,13 @@ class RepositoryServiceImplTest {
         prepareGitServiceGetCommits(platformId, user, branch, List.of(commit1, commit2, commit3));
 
         // When
-        List<CommitInternalDTO> result = sut.getCommits(user.getId(), platformId, branch, true);
+        List<CommitAggregatedInternalDTO> result = sut.getCommits(user.getId(), platformId, branch, true);
 
         // Then
         assertThat(result, containsInAnyOrder(
-            commitInteralDTOMatcher(resultCommit1),
-            commitInteralDTOMatcher(resultCommit2),
-            commitInteralDTOMatcher(commit3)
+            commitAggreagteDTOMatcher(resultCommit1),
+            commitAggreagteDTOMatcher(resultCommit2),
+            commitAggreagteDTOMatcher(commit3)
         ));
     }
 

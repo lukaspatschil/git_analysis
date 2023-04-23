@@ -30,6 +30,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static utils.Matchers.CommitDTOMatcher;
+import static utils.Matchers.commitDTOMatcher;
 import static utils.Matchers.statsDTOMatcher;
 
 public class RepositoryIntegrationTest extends BaseIntegrationTest {
@@ -359,7 +360,12 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         assertThat(response.as(CommitDTO[].class).length, equalTo(2));
         CommitDTO[] commits = response.as(CommitDTO[].class);
 
-        assertThat(Arrays.asList(commits), containsInAnyOrder(commitDTO1, commitDTO2));
+        assertThat(Arrays.asList(commits),
+                   containsInAnyOrder(commitDTOMatcher(commitDTO1,
+                                                       commitDTO1.getAdditions() - commitDTO1.getDeletions()),
+                                      commitDTOMatcher(commitDTO2,
+                                                       commitDTO1.getAdditions() - commitDTO1.getDeletions()
+                                                           + commitDTO2.getAdditions() - commitDTO2.getDeletions())));
     }
 
     @Test
@@ -494,7 +500,11 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         assertThat(response.as(CommitDTO[].class).length, equalTo(2));
         CommitDTO[] commits = response.as(CommitDTO[].class);
 
-        assertThat(Arrays.asList(commits), containsInAnyOrder(commitDTO1, commitDTO2));
+        assertThat(Arrays.asList(commits), containsInAnyOrder(
+                       commitDTOMatcher(commitDTO1),
+                       commitDTOMatcher(commitDTO2)
+                   )
+        );
     }
 
     @Test

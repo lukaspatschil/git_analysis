@@ -1,24 +1,18 @@
-package com.tuwien.gitanalyser.endpoints.dtos;
+package com.tuwien.gitanalyser.endpoints.dtos.internal;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
 
 import java.util.Date;
 import java.util.List;
 
 @Getter
-@Setter
 @Builder
-@NoArgsConstructor
+@Setter
 @AllArgsConstructor
-@EqualsAndHashCode
-@ToString
-public class CommitDTO {
+public class CommitAggregatedInternalDTO {
     private String id;
     private String message;
     private String author;

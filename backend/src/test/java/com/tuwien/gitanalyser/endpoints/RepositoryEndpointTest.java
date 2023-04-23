@@ -8,7 +8,7 @@ import com.tuwien.gitanalyser.endpoints.dtos.StatsDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.assignment.AssignmentDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.assignment.CreateAssignmentDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.BranchInternalDTO;
-import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitInternalDTO;
+import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitAggregatedInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitterInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.NotSavedRepositoryInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.StatsInternalDTO;
@@ -88,8 +88,8 @@ class RepositoryEndpointTest {
     private final String defaultBranch = "develop";
     private final CommitDTO commitDTO1 = mock(CommitDTO.class);
     private final CommitDTO commitDTO2 = mock(CommitDTO.class);
-    private final CommitInternalDTO commit1 = mock(CommitInternalDTO.class);
-    private final CommitInternalDTO commit2 = mock(CommitInternalDTO.class);
+    private final CommitAggregatedInternalDTO commit1 = mock(CommitAggregatedInternalDTO.class);
+    private final CommitAggregatedInternalDTO commit2 = mock(CommitAggregatedInternalDTO.class);
     private RepositoryService repositoryService;
     private GitService gitService;
     private NotSavedRepositoryMapper notSavedRepositoryMapper;
@@ -411,7 +411,7 @@ class RepositoryEndpointTest {
         Authentication authentication = mock(Authentication.class);
 
         mockUserId(userId, authentication);
-        CommitInternalDTO commit = mock(CommitInternalDTO.class);
+        CommitAggregatedInternalDTO commit = mock(CommitAggregatedInternalDTO.class);
         CommitDTO commitDTO = mock(CommitDTO.class);
         prepareRepositoryGetAllCommits(platformId, userId, defaultBranch, mappedByAssignment, List.of(commit));
         prepareCommitsMapper(List.of(commit), List.of(commitDTO));
@@ -437,8 +437,8 @@ class RepositoryEndpointTest {
         Authentication authentication = mock(Authentication.class);
 
         mockUserId(userId, authentication);
-        prepareRepositoryGetAllCommits(platformId, userId, defaultBranch, mappedByAssignment, List.of(commit1,
-                                                                                                      commit2));
+        prepareRepositoryGetAllCommits(platformId, userId, defaultBranch, mappedByAssignment,
+                                       List.of(commit1, commit2));
         prepareCommitsMapper(List.of(commit1, commit2), List.of(commitDTO1, commitDTO2));
 
         // When
@@ -934,7 +934,7 @@ class RepositoryEndpointTest {
     }
 
     private void prepareRepositoryGetAllCommits(long platformId, long userId, String branch,
-                                                boolean mappedByAssignments, List<CommitInternalDTO> output)
+                                                boolean mappedByAssignments, List<CommitAggregatedInternalDTO> output)
         throws GitException, NoProviderFoundException {
         when(repositoryService.getCommits(userId, platformId, branch, mappedByAssignments)).thenReturn(output);
     }
@@ -993,7 +993,7 @@ class RepositoryEndpointTest {
         when(assignmentMapper.entitiesToDTO(input)).thenReturn(output);
     }
 
-    private void prepareCommitsMapper(List<CommitInternalDTO> input, List<CommitDTO> output) {
+    private void prepareCommitsMapper(List<CommitAggregatedInternalDTO> input, List<CommitDTO> output) {
         when(commitMapper.dtosToDTOs(input)).thenReturn(output);
     }
 
