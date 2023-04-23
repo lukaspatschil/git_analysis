@@ -8,7 +8,7 @@ import com.tuwien.gitanalyser.endpoints.dtos.StatsDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.assignment.AssignmentDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.assignment.CreateAssignmentDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.BranchInternalDTO;
-import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitInternalDTO;
+import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitAggregatedInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitterInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.NotSavedRepositoryInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.StatsInternalDTO;
@@ -177,7 +177,7 @@ public class RepositoryEndpoint extends BaseEndpoint {
         throws BadRequestException, InternalServerErrorException {
         LOGGER.info("GET /repository/{id}/commits - get repository by platform id {} and branch {}",
                     platformId, branch);
-        List<CommitInternalDTO> commits;
+        List<CommitAggregatedInternalDTO> commits;
         try {
             commits = repositoryService.getCommits(getUserId(authentication), platformId, branch, mappedByAssignments);
         } catch (NoProviderFoundException e) {

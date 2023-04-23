@@ -1,6 +1,7 @@
 package com.tuwien.gitanalyser.service.implementation;
 
 import com.tuwien.gitanalyser.endpoints.dtos.assignment.CreateAssignmentDTO;
+import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitAggregatedInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.StatsInternalDTO;
 import com.tuwien.gitanalyser.entity.Assignment;
@@ -171,18 +172,31 @@ public class RepositoryServiceImpl implements RepositoryService {
     }
 
     @Override
-    public List<CommitInternalDTO> getCommits(final long userId, final Long platformId, final String branch,
-                                              final Boolean mappedByAssignments)
+    public List<CommitAggregatedInternalDTO> getCommits(final long userId, final Long platformId, final String branch,
+                                                        final Boolean mappedByAssignments)
         throws GitException, NoProviderFoundException {
         LOGGER.info("getAllCommits with userId {} and platformId {} and branch {} and mappedByAssignments {}",
                     userId, platformId, branch, mappedByAssignments);
 
-        List<CommitInternalDTO> commits = gitService.getAllCommits(userId, platformId, branch);
+        List<CommitInternalDTO> internalCommits = gitService.getAllCommits(userId, platformId, branch);
+
+        List<CommitAggregatedInternalDTO> resultCommit = new ArrayList<>();
+
+        int overallLineOfCode = 0;
+        for (CommitInternalDTO commit : internalCommits) {
+            overallLineOfCode = overallLineOfCode + commit.getAdditions() - commit.getDeletions();
+            var aggregatedCommit = new CommitAggregatedInternalDTO(commit.getId(), commit.getMessage(),
+                                                               commit.getAuthor(), commit.getTimestamp(),
+                                                               commit.getParentIds(), commit.isMergeCommit(),
+                                                               commit.getAdditions(), commit.getDeletions(),
+                                                               overallLineOfCode);
+            resultCommit.add(aggregatedCommit);
+        }
 
         if (mappedByAssignments) {
             try {
                 List<Assignment> assignments = getAssignments(userId, platformId);
-                commits = mapCommitsByAssignments(commits, assignments);
+                resultCommit = mapCommitsByAssignments(resultCommit, assignments);
             } catch (NotFoundException e) {
                 LOGGER.info("getAllCommits finished with empty repository "
                                 + "for platformId "
@@ -190,7 +204,7 @@ public class RepositoryServiceImpl implements RepositoryService {
             }
         }
 
-        return commits;
+        return resultCommit;
     }
 
     private void overwriteSubAssignment(final CreateAssignmentDTO dto,
@@ -231,9 +245,9 @@ public class RepositoryServiceImpl implements RepositoryService {
 
     }
 
-    private List<CommitInternalDTO> mapCommitsByAssignments(final List<CommitInternalDTO> commits,
+    private List<CommitAggregatedInternalDTO> mapCommitsByAssignments(final List<CommitAggregatedInternalDTO> commits,
                                                             final List<Assignment> assignments) {
-        for (CommitInternalDTO commit : commits) {
+        for (CommitAggregatedInternalDTO commit : commits) {
             for (Assignment assignment : assignments) {
 
                 String key = assignment.getKey();
