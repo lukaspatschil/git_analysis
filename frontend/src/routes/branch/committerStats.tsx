@@ -18,7 +18,7 @@ export default function committerStats() {
     const [displayCommits, setDisplayCommits] = useState<ChartData<"pie", (number | Point | null)[], unknown>>(generateDisplayData('Commits'));
 
 
-    const { data, error, isLoading } = useSWR(`${import.meta.env.VITE_BASE_API_URL}apiV1/repository/${repositoryId}/stats?branch=${branchName}&mappedByAssignments`, (url: string) => {
+    const { data, error, isLoading } = useSWR(`${import.meta.env.VITE_BASE_API_URL}apiV1/repository/${repositoryId}/stats?branch=${branchName}&mappedByAssignments=true`, (url: string) => {
         if (!token) {
             throw new Error('Token is not set');
         }

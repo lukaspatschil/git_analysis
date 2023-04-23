@@ -137,7 +137,6 @@ public class JWTTokenProviderImpl implements JWTTokenProvider {
     }
 
     private Claims createClaims(final Long id) {
-        Claims claims = Jwts.claims().setSubject(id.toString());
-        return claims;
+        return Jwts.claims().setSubject(id.toString());
     }
 }

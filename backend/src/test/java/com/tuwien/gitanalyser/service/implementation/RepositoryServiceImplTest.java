@@ -41,7 +41,7 @@ import static utils.Matchers.commitAggreagteDTOMatcher;
 import static utils.Matchers.statsInternalDTOMatcher;
 
 class RepositoryServiceImplTest {
-    Date DATE = new Date();
+    private final Date DATE = new Date();
     private RepositoryServiceImpl sut;
     private UserService userService;
     private RepositoryRepository repositoryRepository;
