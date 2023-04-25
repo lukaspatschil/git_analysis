@@ -388,16 +388,17 @@ class RepositoryEndpointTest {
         // Given
         long platformId = Randoms.getLong();
         long userId = Randoms.getLong();
+        String name = Randoms.alpha();
 
         Authentication authentication = mock(Authentication.class);
 
         mockUserId(userId, authentication);
 
         // When
-        sut.getCommitsByRepositoryId(authentication, platformId, defaultBranch, mappedByAssignment);
+        sut.getCommitsByRepositoryId(authentication, platformId, defaultBranch, mappedByAssignment, name);
 
         // Then
-        verify(repositoryService).getCommits(userId, platformId, defaultBranch, mappedByAssignment);
+        verify(repositoryService).getCommits(userId, platformId, defaultBranch, mappedByAssignment, name);
     }
 
     @ParameterizedTest
@@ -407,20 +408,19 @@ class RepositoryEndpointTest {
         // Given
         long platformId = Randoms.getLong();
         long userId = Randoms.getLong();
+        String name = Randoms.alpha();
 
         Authentication authentication = mock(Authentication.class);
 
         mockUserId(userId, authentication);
         CommitAggregatedInternalDTO commit = mock(CommitAggregatedInternalDTO.class);
         CommitDTO commitDTO = mock(CommitDTO.class);
-        prepareRepositoryGetAllCommits(platformId, userId, defaultBranch, mappedByAssignment, List.of(commit));
+        prepareRepositoryGetAllCommits(platformId, userId, defaultBranch, mappedByAssignment, name, List.of(commit));
         prepareCommitsMapper(List.of(commit), List.of(commitDTO));
 
         // When
         List<CommitDTO> commits = sut.getCommitsByRepositoryId(authentication,
-                                                               platformId,
-                                                               defaultBranch,
-                                                               mappedByAssignment);
+                                                               platformId, defaultBranch, mappedByAssignment, name);
 
         // Then
         assertThat(commits, containsInAnyOrder(commitDTO));
@@ -433,11 +433,12 @@ class RepositoryEndpointTest {
         // Given
         long platformId = Randoms.getLong();
         long userId = Randoms.getLong();
+        String name = Randoms.alpha();
 
         Authentication authentication = mock(Authentication.class);
 
         mockUserId(userId, authentication);
-        prepareRepositoryGetAllCommits(platformId, userId, defaultBranch, mappedByAssignment,
+        prepareRepositoryGetAllCommits(platformId, userId, defaultBranch, mappedByAssignment, name,
                                        List.of(commit1, commit2));
         prepareCommitsMapper(List.of(commit1, commit2), List.of(commitDTO1, commitDTO2));
 
@@ -445,7 +446,7 @@ class RepositoryEndpointTest {
         List<CommitDTO> branches = sut.getCommitsByRepositoryId(authentication,
                                                                 platformId,
                                                                 defaultBranch,
-                                                                mappedByAssignment);
+                                                                mappedByAssignment, name);
 
         // Then
         assertThat(branches, equalTo(List.of(commitDTO1, commitDTO2)));
@@ -459,15 +460,16 @@ class RepositoryEndpointTest {
         // Given
         long platformId = Randoms.getLong();
         long userId = Randoms.getLong();
+        String name = Randoms.alpha();
 
         Authentication authentication = mock(Authentication.class);
 
         mockUserId(userId, authentication);
-        prepareRepositoryServiceGetAllCommitsThrows(platformId, userId, defaultBranch, true, exception);
+        prepareRepositoryServiceGetAllCommitsThrows(platformId, userId, defaultBranch, true, name, exception);
 
         // When + Then
         assertThrows(BadRequestException.class,
-                     () -> sut.getCommitsByRepositoryId(authentication, platformId, defaultBranch, true));
+                     () -> sut.getCommitsByRepositoryId(authentication, platformId, defaultBranch, true, name));
     }
 
     @ParameterizedTest
@@ -478,15 +480,16 @@ class RepositoryEndpointTest {
         // Given
         long platformId = Randoms.getLong();
         long userId = Randoms.getLong();
+        String name = Randoms.alpha();
 
         Authentication authentication = mock(Authentication.class);
 
         mockUserId(userId, authentication);
-        prepareRepositoryServiceGetAllCommitsThrows(platformId, userId, defaultBranch, false, exception);
+        prepareRepositoryServiceGetAllCommitsThrows(platformId, userId, defaultBranch, false, name, exception);
 
         // When + Then
         assertThrows(BadRequestException.class,
-                     () -> sut.getCommitsByRepositoryId(authentication, platformId, defaultBranch, false));
+                     () -> sut.getCommitsByRepositoryId(authentication, platformId, defaultBranch, false, name));
     }
 
     @ParameterizedTest
@@ -497,16 +500,21 @@ class RepositoryEndpointTest {
         // Given
         long userId = Randoms.getLong();
         long platformId = Randoms.getLong();
+        String name = Randoms.alpha();
 
         Authentication authentication = mock(Authentication.class);
 
         mockUserId(userId, authentication);
         prepareRepositoryServiceGetAllCommitsThrows(platformId, userId, defaultBranch,
-                                                    mappedByAssignment, NoProviderFoundException.class);
+                                                    mappedByAssignment, name, NoProviderFoundException.class);
 
         // When + Then
         assertThrows(InternalServerErrorException.class,
-                     () -> sut.getCommitsByRepositoryId(authentication, platformId, defaultBranch, mappedByAssignment));
+                     () -> sut.getCommitsByRepositoryId(authentication,
+                                                        platformId,
+                                                        defaultBranch,
+                                                        mappedByAssignment,
+                                                        name));
     }
 
     @Test
@@ -934,19 +942,18 @@ class RepositoryEndpointTest {
     }
 
     private void prepareRepositoryGetAllCommits(long platformId, long userId, String branch,
-                                                boolean mappedByAssignments, List<CommitAggregatedInternalDTO> output)
+                                                boolean mappedByAssignments, String name,
+                                                List<CommitAggregatedInternalDTO> output)
         throws GitException, NoProviderFoundException {
-        when(repositoryService.getCommits(userId, platformId, branch, mappedByAssignments)).thenReturn(output);
+        when(repositoryService.getCommits(userId, platformId, branch, mappedByAssignments, name)).thenReturn(output);
     }
 
     private void prepareRepositoryServiceGetAllCommitsThrows(long platformId, long userId, String branch,
-                                                             boolean mappedByAssignments,
+                                                             boolean mappedByAssignments, String name,
                                                              Class<? extends Exception> exceptionClass)
         throws GitException, NoProviderFoundException {
-        when(repositoryService.getCommits(userId,
-                                          platformId,
-                                          branch,
-                                          mappedByAssignments)).thenThrow(exceptionClass);
+        when(repositoryService.getCommits(userId, platformId, branch, mappedByAssignments, name))
+            .thenThrow(exceptionClass);
     }
 
     private void prepareGetStatsThrows(long platformId, long userId, String branch, boolean mapByAssignments,

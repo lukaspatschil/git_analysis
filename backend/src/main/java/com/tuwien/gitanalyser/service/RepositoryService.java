@@ -24,6 +24,6 @@ public interface RepositoryService {
         throws GitException, NoProviderFoundException;
 
     List<CommitAggregatedInternalDTO> getCommits(long userId, Long platformId, String branch,
-                                                 Boolean mappedByAssignments)
+                                                 Boolean mappedByAssignments, String name)
         throws GitException, NoProviderFoundException;
 }

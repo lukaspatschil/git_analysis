@@ -173,13 +173,15 @@ public class RepositoryEndpoint extends BaseEndpoint {
         final @PathVariable Long platformId,
         final @RequestParam(name = "branch", required = false) String branch,
         final @RequestParam(name = "mappedByAssignments", required = false,
-            defaultValue = "false") Boolean mappedByAssignments)
+            defaultValue = "false") Boolean mappedByAssignments,
+        final @RequestParam(name = "committerName", required = false) String name)
         throws BadRequestException, InternalServerErrorException {
         LOGGER.info("GET /repository/{id}/commits - get repository by platform id {} and branch {}",
                     platformId, branch);
         List<CommitAggregatedInternalDTO> commits;
         try {
-            commits = repositoryService.getCommits(getUserId(authentication), platformId, branch, mappedByAssignments);
+            commits = repositoryService.getCommits(getUserId(authentication),
+                                                   platformId, branch, mappedByAssignments, name);
         } catch (NoProviderFoundException e) {
             throw new InternalServerErrorException();
         } catch (GitException e) {
