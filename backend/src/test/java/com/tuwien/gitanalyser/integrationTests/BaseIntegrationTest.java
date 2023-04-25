@@ -262,6 +262,14 @@ public abstract class BaseIntegrationTest {
                           .then().extract().response();
     }
 
+    protected Response callGetRestEndpoint(String authorizationToken, String url, Map<String, String> queryParams) {
+        return RestAssured.given().log().all()
+                          .contentType(ContentType.JSON)
+                          .header(HttpHeaders.AUTHORIZATION, authorizationToken)
+                          .when().queryParams(queryParams).get(url)
+                          .then().extract().response();
+    }
+
     protected Response callDeleteRestEndpoint(String authorizationToken, String url) {
         return RestAssured.given().log().all()
                           .contentType(ContentType.JSON)

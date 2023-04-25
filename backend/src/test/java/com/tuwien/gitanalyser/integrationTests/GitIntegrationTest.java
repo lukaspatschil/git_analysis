@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static com.github.npathai.hamcrestopt.OptionalMatchers.isEmpty;
@@ -190,7 +191,6 @@ public class GitIntegrationTest extends BaseIntegrationTest {
         ));
     }
 
-
     // TODO: positive test case for github
     @Test
     public void queryAllBranches_userGitHubUserExists_shouldSend200() throws IOException {
@@ -301,12 +301,13 @@ public class GitIntegrationTest extends BaseIntegrationTest {
 
         // When
         callGetRestEndpoint(gitLabUserToken,
-                            REPOSITORY_ENDPOINT + "/" + repositoryId + "/" + COMMITTER_ENDPOINT_EXTENSION
-                                + "?branch=" + branch);
+                            REPOSITORY_ENDPOINT + "/" + repositoryId + "/" + COMMITTER_ENDPOINT_EXTENSION,
+                            Map.of("branch", branch));
 
         // Then
         verify(gitLabApi).getCommitsApi();
     }
+
     @Test
     public void queryAllCommitter_gitLabUserAndOneCommitAvailable_shouldReturnCommitter() throws GitLabApiException {
         // Given
@@ -324,7 +325,7 @@ public class GitIntegrationTest extends BaseIntegrationTest {
         // When
         Response response = callGetRestEndpoint(gitLabUserToken,
                                                 REPOSITORY_ENDPOINT + "/" + repositoryId + "/"
-                                                    + COMMITTER_ENDPOINT_EXTENSION + "?branch=" + branch);
+                                                    + COMMITTER_ENDPOINT_EXTENSION, Map.of("branch", branch));
 
         // Then
         assertThat(response.as(CommitterDTO[].class).length, equalTo(1));
@@ -353,7 +354,7 @@ public class GitIntegrationTest extends BaseIntegrationTest {
         // When
         Response response = callGetRestEndpoint(gitLabUserToken,
                                                 REPOSITORY_ENDPOINT + "/" + repositoryId + "/"
-                                                    + COMMITTER_ENDPOINT_EXTENSION + "?branch=" + branch);
+                                                    + COMMITTER_ENDPOINT_EXTENSION, Map.of("branch", branch));
 
         // Then
         assertThat(response.as(CommitterDTO[].class).length, equalTo(2));
@@ -381,7 +382,7 @@ public class GitIntegrationTest extends BaseIntegrationTest {
         // When
         Response response = callGetRestEndpoint(gitLabUserToken,
                                                 REPOSITORY_ENDPOINT + "/" + repositoryId + "/"
-                                                    + COMMITTER_ENDPOINT_EXTENSION + "?branch=" + branch);
+                                                    + COMMITTER_ENDPOINT_EXTENSION, Map.of("branch", branch));
 
         // Then
         assertThat(response.as(CommitterDTO[].class).length, equalTo(1));
@@ -403,8 +404,8 @@ public class GitIntegrationTest extends BaseIntegrationTest {
 
         // When
         callGetRestEndpoint(gitHubUserToken,
-                            REPOSITORY_ENDPOINT + "/" + repositoryId + "/" + COMMITTER_ENDPOINT_EXTENSION
-                                + "?branch=" + branch);
+                            REPOSITORY_ENDPOINT + "/" + repositoryId + "/" + COMMITTER_ENDPOINT_EXTENSION,
+                            Map.of("branch", branch));
 
         // Then
         verify(gitHubApi).getRepositoryById(repositoryId);
@@ -424,7 +425,7 @@ public class GitIntegrationTest extends BaseIntegrationTest {
         // When
         Response response = callGetRestEndpoint(gitHubUserToken,
                                                 REPOSITORY_ENDPOINT + "/" + repositoryId + "/"
-                                                    + COMMITTER_ENDPOINT_EXTENSION + "?branch=" + branch);
+                                                    + COMMITTER_ENDPOINT_EXTENSION, Map.of("branch", branch));
 
         // Then
         assertThat(response.as(CommitterDTO[].class).length, equalTo(0));

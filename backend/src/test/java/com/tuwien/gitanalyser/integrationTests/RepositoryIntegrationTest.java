@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -51,8 +52,8 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         // When
         Response response = callGetRestEndpoint(gitLabUserToken,
                                                 REPOSITORY_ENDPOINT + "/" + repositoryId + "/"
-                                                    + STATS_ENDPOINT_EXTENSION
-                                                    + "?branch=" + branch);
+                                                    + STATS_ENDPOINT_EXTENSION,
+                                                Map.of("branch", branch));
 
         // Then
         assertThat(response.as(StatsDTO[].class).length, equalTo(1));
@@ -80,8 +81,8 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         // When
         Response response = callGetRestEndpoint(gitLabUserToken,
                                                 REPOSITORY_ENDPOINT + "/" + repositoryId + "/"
-                                                    + STATS_ENDPOINT_EXTENSION
-                                                    + "?branch=" + branch);
+                                                    + STATS_ENDPOINT_EXTENSION,
+                                                Map.of("branch", branch));
 
         // Then
         assertThat(response.as(StatsDTO[].class).length, equalTo(2));
@@ -111,8 +112,8 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         // When
         Response response = callGetRestEndpoint(gitLabUserToken,
                                                 REPOSITORY_ENDPOINT + "/" + repositoryId + "/"
-                                                    + STATS_ENDPOINT_EXTENSION
-                                                    + "?branch=" + branch);
+                                                    + STATS_ENDPOINT_EXTENSION,
+                                                Map.of("branch", branch));
 
         // Then
         assertThat(response.as(StatsDTO[].class).length, equalTo(1));
@@ -140,8 +141,8 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         // When
         Response response = callGetRestEndpoint(gitLabUserToken,
                                                 REPOSITORY_ENDPOINT + "/" + repositoryId + "/"
-                                                    + STATS_ENDPOINT_EXTENSION
-                                                    + "?branch=" + branch + "&mappedByAssignments=true");
+                                                    + STATS_ENDPOINT_EXTENSION,
+                                                Map.of("branch", branch, "mappedByAssignments", "true"));
 
         // Then
         assertThat(response.as(StatsDTO[].class).length, equalTo(1));
@@ -170,8 +171,8 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         // When
         Response response = callGetRestEndpoint(gitLabUserToken,
                                                 REPOSITORY_ENDPOINT + "/" + repositoryId + "/"
-                                                    + STATS_ENDPOINT_EXTENSION
-                                                    + "?branch=" + branch + "&mappedByAssignments=true");
+                                                    + STATS_ENDPOINT_EXTENSION,
+                                                Map.of("branch", branch, "mappedByAssignments", "true"));
 
         // Then
         assertThat(response.as(StatsDTO[].class).length, equalTo(2));
@@ -201,8 +202,8 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         // When
         Response response = callGetRestEndpoint(gitLabUserToken,
                                                 REPOSITORY_ENDPOINT + "/" + repositoryId + "/"
-                                                    + STATS_ENDPOINT_EXTENSION
-                                                    + "?branch=" + branch);
+                                                    + STATS_ENDPOINT_EXTENSION,
+                                                Map.of("branch", branch));
 
         // Then
         assertThat(response.as(StatsDTO[].class).length, equalTo(1));
@@ -235,8 +236,8 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         // When
         Response response = callGetRestEndpoint(gitLabUserToken,
                                                 REPOSITORY_ENDPOINT + "/" + repositoryId + "/"
-                                                    + STATS_ENDPOINT_EXTENSION
-                                                    + "?branch=" + branch + "&mappedByAssignments=true");
+                                                    + STATS_ENDPOINT_EXTENSION,
+                                                Map.of("branch", branch, "mappedByAssignments", "true"));
 
         // Then
         assertThat(response.as(StatsDTO[].class).length, equalTo(1));
@@ -271,8 +272,8 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         // When
         Response response = callGetRestEndpoint(gitLabUserToken,
                                                 REPOSITORY_ENDPOINT + "/" + repositoryId + "/"
-                                                    + STATS_ENDPOINT_EXTENSION
-                                                    + "?branch=" + branch + "&mappedByAssignments=true");
+                                                    + STATS_ENDPOINT_EXTENSION,
+                                                Map.of("branch", branch, "mappedByAssignments", "true"));
 
         // Then
         assertThat(response.as(StatsDTO[].class).length, equalTo(1));
@@ -298,8 +299,8 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
 
         // When
         callGetRestEndpoint(gitLabUserToken,
-                            REPOSITORY_ENDPOINT + "/" + repositoryId + "/" + COMMITS_ENDPOINT_EXTENSION
-                                + "?branch=" + branch);
+                            REPOSITORY_ENDPOINT + "/" + repositoryId + "/" + COMMITS_ENDPOINT_EXTENSION,
+                            Map.of("branch", branch));
 
         // Then
         verify(gitLabApi).getCommitsApi();
@@ -322,8 +323,8 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         // When
         Response response = callGetRestEndpoint(gitLabUserToken,
                                                 REPOSITORY_ENDPOINT + "/" + repositoryId + "/"
-                                                    + COMMITS_ENDPOINT_EXTENSION
-                                                    + "?branch=" + branch);
+                                                    + COMMITS_ENDPOINT_EXTENSION,
+                                                Map.of("branch", branch));
 
         // Then
         assertThat(response.as(CommitDTO[].class).length, equalTo(1));
@@ -353,8 +354,8 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         // When
         Response response = callGetRestEndpoint(gitLabUserToken,
                                                 REPOSITORY_ENDPOINT + "/" + repositoryId + "/"
-                                                    + COMMITS_ENDPOINT_EXTENSION
-                                                    + "?branch=" + branch);
+                                                    + COMMITS_ENDPOINT_EXTENSION,
+                                                Map.of("branch", branch));
 
         // Then
         assertThat(response.as(CommitDTO[].class).length, equalTo(2));
@@ -379,8 +380,8 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
 
         // When
         callGetRestEndpoint(gitHubUserToken,
-                            REPOSITORY_ENDPOINT + "/" + repositoryId + "/" + COMMITS_ENDPOINT_EXTENSION
-                                + "?branch=" + branch);
+                            REPOSITORY_ENDPOINT + "/" + repositoryId + "/" + COMMITS_ENDPOINT_EXTENSION,
+                            Map.of("branch", branch));
 
         // Then
         verify(gitHubApi).getRepositoryById(repositoryId);
@@ -400,8 +401,8 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         // When
         Response response = callGetRestEndpoint(gitHubUserToken,
                                                 REPOSITORY_ENDPOINT + "/" + repositoryId + "/"
-                                                    + COMMITS_ENDPOINT_EXTENSION
-                                                    + "?branch=" + branch);
+                                                    + COMMITS_ENDPOINT_EXTENSION,
+                                                Map.of("branch", branch));
 
         // Then
         assertThat(response.as(CommitDTO[].class).length, equalTo(0));
@@ -427,8 +428,9 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
 
         // When
         callGetRestEndpoint(gitLabUserToken,
-                            REPOSITORY_ENDPOINT + "/" + repositoryId + "/" + COMMITS_ENDPOINT_EXTENSION
-                                + "?branch=" + branch + "&mappedByAssignments=true");
+                            REPOSITORY_ENDPOINT + "/" + repositoryId + "/" + COMMITS_ENDPOINT_EXTENSION,
+                            Map.of("branch", branch,
+                                   "mappedByAssignments", "true"));
 
         // Then
         verify(gitLabApi).getCommitsApi();
@@ -456,8 +458,10 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         // When
         Response response = callGetRestEndpoint(gitLabUserToken,
                                                 REPOSITORY_ENDPOINT + "/" + repositoryId + "/"
-                                                    + COMMITS_ENDPOINT_EXTENSION
-                                                    + "?branch=" + branch + "&mappedByAssignments=true");
+                                                    + COMMITS_ENDPOINT_EXTENSION,
+                                                Map.of(
+                                                    "branch", branch,
+                                                    "mappedByAssignments", "true"));
 
         // Then
         assertThat(response.as(CommitDTO[].class).length, equalTo(1));
@@ -493,8 +497,9 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         // When
         Response response = callGetRestEndpoint(gitLabUserToken,
                                                 REPOSITORY_ENDPOINT + "/" + repositoryId + "/"
-                                                    + COMMITS_ENDPOINT_EXTENSION
-                                                    + "?branch=" + branch + "&mappedByAssignments=true");
+                                                    + COMMITS_ENDPOINT_EXTENSION,
+                                                Map.of("branch", branch,
+                                                       "mappedByAssignments", "true"));
 
         // Then
         assertThat(response.as(CommitDTO[].class).length, equalTo(2));
@@ -523,8 +528,9 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
 
         // When
         callGetRestEndpoint(gitHubUserToken,
-                            REPOSITORY_ENDPOINT + "/" + repositoryId + "/" + COMMITS_ENDPOINT_EXTENSION
-                                + "?branch=" + branch + "&mappedByAssignments=true");
+                            REPOSITORY_ENDPOINT + "/" + repositoryId + "/" + COMMITS_ENDPOINT_EXTENSION,
+                            Map.of("branch", branch,
+                                   "mappedByAssignments", "true"));
 
         // Then
         verify(gitHubApi).getRepositoryById(repositoryId);
@@ -544,8 +550,338 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         // When
         Response response = callGetRestEndpoint(gitHubUserToken,
                                                 REPOSITORY_ENDPOINT + "/" + repositoryId + "/"
-                                                    + COMMITS_ENDPOINT_EXTENSION
-                                                    + "?branch=" + branch + "&mappedByAssignments=true");
+                                                    + COMMITS_ENDPOINT_EXTENSION,
+                                                Map.of("branch", branch,
+                                                       "mappedByAssignments", "true"));
+
+        // Then
+        assertThat(response.as(CommitDTO[].class).length, equalTo(0));
+    }
+
+    @Test
+    public void queryAllCommits_gitLabUserAndCommitterNameGiven_shouldCallGitLabService() throws GitLabApiException {
+        // Given
+        long repositoryId = Randoms.getLong();
+        String branch = Randoms.alpha();
+        String committerName = Randoms.alpha();
+
+        GitLabApi gitLabApi = gitLabMockFactory();
+        CommitsApi commitsApi = gitLabMockCommitsApi(gitLabApi);
+
+        Commit commit = mockGitLabCommit();
+
+        gitLabMockGetCommits(commitsApi, repositoryId, branch, commit);
+
+        // When
+        callGetRestEndpoint(gitLabUserToken,
+                            REPOSITORY_ENDPOINT + "/" + repositoryId + "/" + COMMITS_ENDPOINT_EXTENSION,
+                            Map.of("branch", branch,
+                                   "committerName", committerName));
+
+        // Then
+        verify(gitLabApi).getCommitsApi();
+    }
+
+    @Test
+    public void queryAllCommits_gitLabUserAndOneCommitAvailableAndCommitterNameEqualsAuthorName_shouldReturnCommit()
+        throws GitLabApiException {
+        // Given
+        long repositoryId = Randoms.getLong();
+        String branch = Randoms.alpha();
+
+        GitLabApi gitLabApi = gitLabMockFactory();
+        CommitsApi commitsApi = gitLabMockCommitsApi(gitLabApi);
+
+        Commit commit = mockGitLabCommit();
+        CommitDTO commitDTO = mockCommitDTO(commit);
+
+        gitLabMockGetCommits(commitsApi, repositoryId, branch, commit);
+
+        // When
+        Response response = callGetRestEndpoint(gitLabUserToken,
+                                                REPOSITORY_ENDPOINT + "/" + repositoryId + "/"
+                                                    + COMMITS_ENDPOINT_EXTENSION,
+                                                Map.of("branch", branch,
+                                                       "committerName", commit.getAuthorName()));
+
+        // Then
+        assertThat(response.as(CommitDTO[].class).length, equalTo(1));
+        CommitDTO[] commits = response.as(CommitDTO[].class);
+
+        assertThat(Arrays.asList(commits), containsInAnyOrder(
+            CommitDTOMatcher(commitDTO)
+        ));
+    }
+
+    @Test
+    public void queryAllCommits_gitLabUserAndTwoCommitsAvailableAndCommitterNameEqualToFirstCommitAuthor_shouldReturnOneCommit()
+        throws GitLabApiException {
+        // Given
+        long repositoryId = Randoms.getLong();
+        String branch = Randoms.alpha();
+
+        GitLabApi gitLabApi = gitLabMockFactory();
+        CommitsApi commitsApi = gitLabMockCommitsApi(gitLabApi);
+
+        Commit commit1 = mockGitLabCommit();
+        CommitDTO commitDTO1 = mockCommitDTO(commit1);
+        Commit commit2 = mockGitLabCommit();
+
+        gitLabMockGetCommits(commitsApi, repositoryId, branch, commit1, commit2);
+
+        // When
+        Response response = callGetRestEndpoint(gitLabUserToken,
+                                                REPOSITORY_ENDPOINT + "/" + repositoryId + "/"
+                                                    + COMMITS_ENDPOINT_EXTENSION,
+                                                Map.of("branch", branch,
+                                                       "committerName", commit1.getAuthorName()));
+
+        // Then
+        assertThat(response.as(CommitDTO[].class).length, equalTo(1));
+        CommitDTO[] commits = response.as(CommitDTO[].class);
+
+        assertThat(Arrays.asList(commits),
+                   containsInAnyOrder(commitDTOMatcher(commitDTO1,
+                                                       commitDTO1.getAdditions() - commitDTO1.getDeletions())));
+    }
+
+    @Test
+    public void queryAllCommits_gitLabUserAndTwoCommitsAvailableAndCommitterNameGiven_shouldReturnTwoCommit()
+        throws GitLabApiException {
+        // Given
+        long repositoryId = Randoms.getLong();
+        String branch = Randoms.alpha();
+        String committerName = Randoms.alpha();
+
+        GitLabApi gitLabApi = gitLabMockFactory();
+        CommitsApi commitsApi = gitLabMockCommitsApi(gitLabApi);
+
+        Commit commit1 = mockGitLabCommit(committerName);
+        CommitDTO commitDTO1 = mockCommitDTO(commit1);
+        Commit commit2 = mockGitLabCommit(committerName);
+        CommitDTO commitDTO2 = mockCommitDTO(commit2);
+
+        gitLabMockGetCommits(commitsApi, repositoryId, branch, commit1, commit2);
+
+        // When
+        Response response = callGetRestEndpoint(gitLabUserToken,
+                                                REPOSITORY_ENDPOINT + "/" + repositoryId + "/"
+                                                    + COMMITS_ENDPOINT_EXTENSION,
+                                                Map.of("branch", branch,
+                                                       "committerName", committerName));
+
+        // Then
+        assertThat(response.as(CommitDTO[].class).length, equalTo(2));
+        CommitDTO[] commits = response.as(CommitDTO[].class);
+
+        assertThat(Arrays.asList(commits),
+                   containsInAnyOrder(commitDTOMatcher(commitDTO1,
+                                                       commitDTO1.getAdditions() - commitDTO1.getDeletions()),
+                                      commitDTOMatcher(commitDTO2,
+                                                       commitDTO1.getAdditions() - commitDTO1.getDeletions()
+                                                           + commitDTO2.getAdditions() - commitDTO2.getDeletions())
+                   ));
+    }
+
+    @Test
+    public void queryAllCommits_gitHubUserAndCommitterNameGiven_shouldCallGitHubService() throws IOException {
+        // Given
+        long repositoryId = Randoms.getLong();
+        String branch = Randoms.alpha();
+        String committerName = Randoms.alpha();
+
+        GitHub gitHubApi = gitHubMockFactory();
+        gitHubMockGHRepository(gitHubApi, repositoryId);
+
+        // When
+        callGetRestEndpoint(gitHubUserToken,
+                            REPOSITORY_ENDPOINT + "/" + repositoryId + "/" + COMMITS_ENDPOINT_EXTENSION,
+                            Map.of("branch", branch,
+                                   "committerName", committerName));
+
+        // Then
+        verify(gitHubApi).getRepositoryById(repositoryId);
+    }
+
+    @Test
+    public void queryAllCommits_gitHubUserNoCommitExistsAndCommitterNameGiven_shouldReturnEmptyList()
+        throws IOException {
+        // Given
+        long repositoryId = Randoms.getLong();
+        String branch = Randoms.alpha();
+        String committerName = Randoms.alpha();
+
+        GitHub gitHubApi = gitHubMockFactory();
+        GHRepository ghRepository = gitHubMockGHRepository(gitHubApi, repositoryId);
+
+        mockQueryCommits(branch, ghRepository);
+
+        // When
+        Response response = callGetRestEndpoint(gitHubUserToken,
+                                                REPOSITORY_ENDPOINT + "/" + repositoryId + "/"
+                                                    + COMMITS_ENDPOINT_EXTENSION,
+                                                Map.of("branch", branch,
+                                                       "committerName", committerName));
+
+        // Then
+        assertThat(response.as(CommitDTO[].class).length, equalTo(0));
+    }
+
+    @Test
+    public void queryAllCommits_gitLabUserAndShouldBeMappedAndCommitterNameGiven_shouldCallGitLabService()
+        throws GitLabApiException {
+        // Given
+        long repositoryId = Randoms.getLong();
+        String branch = Randoms.alpha();
+        String key = Randoms.alpha();
+        String committerName = Randoms.alpha();
+
+        Repository repository = addRepository(gitLabUser, repositoryId);
+        Assignment assignment = addAssignment(key, repository);
+        SubAssignment subAssignment = addSubAssignment(assignment);
+
+        GitLabApi gitLabApi = gitLabMockFactory();
+        CommitsApi commitsApi = gitLabMockCommitsApi(gitLabApi);
+
+        Commit commit = mockGitLabCommit(subAssignment.getAssignedName());
+
+        gitLabMockGetCommits(commitsApi, repositoryId, branch, commit);
+
+        // When
+        callGetRestEndpoint(gitLabUserToken,
+                            REPOSITORY_ENDPOINT + "/" + repositoryId + "/" + COMMITS_ENDPOINT_EXTENSION,
+                            Map.of("branch", branch,
+                                   "mappedByAssignments", "true",
+                                   "committerName", committerName));
+
+        // Then
+        verify(gitLabApi).getCommitsApi();
+    }
+
+    @Test
+    public void queryAllCommits_gitLabUserAndOneCommitAvailableAndShouldBeMappedAndCommitterNameGiven_shouldReturnCommit()
+        throws GitLabApiException {
+        // Given
+        long repositoryId = Randoms.getLong();
+        String branch = Randoms.alpha();
+        String key = Randoms.alpha();
+
+        Repository repository = addRepository(gitLabUser, repositoryId);
+        Assignment assignment = addAssignment(key, repository);
+        SubAssignment subAssignment = addSubAssignment(assignment);
+
+        Commit commit = mockGitLabCommit(subAssignment.getAssignedName());
+        CommitDTO commitDTO = mockCommitDTO(key, commit);
+
+        GitLabApi gitLabApi = gitLabMockFactory();
+        CommitsApi commitsApi = gitLabMockCommitsApi(gitLabApi);
+
+        gitLabMockGetCommits(commitsApi, repositoryId, branch, commit);
+        // When
+        Response response = callGetRestEndpoint(gitLabUserToken,
+                                                REPOSITORY_ENDPOINT + "/" + repositoryId + "/"
+                                                    + COMMITS_ENDPOINT_EXTENSION,
+                                                Map.of("branch", branch,
+                                                       "mappedByAssignments", "true",
+                                                       "committerName", key));
+
+        // Then
+        assertThat(response.as(CommitDTO[].class).length, equalTo(1));
+        CommitDTO[] commits = response.as(CommitDTO[].class);
+
+        assertThat(Arrays.asList(commits), containsInAnyOrder(
+            CommitDTOMatcher(commitDTO)
+        ));
+    }
+
+    @Test
+    public void queryAllCommits_gitLabUserAndTwoCommitsAvailableAndShouldBeMappedAndCommitterNameGiven_shouldReturnCommits()
+        throws GitLabApiException {
+        // Given
+        long repositoryId = Randoms.getLong();
+        String branch = Randoms.alpha();
+        String key = Randoms.alpha();
+
+        Repository repository = addRepository(gitLabUser, repositoryId);
+        Assignment assignment = addAssignment(key, repository);
+        SubAssignment subAssignment = addSubAssignment(assignment);
+
+        GitLabApi gitLabApi = gitLabMockFactory();
+        CommitsApi commitsApi = gitLabMockCommitsApi(gitLabApi);
+
+        Commit commit1 = mockGitLabCommit(subAssignment.getAssignedName());
+        CommitDTO commitDTO1 = mockCommitDTO(key, commit1);
+        Commit commit2 = mockGitLabCommit(subAssignment.getAssignedName());
+        CommitDTO commitDTO2 = mockCommitDTO(key, commit2);
+
+        gitLabMockGetCommits(commitsApi, repositoryId, branch, commit1, commit2);
+
+        // When
+        Response response = callGetRestEndpoint(gitLabUserToken,
+                                                REPOSITORY_ENDPOINT + "/" + repositoryId + "/"
+                                                    + COMMITS_ENDPOINT_EXTENSION,
+                                                Map.of("branch", branch,
+                                                       "mappedByAssignments", "true",
+                                                       "committerName", key));
+
+        // Then
+        assertThat(response.as(CommitDTO[].class).length, equalTo(2));
+        CommitDTO[] commits = response.as(CommitDTO[].class);
+
+        assertThat(Arrays.asList(commits), containsInAnyOrder(
+                       commitDTOMatcher(commitDTO1),
+                       commitDTOMatcher(commitDTO2)
+                   )
+        );
+    }
+
+    @Test
+    public void queryAllCommits_gitHubUserAndShouldBeMappedAndCommitterNameGiven_shouldCallGitHubService()
+        throws IOException {
+        // Given
+        long repositoryId = Randoms.getLong();
+        String branch = Randoms.alpha();
+        String key = Randoms.alpha();
+        String committerName = Randoms.alpha();
+
+        Repository repository = addRepository(gitLabUser, repositoryId);
+        Assignment assignment = addAssignment(key, repository);
+        addSubAssignment(assignment);
+
+        GitHub gitHubApi = gitHubMockFactory();
+        gitHubMockGHRepository(gitHubApi, repositoryId);
+
+        // When
+        callGetRestEndpoint(gitHubUserToken,
+                            REPOSITORY_ENDPOINT + "/" + repositoryId + "/" + COMMITS_ENDPOINT_EXTENSION,
+                            Map.of("branch", branch,
+                                   "mappedByAssignments", "true",
+                                   "committerName", committerName));
+
+        // Then
+        verify(gitHubApi).getRepositoryById(repositoryId);
+    }
+
+    @Test
+    public void queryAllCommits_gitHubUserNoCommitExistsAndShouldBeMappedAndCommitterNameGiven_shouldReturnEmptyList()
+        throws IOException {
+        // Given
+        long repositoryId = Randoms.getLong();
+        String branch = Randoms.alpha();
+        String committerName = Randoms.alpha();
+
+        GitHub gitHubApi = gitHubMockFactory();
+        GHRepository ghRepository = gitHubMockGHRepository(gitHubApi, repositoryId);
+
+        mockQueryCommits(branch, ghRepository);
+
+        // When
+        Response response = callGetRestEndpoint(gitHubUserToken,
+                                                REPOSITORY_ENDPOINT + "/" + repositoryId + "/"
+                                                    + COMMITS_ENDPOINT_EXTENSION,
+                                                Map.of("branch", branch,
+                                                       "mappedByAssignments", "true",
+                                                       "committerName", committerName));
 
         // Then
         assertThat(response.as(CommitDTO[].class).length, equalTo(0));

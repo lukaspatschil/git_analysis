@@ -528,7 +528,7 @@ class RepositoryServiceImplTest {
         prepareGitServiceGetCommits(platformId, user, branch, List.of(commit1, commit2));
 
         // When
-        List<CommitAggregatedInternalDTO> result = sut.getCommits(user.getId(), platformId, branch, false);
+        List<CommitAggregatedInternalDTO> result = sut.getCommits(user.getId(), platformId, branch, false, null);
 
         // Then
         assertThat(result, containsInAnyOrder(commitAggreagteDTOMatcher(commit1), commitAggreagteDTOMatcher(commit2)));
@@ -541,7 +541,7 @@ class RepositoryServiceImplTest {
         long platformId = Randoms.getLong();
         String branch = Randoms.alpha();
         String assignedName = Randoms.alpha();
-        String key = Randoms.alpha();
+        String key = "Fred";
 
         User user = prepareUserService();
 
@@ -554,7 +554,7 @@ class RepositoryServiceImplTest {
         prepareGitServiceGetCommits(platformId, user, branch, List.of(commit));
 
         // When
-        List<CommitAggregatedInternalDTO> result = sut.getCommits(user.getId(), platformId, branch, true);
+        List<CommitAggregatedInternalDTO> result = sut.getCommits(user.getId(), platformId, branch, true, null);
 
         // Then
         assertThat(result, containsInAnyOrder(commitAggreagteDTOMatcher(resultCommit)));
@@ -583,7 +583,7 @@ class RepositoryServiceImplTest {
         prepareGitServiceGetCommits(platformId, user, branch, List.of(commit1, commit2));
 
         // When
-        List<CommitAggregatedInternalDTO> result = sut.getCommits(user.getId(), platformId, branch, true);
+        List<CommitAggregatedInternalDTO> result = sut.getCommits(user.getId(), platformId, branch, true, null);
 
         // Then
         assertThat(result, containsInAnyOrder(commitAggreagteDTOMatcher(resultCommit1),
@@ -615,7 +615,7 @@ class RepositoryServiceImplTest {
         prepareGitServiceGetCommits(platformId, user, branch, List.of(commit1, commit2, commit3));
 
         // When
-        List<CommitAggregatedInternalDTO> result = sut.getCommits(user.getId(), platformId, branch, true);
+        List<CommitAggregatedInternalDTO> result = sut.getCommits(user.getId(), platformId, branch, true, null);
 
         // Then
         assertThat(result, containsInAnyOrder(

@@ -173,12 +173,28 @@ public class RepositoryServiceImpl implements RepositoryService {
 
     @Override
     public List<CommitAggregatedInternalDTO> getCommits(final long userId, final Long platformId, final String branch,
-                                                        final Boolean mappedByAssignments)
+                                                        final Boolean mappedByAssignments, final String name)
         throws GitException, NoProviderFoundException {
         LOGGER.info("getAllCommits with userId {} and platformId {} and branch {} and mappedByAssignments {}",
                     userId, platformId, branch, mappedByAssignments);
 
         List<CommitInternalDTO> internalCommits = gitService.getAllCommits(userId, platformId, branch);
+
+        if (mappedByAssignments) {
+            try {
+                List<Assignment> assignments = getAssignments(userId, platformId);
+                mapCommitsByAssignments(internalCommits, assignments);
+            } catch (NotFoundException e) {
+                LOGGER.info("getAllCommits finished with empty repository "
+                                + "for platformId {}", platformId);
+            }
+        }
+
+        if (name != null) {
+            internalCommits = internalCommits.stream()
+                                       .filter(commit -> commit.getAuthor().equals(name))
+                                       .collect(Collectors.toList());
+        }
 
         List<CommitAggregatedInternalDTO> resultCommit = new ArrayList<>();
 
@@ -186,22 +202,11 @@ public class RepositoryServiceImpl implements RepositoryService {
         for (CommitInternalDTO commit : internalCommits) {
             overallLineOfCode = overallLineOfCode + commit.getAdditions() - commit.getDeletions();
             var aggregatedCommit = new CommitAggregatedInternalDTO(commit.getId(), commit.getMessage(),
-                                                               commit.getAuthor(), commit.getTimestamp(),
-                                                               commit.getParentIds(), commit.isMergeCommit(),
-                                                               commit.getAdditions(), commit.getDeletions(),
-                                                               overallLineOfCode);
+                                                                   commit.getAuthor(), commit.getTimestamp(),
+                                                                   commit.getParentIds(), commit.isMergeCommit(),
+                                                                   commit.getAdditions(), commit.getDeletions(),
+                                                                   overallLineOfCode);
             resultCommit.add(aggregatedCommit);
-        }
-
-        if (mappedByAssignments) {
-            try {
-                List<Assignment> assignments = getAssignments(userId, platformId);
-                resultCommit = mapCommitsByAssignments(resultCommit, assignments);
-            } catch (NotFoundException e) {
-                LOGGER.info("getAllCommits finished with empty repository "
-                                + "for platformId "
-                                + "{}", platformId);
-            }
         }
 
         return resultCommit;
@@ -245,9 +250,9 @@ public class RepositoryServiceImpl implements RepositoryService {
 
     }
 
-    private List<CommitAggregatedInternalDTO> mapCommitsByAssignments(final List<CommitAggregatedInternalDTO> commits,
-                                                            final List<Assignment> assignments) {
-        for (CommitAggregatedInternalDTO commit : commits) {
+    private void mapCommitsByAssignments(final List<CommitInternalDTO> commits,
+                                                                      final List<Assignment> assignments) {
+        for (CommitInternalDTO commit : commits) {
             for (Assignment assignment : assignments) {
 
                 String key = assignment.getKey();
@@ -259,7 +264,6 @@ public class RepositoryServiceImpl implements RepositoryService {
                 }
             }
         }
-        return commits;
     }
 
     private List<StatsInternalDTO> mapStatsByAssignments(final List<StatsInternalDTO> stats,
