@@ -3,6 +3,7 @@ package com.tuwien.gitanalyser.service.implementation;
 import com.tuwien.gitanalyser.endpoints.dtos.assignment.CreateAssignmentDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitAggregatedInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitInternalDTO;
+import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitterInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.StatsInternalDTO;
 import com.tuwien.gitanalyser.entity.Assignment;
 import com.tuwien.gitanalyser.entity.Repository;
@@ -24,9 +25,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -192,8 +195,8 @@ public class RepositoryServiceImpl implements RepositoryService {
 
         if (name != null) {
             internalCommits = internalCommits.stream()
-                                       .filter(commit -> commit.getAuthor().equals(name))
-                                       .collect(Collectors.toList());
+                                             .filter(commit -> commit.getAuthor().equals(name))
+                                             .collect(Collectors.toList());
         }
 
         List<CommitAggregatedInternalDTO> resultCommit = new ArrayList<>();
@@ -210,6 +213,25 @@ public class RepositoryServiceImpl implements RepositoryService {
         }
 
         return resultCommit;
+    }
+
+    @Override
+    public Set<CommitterInternalDTO> getCommitters(final long userId, final Long platformId, final String branch,
+                                                   final Boolean mappedByAssignments)
+        throws GitException, NoProviderFoundException {
+        LOGGER.info("getCommitters with userId {} and platformId {} and branch {} and mappedByAssignments {}",
+                    userId, platformId, branch, mappedByAssignments);
+
+        Set<CommitterInternalDTO> result;
+
+        List<CommitAggregatedInternalDTO> internalCommits = getCommits(userId, platformId, branch,
+                                                                       mappedByAssignments, null);
+
+        result = internalCommits.stream()
+                                .map(commit -> new CommitterInternalDTO(commit.getAuthor()))
+                                .collect(Collectors.toSet());
+
+        return result;
     }
 
     private void overwriteSubAssignment(final CreateAssignmentDTO dto,
@@ -250,8 +272,8 @@ public class RepositoryServiceImpl implements RepositoryService {
 
     }
 
-    private void mapCommitsByAssignments(final List<CommitInternalDTO> commits,
-                                                                      final List<Assignment> assignments) {
+    private void mapCommitsByAssignments(final Collection<CommitInternalDTO> commits,
+                                         final List<Assignment> assignments) {
         for (CommitInternalDTO commit : commits) {
             for (Assignment assignment : assignments) {
 

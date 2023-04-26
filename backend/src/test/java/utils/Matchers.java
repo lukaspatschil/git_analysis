@@ -10,6 +10,7 @@ import com.tuwien.gitanalyser.endpoints.dtos.assignment.SubAssignmentDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.BranchInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitAggregatedInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitInternalDTO;
+import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitterInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.StatsInternalDTO;
 import com.tuwien.gitanalyser.entity.SubAssignment;
 import org.gitlab4j.api.models.Branch;
@@ -144,6 +145,10 @@ public class Matchers {
         return hasFeature("name", CommitterDTO::getName, equalTo(committerDTO.getName()));
     }
 
+    public static Matcher<CommitterDTO> committerDTOMatcher(String name) {
+        return hasFeature("name", CommitterDTO::getName, equalTo(name));
+    }
+
     public static Matcher<StatsDTO> statsDTOMatcher(Commit... commits) {
         int additions = 0;
         int deletions = 0;
@@ -178,7 +183,11 @@ public class Matchers {
         );
     }
 
-    public static Matcher<BranchInternalDTO> BranchInternalDTOMatcher(Branch branchMock) {
+    public static Matcher<BranchInternalDTO> branchInternalDTOMatcher(Branch branchMock) {
         return hasFeature("name", BranchInternalDTO::getName, equalTo(branchMock.getName()));
+    }
+
+    public static Matcher<CommitterInternalDTO> committerInteralDTOMatcher(String author) {
+        return hasFeature("name", CommitterInternalDTO::getName, equalTo(author));
     }
 }
