@@ -27,7 +27,7 @@ import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static utils.Matchers.BranchInternalDTOMatcher;
+import static utils.Matchers.branchInternalDTOMatcher;
 
 class GitLabAPITest {
 
@@ -209,7 +209,7 @@ class GitLabAPITest {
 
         // Then
         assertThat(result, contains(
-            BranchInternalDTOMatcher(branchMock)
+            branchInternalDTOMatcher(branchMock)
         ));
     }
 
@@ -230,8 +230,8 @@ class GitLabAPITest {
 
         // Then
         assertThat(result, containsInAnyOrder(
-            BranchInternalDTOMatcher(branchMock1),
-            BranchInternalDTOMatcher(branchMock2)
+            branchInternalDTOMatcher(branchMock1),
+            branchInternalDTOMatcher(branchMock2)
         ));
     }
 
@@ -253,9 +253,9 @@ class GitLabAPITest {
 
         // Then
         assertThat(result, containsInAnyOrder(
-            BranchInternalDTOMatcher(branchMock1),
-            BranchInternalDTOMatcher(branchMock2),
-            BranchInternalDTOMatcher(branchMock3)
+            branchInternalDTOMatcher(branchMock1),
+            branchInternalDTOMatcher(branchMock2),
+            branchInternalDTOMatcher(branchMock3)
         ));
     }
 

@@ -202,13 +202,16 @@ public class RepositoryEndpoint extends BaseEndpoint {
     public List<CommitterDTO> getCommittersByRepositoryId(
         final Authentication authentication,
         final @PathVariable Long platformId,
-        final @RequestParam(name = "branch", required = false) String branch)
+        final @RequestParam(name = "branch", required = false) String branch,
+        final @RequestParam(name = "mappedByAssignments", required = false,
+            defaultValue = "false") Boolean mappedByAssignments)
         throws InternalServerErrorException, BadRequestException {
         LOGGER.info("GET /repository/{id}/committers - get repository by platform id {} and branch {}",
                     platformId, branch);
         Set<CommitterInternalDTO> committers;
         try {
-            committers = gitService.getAllCommitters(getUserId(authentication), platformId, branch);
+            committers = repositoryService.getCommitters(getUserId(authentication), platformId,
+                                                         branch, mappedByAssignments);
         } catch (NoProviderFoundException e) {
             throw new InternalServerErrorException();
         } catch (GitException e) {

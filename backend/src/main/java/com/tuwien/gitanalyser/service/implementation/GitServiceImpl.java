@@ -2,7 +2,6 @@ package com.tuwien.gitanalyser.service.implementation;
 
 import com.tuwien.gitanalyser.endpoints.dtos.internal.BranchInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitInternalDTO;
-import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitterInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.NotSavedRepositoryInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.StatsInternalDTO;
 import com.tuwien.gitanalyser.entity.User;
@@ -23,9 +22,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
@@ -102,27 +99,6 @@ public class GitServiceImpl implements GitService {
         LOGGER.info("getAllCommits for user {} and repository {} and branch {} finished with length {}", userId,
                     platformId, branch, allCommits.size());
         return allCommits;
-    }
-
-    @Override
-    public Set<CommitterInternalDTO> getAllCommitters(final long userId, final Long platformId, final String branch)
-        throws GitException, NoProviderFoundException {
-        LOGGER.info("getAllCommitters for user {} and repository {} and branch {}", userId, platformId, branch);
-
-        Set<CommitterInternalDTO> result = new HashSet<>();
-
-        GitAPI gitApi = getAPI(userId);
-        List<CommitInternalDTO> allCommits = gitApi.getAllCommits(getAccessToken(userId), platformId, branch);
-
-        for (CommitInternalDTO commit : allCommits) {
-            result.add(new CommitterInternalDTO(commit.getAuthor()));
-        }
-
-        LOGGER.info("getAllCommitters for user {} and repository {} and branch {} finished with length {}", userId,
-                    platformId, branch, result.size());
-
-        return result;
-
     }
 
     @Override
