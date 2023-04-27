@@ -118,7 +118,7 @@ public class GitIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
-    public void queryAllRepositories_userGitLabUserExistsAndOneMemberProject_shouldDeleteOtherRepositories()
+    public void queryAllRepositories_userGitLabUserExistsAndOneMemberProjectAndOneRepositoryInDatabase_shouldDeleteOtherRepositories()
         throws GitLabApiException {
         // Given
         Project memberedProject = gitLabCreateRandomProject();
@@ -130,9 +130,10 @@ public class GitIntegrationTest extends BaseIntegrationTest {
         gitLabMockOwnedProjects(projectApi, List.of(memberedProject));
 
         // When
-        callGetRestEndpoint(gitLabUserToken, REPOSITORY_ENDPOINT);
+        Response response = callGetRestEndpoint(gitLabUserToken, REPOSITORY_ENDPOINT);
 
         // Then
+        assertThat(response.getStatusCode(), equalTo(HttpStatus.OK.value()));
         Optional<Repository> resultRepository = repositoryRepository.findById(repository.getId());
         assertThat(resultRepository, isEmpty());
     }

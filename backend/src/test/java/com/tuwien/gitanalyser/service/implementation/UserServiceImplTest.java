@@ -180,7 +180,9 @@ class UserServiceImplTest {
         assertThat(result, allOf(
             hasFeature("accessToken", RefreshAuthenticationInternalDTO::getAccessToken, equalTo(newAccessToken)),
             hasFeature("refreshToken", RefreshAuthenticationInternalDTO::getRefreshToken, equalTo(newRefreshToken)),
-            hasFeature("fingerprint", RefreshAuthenticationInternalDTO::getFingerprint, equalTo(newFingerprintPair.getFingerprint()))
+            hasFeature("fingerprint",
+                       RefreshAuthenticationInternalDTO::getFingerprint,
+                       equalTo(newFingerprintPair.getFingerprint()))
         ));
     }
 
@@ -196,7 +198,7 @@ class UserServiceImplTest {
             Optional.empty());
 
         // When
-        sut.processOAuthPostLogin(createAuth2User(authenticationProvider, platformId, username), null);
+        sut.processOAuthPostLogin(createAuth2User(authenticationProvider, platformId, username), null, null);
 
         // Then
         verify(userRepository).save(expectedUser);
@@ -216,7 +218,7 @@ class UserServiceImplTest {
         // When
         UserFingerprintPair userFingerprintPair = sut.processOAuthPostLogin(createAuth2User(authenticationProvider,
                                                                                             platformId,
-                                                                                            username), null);
+                                                                                            username), null, null);
 
         // Then
         assertThat(userFingerprintPair.getUser(), equalTo(expectedUser));

@@ -47,7 +47,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserFingerprintPair processOAuthPostLogin(final BasicAuth2User auth2User, final String accessToken) {
+    public UserFingerprintPair processOAuthPostLogin(final BasicAuth2User auth2User, final String accessToken,
+                                                     final String refreshToken) {
         User user;
 
         Optional<User> existUsers = userRepository.findByAuthenticationProviderAndPlatformId(
@@ -65,12 +66,15 @@ public class UserServiceImpl implements UserService {
             newUser.setPlatformId(auth2User.getPlatformId());
             newUser.setAuthenticationProvider(auth2User.getAuthenticationProvider());
             newUser.setAccessToken(accessToken);
+            newUser.setRefreshToken(refreshToken);
             newUser.setPictureUrl(auth2User.getPictureUrl());
             newUser.setFingerPrintHash(fingerprintPair.getHash());
 
             user = userRepository.save(newUser);
         } else {
             user = existUsers.get();
+            user.setAccessToken(accessToken);
+            user.setRefreshToken(refreshToken);
             user.setFingerPrintHash(fingerprintPair.getHash());
             userRepository.save(user);
         }
@@ -106,5 +110,16 @@ public class UserServiceImpl implements UserService {
             LOGGER.info("Fingerprint does not match");
             throw new AuthenticationException("Fingerprint does not match");
         }
+    }
+
+    @Override
+    public void refreshGitAccessToken(final Long userId, final String accessToken, final String refreshToken) {
+        LOGGER.info("refreshGitAccessToken save new tokens for user {}", userId);
+
+        User user = getUser(userId);
+        user.setAccessToken(accessToken);
+        user.setRefreshToken(refreshToken);
+        userRepository.save(user);
+
     }
 }

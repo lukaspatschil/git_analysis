@@ -1,8 +1,9 @@
-package com.tuwien.gitanalyser.service.apiCalls;
+package com.tuwien.gitanalyser.service.apiCalls.gitlab;
 
 import com.tuwien.gitanalyser.endpoints.dtos.internal.BranchInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.NotSavedRepositoryInternalDTO;
 import com.tuwien.gitanalyser.exception.GitLabException;
+import com.tuwien.gitanalyser.exception.TryRefreshException;
 import com.tuwien.gitanalyser.service.apiCalls.factory.GitLabAPIFactory;
 import org.gitlab4j.api.GitLabApi;
 import org.gitlab4j.api.GitLabApiException;
@@ -12,6 +13,7 @@ import org.gitlab4j.api.models.Branch;
 import org.gitlab4j.api.models.Project;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
 import utils.Randoms;
 
 import java.io.IOException;
@@ -54,7 +56,7 @@ class GitLabAPITest {
 
     @Test
     void getAllRepositories_noRepositoriesAvailable_returnEmptyList()
-        throws GitLabApiException, GitLabException {
+        throws GitLabApiException, GitLabException, TryRefreshException {
         // Given
         prepareProjectApi(emptyList(), emptyList());
 
@@ -66,7 +68,8 @@ class GitLabAPITest {
     }
 
     @Test
-    void getAllRepositories_OneOwnedProject_singleItemAsList() throws GitLabApiException, GitLabException {
+    void getAllRepositories_OneOwnedProject_singleItemAsList()
+        throws GitLabApiException, GitLabException, TryRefreshException {
         // Given
         prepareProjectApi(List.of(FIRST_PROJECT), emptyList());
 
@@ -81,7 +84,7 @@ class GitLabAPITest {
 
     @Test
     void getAllRepositories_OneMembershipProject_singleItemAsList()
-        throws GitLabApiException, GitLabException {
+        throws GitLabApiException, GitLabException, TryRefreshException {
         // Given
         prepareProjectApi(emptyList(), List.of(THIRD_PROJECT));
 
@@ -95,8 +98,8 @@ class GitLabAPITest {
     }
 
     @Test
-    void getAllRepositories_OneOwnedProjectAndOneMembershipProject_twoItemInList() throws GitLabApiException,
-                                                                                          GitLabException {
+    void getAllRepositories_OneOwnedProjectAndOneMembershipProject_twoItemInList()
+        throws GitLabApiException, GitLabException, TryRefreshException {
         // Given
         prepareProjectApi(List.of(FIRST_PROJECT), List.of(THIRD_PROJECT));
 
@@ -111,8 +114,8 @@ class GitLabAPITest {
     }
 
     @Test
-    void getAllRepositories_TwoOwnedProjectAndTwoMembershipProject_fourItemInList() throws GitLabApiException,
-                                                                                           GitLabException {
+    void getAllRepositories_TwoOwnedProjectAndTwoMembershipProject_fourItemInList()
+        throws GitLabApiException, GitLabException, TryRefreshException {
         // Given
         prepareProjectApi(List.of(FIRST_PROJECT, SECOND_PROJECT), List.of(THIRD_PROJECT, FOURTH_PROJECT));
 
@@ -156,8 +159,34 @@ class GitLabAPITest {
     }
 
     @Test
+    void getAllRepositories_gitLabMembersLibraryThrowsGitLabAPIExceptionWith401Status_sutThrowsTryRefreshException()
+        throws GitLabApiException {
+        // Given
+
+        GitLabApi api = mockFactory();
+        ProjectApi projectApi = prepareProjectApi(api);
+        when(projectApi.getMemberProjects()).thenThrow(new GitLabApiException("", HttpStatus.UNAUTHORIZED.value()));
+
+        // When + Then
+        assertThrows(TryRefreshException.class, () -> sut.getAllRepositories(accessToken));
+    }
+
+    @Test
+    void getAllRepositories_gitLabOwnedLibraryThrowsGitLabAPIExceptionWith401Status_sutThrowsTryRefreshException()
+        throws GitLabApiException {
+        // Given
+
+        GitLabApi api = mockFactory();
+        ProjectApi projectApi = prepareProjectApi(api);
+        when(projectApi.getOwnedProjects()).thenThrow(new GitLabApiException("", HttpStatus.UNAUTHORIZED.value()));
+
+        // When + Then
+        assertThrows(TryRefreshException.class, () -> sut.getAllRepositories(accessToken));
+    }
+
+    @Test
     void getAllBranches_noRepositoriesAvailable_returnEmptyList()
-        throws GitLabApiException, GitLabException {
+        throws GitLabApiException, GitLabException, TryRefreshException {
         // Given
         Long platformId = Randoms.getLong();
 
@@ -170,6 +199,72 @@ class GitLabAPITest {
 
         // Then
         assertThat(result, is(empty()));
+    }
+
+    @Test
+    void getAllBranches_oneBranchAvailable_singleItemAsList()
+        throws GitLabApiException, GitLabException, TryRefreshException {
+        // Given
+        Long platformId = Randoms.getLong();
+
+        GitLabApi api = mockFactory();
+        RepositoryApi repositoryApi = prepareRepositoryAPI(api);
+        Branch branchMock = createRandomBranchMock();
+        prepareGetBranches(platformId, repositoryApi, List.of(branchMock));
+
+        // When
+        List<BranchInternalDTO> result = sut.getAllBranches(accessToken, platformId);
+
+        // Then
+        assertThat(result, contains(
+            branchInternalDTOMatcher(branchMock)
+        ));
+    }
+
+    @Test
+    void getAllBranches_twoBranchesAvailable_twoItemInList()
+        throws GitLabApiException, GitLabException, TryRefreshException {
+        // Given
+        Long platformId = Randoms.getLong();
+
+        GitLabApi api = mockFactory();
+        RepositoryApi repositoryApi = prepareRepositoryAPI(api);
+        Branch branchMock1 = createRandomBranchMock();
+        Branch branchMock2 = createRandomBranchMock();
+        prepareGetBranches(platformId, repositoryApi, List.of(branchMock1, branchMock2));
+
+        // When
+        var result = sut.getAllBranches(accessToken, platformId);
+
+        // Then
+        assertThat(result, containsInAnyOrder(
+            branchInternalDTOMatcher(branchMock1),
+            branchInternalDTOMatcher(branchMock2)
+        ));
+    }
+
+    @Test
+    void getAllBranches_threeBranchesAvailable_threeItemsInList()
+        throws GitLabApiException, GitLabException, TryRefreshException {
+        // Given
+        Long platformId = Randoms.getLong();
+
+        GitLabApi api = mockFactory();
+        RepositoryApi repositoryApi = prepareRepositoryAPI(api);
+        Branch branchMock1 = createRandomBranchMock();
+        Branch branchMock2 = createRandomBranchMock();
+        Branch branchMock3 = createRandomBranchMock();
+        prepareGetBranches(platformId, repositoryApi, List.of(branchMock1, branchMock2, branchMock3));
+
+        // When
+        var result = sut.getAllBranches(accessToken, platformId);
+
+        // Then
+        assertThat(result, containsInAnyOrder(
+            branchInternalDTOMatcher(branchMock1),
+            branchInternalDTOMatcher(branchMock2),
+            branchInternalDTOMatcher(branchMock3)
+        ));
     }
 
     @Test
@@ -195,68 +290,17 @@ class GitLabAPITest {
     }
 
     @Test
-    void getAllBranches_oneBranchAvailable_singleItemAsList() throws GitLabApiException, GitLabException {
+    void getAllBranches_gitLabLibraryThrowsGitLabAPIExceptionWith401Status_sutThrowsTryRefreshException()
+        throws GitLabApiException {
         // Given
-        Long platformId = Randoms.getLong();
+        long platformId = Randoms.getLong();
 
         GitLabApi api = mockFactory();
         RepositoryApi repositoryApi = prepareRepositoryAPI(api);
-        Branch branchMock = createRandomBranchMock();
-        prepareGetBranches(platformId, repositoryApi, List.of(branchMock));
+        when(repositoryApi.getBranches(platformId)).thenThrow(new GitLabApiException("", HttpStatus.UNAUTHORIZED.value()));
 
-        // When
-        List<BranchInternalDTO> result = sut.getAllBranches(accessToken, platformId);
-
-        // Then
-        assertThat(result, contains(
-            branchInternalDTOMatcher(branchMock)
-        ));
-    }
-
-    @Test
-    void getAllBranches_twoBranchesAvailable_twoItemInList() throws GitLabApiException,
-                                                                    GitLabException {
-        // Given
-        Long platformId = Randoms.getLong();
-
-        GitLabApi api = mockFactory();
-        RepositoryApi repositoryApi = prepareRepositoryAPI(api);
-        Branch branchMock1 = createRandomBranchMock();
-        Branch branchMock2 = createRandomBranchMock();
-        prepareGetBranches(platformId, repositoryApi, List.of(branchMock1, branchMock2));
-
-        // When
-        var result = sut.getAllBranches(accessToken, platformId);
-
-        // Then
-        assertThat(result, containsInAnyOrder(
-            branchInternalDTOMatcher(branchMock1),
-            branchInternalDTOMatcher(branchMock2)
-        ));
-    }
-
-    @Test
-    void getAllBranches_threeBranchesAvailable_threeItemsInList() throws GitLabApiException,
-                                                                         GitLabException {
-        // Given
-        Long platformId = Randoms.getLong();
-
-        GitLabApi api = mockFactory();
-        RepositoryApi repositoryApi = prepareRepositoryAPI(api);
-        Branch branchMock1 = createRandomBranchMock();
-        Branch branchMock2 = createRandomBranchMock();
-        Branch branchMock3 = createRandomBranchMock();
-        prepareGetBranches(platformId, repositoryApi, List.of(branchMock1, branchMock2, branchMock3));
-
-        // When
-        var result = sut.getAllBranches(accessToken, platformId);
-
-        // Then
-        assertThat(result, containsInAnyOrder(
-            branchInternalDTOMatcher(branchMock1),
-            branchInternalDTOMatcher(branchMock2),
-            branchInternalDTOMatcher(branchMock3)
-        ));
+        // When + Then
+        assertThrows(TryRefreshException.class, () -> sut.getAllBranches(accessToken, platformId));
     }
 
     @Test
@@ -269,7 +313,7 @@ class GitLabAPITest {
     }
 
     @Test
-    void getRepositoryById_gitlabLibraryThrowsException_sutThrowsException() throws GitLabApiException {
+    void getRepositoryById_gitlabLibraryThrowsGitLabAPIException_sutThrowsGitLabException() throws GitLabApiException {
         // Given
         long exceptionRepositoryId = Randoms.getLong();
 
@@ -294,8 +338,23 @@ class GitLabAPITest {
     }
 
     @Test
+    void getRepositoryById_gitlabLibraryThrowsGitLabAPIExceptionWith401Status_sutThrowsTryRefreshException()
+        throws GitLabApiException {
+        // Given
+        long exceptionRepositoryId = Randoms.getLong();
+
+        GitLabApi api = mockFactory();
+        ProjectApi projectApi = prepareProjectApi(api);
+        when(projectApi.getProject(exceptionRepositoryId))
+            .thenThrow(new GitLabApiException("", HttpStatus.UNAUTHORIZED.value()));
+
+        // When + Then
+        assertThrows(TryRefreshException.class, () -> sut.getRepositoryById(accessToken, exceptionRepositoryId));
+    }
+
+    @Test
     void getRepositoryById_gitlabLibraryReturnsOneRepository_sutReturnsRepository()
-        throws GitLabApiException, GitLabException {
+        throws GitLabApiException, GitLabException, TryRefreshException {
         // Given
         Long existingRepositoryId = Randoms.getLong();
 

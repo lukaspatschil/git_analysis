@@ -86,7 +86,7 @@ class RepositoryEndpointTest {
     private static final CommitterInternalDTO COMMITTER_INTERNAL_DTO_2 = new CommitterInternalDTO(Randoms.alpha());
     private static final CommitterDTO COMMITTER_DTO_2 = new CommitterDTO(COMMITTER_INTERNAL_DTO_2.getName());
 
-    private final String defaultBranch = "develop";
+    private String defaultBranch;
     private final CommitDTO commitDTO1 = mock(CommitDTO.class);
     private final CommitDTO commitDTO2 = mock(CommitDTO.class);
     private final CommitAggregatedInternalDTO commit1 = mock(CommitAggregatedInternalDTO.class);
@@ -119,6 +119,8 @@ class RepositoryEndpointTest {
                                      committerMapper,
                                      assignmentMapper,
                                      statsMapper);
+
+        defaultBranch = Randoms.alpha();
     }
 
     @Test
