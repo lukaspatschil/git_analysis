@@ -368,5 +368,6 @@
     <orderEntry type="library" name="Maven: jakarta.validation:jakarta.validation-api:2.0.2" level="project" />
     <orderEntry type="library" name="Maven: io.swagger.core.v3:swagger-annotations-jakarta:2.2.8" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.hamcrest:hamcrest:2.2" level="project" />
+    <orderEntry type="library" name="Maven: org.json:json:20140107" level="project" />
   </component>
 </module>

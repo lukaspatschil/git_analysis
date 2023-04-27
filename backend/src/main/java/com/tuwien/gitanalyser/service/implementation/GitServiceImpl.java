@@ -9,12 +9,12 @@ import com.tuwien.gitanalyser.exception.GitException;
 import com.tuwien.gitanalyser.exception.NoProviderFoundException;
 import com.tuwien.gitanalyser.exception.NotFoundException;
 import com.tuwien.gitanalyser.security.AuthenticationConstants;
-import com.tuwien.gitanalyser.service.GitAPI;
+import com.tuwien.gitanalyser.service.GitExceptionHandlerService;
 import com.tuwien.gitanalyser.service.GitService;
 import com.tuwien.gitanalyser.service.RepositoryService;
 import com.tuwien.gitanalyser.service.UserService;
-import com.tuwien.gitanalyser.service.apiCalls.GitHubAPI;
-import com.tuwien.gitanalyser.service.apiCalls.GitLabAPI;
+import com.tuwien.gitanalyser.service.apiCalls.github.GitHubExceptionHandlerServiceImpl;
+import com.tuwien.gitanalyser.service.apiCalls.gitlab.GitLabExceptionHandlerServiceImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -32,17 +32,17 @@ public class GitServiceImpl implements GitService {
     private final UserService userService;
 
     private final RepositoryService repositoryService;
-    private final GitHubAPI gitHubAPI;
-    private final GitLabAPI gitLabAPI;
+    private final GitHubExceptionHandlerServiceImpl gitHubAccessTokenRefresherService;
+    private final GitLabExceptionHandlerServiceImpl gitLabAccessTokenRefresherService;
 
     public GitServiceImpl(final UserService userService,
                           @Lazy final RepositoryService repositoryService,
-                          final GitHubAPI gitHubAPI,
-                          final GitLabAPI gitLabAPI) {
+                          final GitHubExceptionHandlerServiceImpl gitHubAccessTokenRefresherService,
+                          final GitLabExceptionHandlerServiceImpl gitLabAccessTokenRefresherService) {
         this.userService = userService;
         this.repositoryService = repositoryService;
-        this.gitHubAPI = gitHubAPI;
-        this.gitLabAPI = gitLabAPI;
+        this.gitHubAccessTokenRefresherService = gitHubAccessTokenRefresherService;
+        this.gitLabAccessTokenRefresherService = gitLabAccessTokenRefresherService;
     }
 
     @Override
@@ -52,8 +52,8 @@ public class GitServiceImpl implements GitService {
 
         List<NotSavedRepositoryInternalDTO> allRepos;
 
-        GitAPI gitAPI = getAPI(userId);
-        allRepos = gitAPI.getAllRepositories(getAccessToken(userId));
+        GitExceptionHandlerService gitAPI = getAPI(userId);
+        allRepos = gitAPI.getAllRepositories(userId);
 
         repositoryService.deleteAllNotAccessibleRepositoryEntities(
             userId,
@@ -69,8 +69,9 @@ public class GitServiceImpl implements GitService {
         throws GitException, NoProviderFoundException {
         LOGGER.info("getAllBranches for user {} and repository {}", userId, platformId);
 
-        GitAPI gitAPI = getAPI(userId);
-        List<BranchInternalDTO> allBranches = gitAPI.getAllBranches(getAccessToken(userId), platformId);
+        List<BranchInternalDTO> allBranches;
+        GitExceptionHandlerService gitAPI = getAPI(userId);
+        allBranches = gitAPI.getAllBranches(userId, platformId);
 
         LOGGER.info("getAllBranches for user {} and repository {} finished", userId, platformId);
         return allBranches;
@@ -81,11 +82,11 @@ public class GitServiceImpl implements GitService {
         throws GitException, NoProviderFoundException {
         LOGGER.info("getRepositoryById with Id {} for user {}", platformId, userId);
 
-        GitAPI gitAPI = getAPI(userId);
-        NotSavedRepositoryInternalDTO nSRIDTO = gitAPI.getRepositoryById(getAccessToken(userId), platformId);
+        GitExceptionHandlerService gitAPI = getAPI(userId);
+        NotSavedRepositoryInternalDTO repository = gitAPI.getRepositoryById(userId, platformId);
 
         LOGGER.info("getRepositoryById with Id {} for user {} finished", platformId, userId);
-        return nSRIDTO;
+        return repository;
     }
 
     @Override
@@ -93,8 +94,9 @@ public class GitServiceImpl implements GitService {
         throws GitException, NoProviderFoundException {
         LOGGER.info("getAllCommits for user {} and repository {} and branch {}", userId, platformId, branch);
 
-        GitAPI gitApi = getAPI(userId);
-        List<CommitInternalDTO> allCommits = gitApi.getAllCommits(getAccessToken(userId), platformId, branch);
+        GitExceptionHandlerService gitApi = getAPI(userId);
+        List<CommitInternalDTO> allCommits;
+        allCommits = gitApi.getAllCommits(userId, platformId, branch);
 
         LOGGER.info("getAllCommits for user {} and repository {} and branch {} finished with length {}", userId,
                     platformId, branch, allCommits.size());
@@ -108,9 +110,9 @@ public class GitServiceImpl implements GitService {
 
         boolean result;
 
-        GitAPI gitApi = getAPI(userId);
+        GitExceptionHandlerService gitApi = getAPI(userId);
         try {
-            gitApi.getRepositoryById(getAccessToken(userId), platformId);
+            gitApi.getRepositoryById(userId, platformId);
             result = true;
         } catch (Exception e) {
             LOGGER.error("repositoryAccessibleByUser for user {} and repository {} failed: {}", userId, platformId, e);
@@ -150,16 +152,12 @@ public class GitServiceImpl implements GitService {
         return stats;
     }
 
-    private GitAPI getAPI(final Long userId) throws NoProviderFoundException {
+    private GitExceptionHandlerService getAPI(final Long userId) throws NoProviderFoundException {
         return switch (getUser(userId).getAuthenticationProvider().name().toLowerCase()) {
-            case AuthenticationConstants.GITHUB_REGISTRATION_ID -> gitHubAPI;
-            case AuthenticationConstants.GITLAB_REGISTRATION_ID -> gitLabAPI;
+            case AuthenticationConstants.GITHUB_REGISTRATION_ID -> gitHubAccessTokenRefresherService;
+            case AuthenticationConstants.GITLAB_REGISTRATION_ID -> gitLabAccessTokenRefresherService;
             default -> throw new NoProviderFoundException(getUser(userId).getAuthenticationProvider().name());
         };
-    }
-
-    private String getAccessToken(final Long userId) throws NotFoundException {
-        return userService.getUser(userId).getAccessToken();
     }
 
     private User getUser(final Long userId) throws NotFoundException {

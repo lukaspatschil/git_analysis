@@ -1,4 +1,4 @@
-package com.tuwien.gitanalyser.service.apiCalls;
+package com.tuwien.gitanalyser.service.apiCalls.github;
 
 import com.tuwien.gitanalyser.endpoints.dtos.internal.BranchInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitInternalDTO;
@@ -79,7 +79,8 @@ public class GitHubAPI implements GitAPI {
     }
 
     @Override
-    public List<BranchInternalDTO> getAllBranches(final String accessToken, final Long platformId) {
+    public List<BranchInternalDTO> getAllBranches(final String accessToken, final Long platformId)
+        throws GitHubException {
         LOGGER.info("getAllBranches: " + platformId);
 
         List<BranchInternalDTO> branches;
@@ -94,7 +95,7 @@ public class GitHubAPI implements GitAPI {
 
         } catch (IOException e) {
             LOGGER.error(e.getMessage());
-            throw new RuntimeException(e);
+            throw new GitHubException(e);
         }
         LOGGER.info("getAllBranches for repo {} finished", platformId);
         return branches;

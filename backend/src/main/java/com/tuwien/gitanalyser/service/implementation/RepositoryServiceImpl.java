@@ -23,8 +23,9 @@ import com.tuwien.gitanalyser.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -60,7 +61,7 @@ public class RepositoryServiceImpl implements RepositoryService {
         this.repositoryFactory = repositoryFactory;
     }
 
-    @Transactional
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     @Override
     public void addAssignment(final long userId, final Long platformId, final CreateAssignmentDTO dto)
         throws IllegalArgumentException {
@@ -253,11 +254,6 @@ public class RepositoryServiceImpl implements RepositoryService {
             throw new IllegalArgumentException("Assignment key and assigned name must not be equal");
         }
 
-        if (repositoryEntity.getAssignments() == null) {
-            LOGGER.error("checkIAssignmentsDoesNotProduceCircularAssignments finished with empty repository for "
-                             + "platformId {}", repositoryEntity.getPlatformId());
-            return;
-        }
         for (Assignment assignment : repositoryEntity.getAssignments()) {
             if (assignment.getKey().equals(dto.getAssignedName())) {
                 String message = "Assigned name must not be equal to an existing assignment key";

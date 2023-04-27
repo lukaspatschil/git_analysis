@@ -1,4 +1,4 @@
-package com.tuwien.gitanalyser.service.apiCalls;
+package com.tuwien.gitanalyser.service.apiCalls.github;
 
 import com.tuwien.gitanalyser.endpoints.dtos.internal.NotSavedRepositoryInternalDTO;
 import com.tuwien.gitanalyser.exception.GitHubException;
@@ -141,7 +141,7 @@ class GitHubAPITest {
     }
 
     @Test
-    void getAllBranches_noBranchAvailable_returnEmptyList() throws IOException {
+    void getAllBranches_noBranchAvailable_returnEmptyList() throws IOException, GitHubException {
         // Given
         long repositoryId = Randoms.getLong();
 

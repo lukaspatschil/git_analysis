@@ -14,6 +14,7 @@ import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
+import org.springframework.security.oauth2.core.OAuth2RefreshToken;
 import utils.Randoms;
 
 import javax.servlet.http.HttpServletResponse;
@@ -97,30 +98,30 @@ class CustomAuthenticationSuccessHandlerTest {
     @Test
     public void onAuthenticationSuccess_gitHubAuthentication_shouldCallProcessOAuthPostLogin() throws IOException {
         // Given
-        String tokenValue = prepareAuthorizedClientRepository(gitHubAuthentication);
+        var tokens = prepareAuthorizedClientRepository(gitHubAuthentication);
 
         // When
         sut.onAuthenticationSuccess(request, response, gitHubAuthentication);
 
         // Then
         verify(userService).processOAuthPostLogin(any(GitHubOAuth2User.class),
-                                                  eq(tokenValue));
+                                                  eq(tokens.getAccessToken()), eq(tokens.getRefreshToken()));
     }
 
     @Test
     public void onAuthenticationSuccess_gitLabAuthentication_shouldSetFingerprintCookie() throws IOException {
         // Given
-        String tokenValue = prepareAuthorizedClientRepository(gitLabAuthentication);
+        Tokens tokens = prepareAuthorizedClientRepository(gitLabAuthentication);
 
         // When
         sut.onAuthenticationSuccess(request, response, gitLabAuthentication);
 
         // Then
         verify(userService).processOAuthPostLogin(any(GitLabOAuth2User.class),
-                                                  eq(tokenValue));
+                                                  eq(tokens.getAccessToken()), eq(tokens.getRefreshToken()));
     }
 
-    private String prepareAuthorizedClientRepository(OAuth2AuthenticationToken authenticationProvider) {
+    private Tokens prepareAuthorizedClientRepository(OAuth2AuthenticationToken authenticationProvider) {
         OAuth2AuthorizedClient auth2User = mock(OAuth2AuthorizedClient.class);
 
         when(authorizedClientRepository.loadAuthorizedClient(authenticationProvider.getAuthorizedClientRegistrationId(),
@@ -128,14 +129,16 @@ class CustomAuthenticationSuccessHandlerTest {
                                                              request))
             .thenReturn(auth2User);
 
-        String accessToken = mockAccessToken(auth2User);
+        Tokens tokens = mockTokens(auth2User);
 
         User user = mock(User.class);
         FingerprintPair fingerprintPair = mock(FingerprintPair.class);
-        when(userService.processOAuthPostLogin(any(), eq(accessToken))).thenReturn(
-            new UserFingerprintPair(user, fingerprintPair));
+        when(userService.processOAuthPostLogin(any(),
+                                               eq(tokens.getAccessToken()),
+                                               eq(tokens.getRefreshToken())))
+            .thenReturn(new UserFingerprintPair(user, fingerprintPair));
 
-        return accessToken;
+        return tokens;
     }
 
     private String setUpJwtAccessTokenProvider() {
@@ -150,13 +153,36 @@ class CustomAuthenticationSuccessHandlerTest {
         return refreshToken;
     }
 
-    private String mockAccessToken(OAuth2AuthorizedClient auth2User) {
-        OAuth2AccessToken oAuth2AccessToken = mock(OAuth2AccessToken.class);
-        when(auth2User.getAccessToken())
-            .thenReturn(oAuth2AccessToken);
+    private Tokens mockTokens(OAuth2AuthorizedClient auth2User) {
 
-        String accessToken = Randoms.alpha();
+        String accessToken = "accessToken";
+        OAuth2AccessToken oAuth2AccessToken = mock(OAuth2AccessToken.class);
+        when(auth2User.getAccessToken()).thenReturn(oAuth2AccessToken);
         when(oAuth2AccessToken.getTokenValue()).thenReturn(accessToken);
-        return accessToken;
+
+        OAuth2RefreshToken oAuth2RefreshToken = mock(OAuth2RefreshToken.class);
+        when(auth2User.getRefreshToken()).thenReturn(oAuth2RefreshToken);
+        String refreshToken = "refreshToken";
+        when(oAuth2RefreshToken.getTokenValue()).thenReturn(refreshToken);
+        return new Tokens(accessToken, refreshToken);
+    }
+
+    class Tokens {
+        private final String accessToken;
+        private final String refreshToken;
+
+        public Tokens(String accessToken, String refreshToken) {
+            this.accessToken = accessToken;
+            this.refreshToken = refreshToken;
+        }
+
+        public String getAccessToken() {
+            return accessToken;
+        }
+
+        public String getRefreshToken() {
+            return refreshToken;
+        }
+
     }
 }
