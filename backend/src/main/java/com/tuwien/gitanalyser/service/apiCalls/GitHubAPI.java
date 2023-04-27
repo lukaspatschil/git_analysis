@@ -46,6 +46,7 @@ public class GitHubAPI implements GitAPI {
                                                                                 repo.getHttpTransportUrl()))
                                  .collect(Collectors.toList());
         } catch (IOException e) {
+            LOGGER.error(e.getMessage());
             throw new GitHubException(e);
         }
 
@@ -64,6 +65,7 @@ public class GitHubAPI implements GitAPI {
             GitHub github = gitHubAPIFactory.createObject(accessToken);
             repository = github.getRepositoryById(platformId);
         } catch (IOException e) {
+            LOGGER.error(e.getMessage());
             throw new GitHubException(e);
         }
 
@@ -91,6 +93,7 @@ public class GitHubAPI implements GitAPI {
                              .collect(Collectors.toList());
 
         } catch (IOException e) {
+            LOGGER.error(e.getMessage());
             throw new RuntimeException(e);
         }
         LOGGER.info("getAllBranches for repo {} finished", platformId);
@@ -112,6 +115,7 @@ public class GitHubAPI implements GitAPI {
                 result.add(this.mapGHCommitToInternalDTO(commit));
             });
         } catch (IOException e) {
+            LOGGER.error(e.getMessage());
             throw new GitHubException(e);
         }
 
@@ -134,6 +138,7 @@ public class GitHubAPI implements GitAPI {
                 }
             }
         } catch (IOException e) {
+            LOGGER.error(e.getMessage());
             author = "unknown";
         }
 
@@ -149,6 +154,7 @@ public class GitHubAPI implements GitAPI {
                                     .deletions(commit.getLinesDeleted())
                                     .build();
         } catch (IOException e) {
+            LOGGER.error(e.getMessage());
             throw new RuntimeException(e);
         }
     }

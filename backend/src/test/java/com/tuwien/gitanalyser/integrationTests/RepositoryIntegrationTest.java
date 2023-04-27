@@ -248,13 +248,6 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         ));
     }
 
-    private SubAssignment prepareAssignment(long repositoryId, String key) {
-        Repository repository = addRepository(gitLabUser, repositoryId);
-        Assignment assignment = addAssignment(key, repository);
-        SubAssignment subAssignment = addSubAssignment(assignment);
-        return subAssignment;
-    }
-
     @Test
     public void queryStats_gitLabUserAndTwoCommitsAvailableAndShouldBeMapped_shouldReturnMappedCorrectStats()
         throws GitLabApiException {
@@ -1285,4 +1278,9 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         return commit;
     }
 
+    private SubAssignment prepareAssignment(long repositoryId, String key) {
+        Repository repository = addRepository(gitLabUser, repositoryId);
+        Assignment assignment = addAssignment(key, repository);
+        return addSubAssignment(assignment);
+    }
 }

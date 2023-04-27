@@ -38,7 +38,8 @@ public class SubAssignmentServiceImpl implements SubAssignmentService {
         try {
             return subAssignmentRepository.save(subAssignment);
         } catch (Exception e) {
-            throw new ConflictException("Assignment already exists");
+            LOGGER.error(e.getMessage());
+            throw new ConflictException(e.getMessage());
         }
     }
 

@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -59,6 +60,7 @@ public class RepositoryServiceImpl implements RepositoryService {
         this.repositoryFactory = repositoryFactory;
     }
 
+    @Transactional
     @Override
     public void addAssignment(final long userId, final Long platformId, final CreateAssignmentDTO dto)
         throws IllegalArgumentException {
@@ -81,14 +83,15 @@ public class RepositoryServiceImpl implements RepositoryService {
         for (Assignment tempAssignment : repositoryEntity.getAssignments()) {
             for (SubAssignment subAssignment : tempAssignment.getSubAssignments()) {
                 if (subAssignment.getAssignedName().equals(dto.getAssignedName())) {
-                    // overwrite existing assignment
-                    overwriteSubAssignment(dto, repositoryEntity, assignment, subAssignment);
+                    LOGGER.info("Overwrite assignments");
+                    overwriteSubAssignment(dto, repositoryEntity, subAssignment);
                     overwritten = true;
                 }
             }
         }
 
         if (!overwritten) {
+            LOGGER.info("Don't overwrite assignments");
             subAssignmentService.addSubAssignment(assignment, dto.getAssignedName());
         }
 
@@ -236,10 +239,10 @@ public class RepositoryServiceImpl implements RepositoryService {
 
     private void overwriteSubAssignment(final CreateAssignmentDTO dto,
                                         final Repository repositoryEntity,
-                                        final Assignment assignmentToAddAssignmentTo,
                                         final SubAssignment subAssignmentToRemoveSubAssignmentFrom) {
         assignmentService.deleteSubAssignmentById(repositoryEntity, subAssignmentToRemoveSubAssignmentFrom.getId());
-        subAssignmentService.addSubAssignment(assignmentToAddAssignmentTo, dto.getAssignedName());
+        Assignment assignment = assignmentService.getOrCreateAssignment(repositoryEntity, dto.getKey());
+        subAssignmentService.addSubAssignment(assignment, dto.getAssignedName());
     }
 
     private void checkIAssignmentsDoesNotProduceCircularAssignments(final CreateAssignmentDTO dto,
@@ -251,21 +254,21 @@ public class RepositoryServiceImpl implements RepositoryService {
         }
 
         if (repositoryEntity.getAssignments() == null) {
+            LOGGER.error("checkIAssignmentsDoesNotProduceCircularAssignments finished with empty repository for "
+                             + "platformId {}", repositoryEntity.getPlatformId());
             return;
         }
         for (Assignment assignment : repositoryEntity.getAssignments()) {
             if (assignment.getKey().equals(dto.getAssignedName())) {
-                throw new IllegalArgumentException("Assigned name must not be equal to an existing assignment key");
+                String message = "Assigned name must not be equal to an existing assignment key";
+                LOGGER.error(message);
+                throw new IllegalArgumentException(message);
             }
             for (SubAssignment subAssignment : assignment.getSubAssignments()) {
-                // enables overwriting of existing assignments
-                /*if (subAssignment.getAssignedName().equals(dto.getAssignedName())) {
-                    throw new IllegalArgumentException(
-                        "Assigned name must not be equal to an existing sub assignment name");
-                }*/
                 if (subAssignment.getAssignedName().equals(dto.getKey())) {
-                    throw new IllegalArgumentException(
-                        "Assignment key must not be equal to an existing sub assignment name");
+                    String message = "Assignment key must not be equal to an existing sub assignment name";
+                    LOGGER.error(message);
+                    throw new IllegalArgumentException(message);
                 }
             }
         }

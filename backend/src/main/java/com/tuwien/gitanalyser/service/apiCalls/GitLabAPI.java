@@ -41,13 +41,14 @@ public class GitLabAPI implements GitAPI {
         try {
             gitLabApi = gitLabAPIFactory.createObject(accessToken);
         } catch (IOException e) {
+            LOGGER.error(e.getMessage());
             throw new GitLabException(e);
         }
 
         allRepos.addAll(getOwnedProjects(gitLabApi));
         allRepos.addAll(getMemberProjects(gitLabApi));
 
-        LOGGER.info("getAllRepositories finished: " + allRepos.size());
+        LOGGER.info("getAllRepositories finished");
 
         return allRepos;
     }
@@ -62,10 +63,11 @@ public class GitLabAPI implements GitAPI {
             GitLabApi gitLabAPI = gitLabAPIFactory.createObject(accessToken);
             project = gitLabAPI.getProjectApi().getProject(platformId);
         } catch (IOException | GitLabApiException e) {
+            LOGGER.error(e.getMessage());
             throw new GitLabException(e);
         }
 
-        LOGGER.info("getRepositoryById: " + project);
+        LOGGER.info("getRepositoryById finished: {}", platformId);
 
         return NotSavedRepositoryInternalDTO.builder()
                                             .platformId(project.getId())
@@ -84,8 +86,10 @@ public class GitLabAPI implements GitAPI {
             GitLabApi gitLabAPI = gitLabAPIFactory.createObject(accessToken);
             branches = gitLabAPI.getRepositoryApi().getBranches(platformId);
         } catch (IOException | GitLabApiException e) {
+            LOGGER.error(e.getMessage());
             throw new GitLabException(e);
         }
+        LOGGER.info("getAllBranches for platformId {} finished", platformId);
 
         return branches.stream()
                        .map(x -> BranchInternalDTO.builder()
@@ -108,6 +112,7 @@ public class GitLabAPI implements GitAPI {
                                .getCommits(platformId, branchName, null, null, null, true, true,
                                            null);
         } catch (IOException | GitLabApiException e) {
+            LOGGER.error(e.getMessage());
             throw new GitLabException(e);
         }
         result = commits.stream()
@@ -134,6 +139,7 @@ public class GitLabAPI implements GitAPI {
         try {
             return convertToRepository(gitLabApi.getProjectApi().getOwnedProjects());
         } catch (GitLabApiException e) {
+            LOGGER.error(e.getMessage());
             throw new GitLabException(e);
         }
     }
@@ -142,6 +148,7 @@ public class GitLabAPI implements GitAPI {
         try {
             return convertToRepository(gitLabApi.getProjectApi().getMemberProjects());
         } catch (GitLabApiException e) {
+            LOGGER.error(e.getMessage());
             throw new GitLabException(e);
         }
     }
