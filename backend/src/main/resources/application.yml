@@ -16,6 +16,9 @@ spring:
   h2:
     console.enabled: true
     console.path: /h2-console
+    console:
+      settings:
+        web-allow-others: true # allow other computers to connect, TODO remove
   mvc:
     log-request-details: true
     throw-exception-if-no-handler-found: true

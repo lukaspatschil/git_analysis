@@ -2,15 +2,14 @@ package com.tuwien.gitanalyser.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 @ResponseStatus(HttpStatus.UNAUTHORIZED)
-public class AuthenticationException extends RuntimeException {
+public class AuthenticationException extends ResponseStatusException {
 
-    public AuthenticationException(final Exception e) {
-        super(e);
-    }
+    private static final HttpStatus STATUS = HttpStatus.UNAUTHORIZED;
 
     public AuthenticationException(final String message) {
-        super(message);
+        super(STATUS, message);
     }
 }

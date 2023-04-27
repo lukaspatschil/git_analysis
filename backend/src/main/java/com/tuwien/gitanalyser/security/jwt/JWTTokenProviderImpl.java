@@ -79,10 +79,9 @@ public class JWTTokenProviderImpl implements JWTTokenProvider {
         try {
             user = userService.getUser(getUserId(token));
             return new UsernamePasswordAuthenticationToken(user.getId(), "", GRANTED_AUTHORITIES);
-
         } catch (NotFoundException e) {
             LOGGER.error(e.getMessage());
-            throw new AuthenticationException(e);
+            throw new AuthenticationException(e.getMessage());
         }
 
     }
@@ -99,7 +98,7 @@ public class JWTTokenProviderImpl implements JWTTokenProvider {
             );
         } catch (JwtException e) {
             LOGGER.error(e.getMessage());
-            throw new AuthenticationException(e);
+            throw new AuthenticationException(e.getMessage());
         }
     }
 
@@ -119,6 +118,7 @@ public class JWTTokenProviderImpl implements JWTTokenProvider {
             Jwts.parser().setSigningKey(AuthenticationConstants.JWT_SECRET_KEY).parseClaimsJws(token);
             return true;
         } catch (JwtException | IllegalArgumentException e) {
+            LOGGER.error(e.getMessage());
             return false;
         }
     }

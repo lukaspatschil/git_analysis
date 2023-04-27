@@ -225,7 +225,7 @@ public class AssignmentIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
-    public void addAssignment_userAllowedToAccessRepositoryAndRepositoryExistsAndAssignmentExistsAndSubAssignmentExistsAndSameName_shouldThrowConflictException()
+    public void addAssignment_userAllowedToAccessRepositoryAndRepositoryExistsAndAssignmentExistsAndSubAssignmentExistsAndSameName_shouldReturn201()
         throws GitLabApiException {
         // Given
         long platformId = Randoms.getLong();
@@ -237,6 +237,26 @@ public class AssignmentIntegrationTest extends BaseIntegrationTest {
         SubAssignment subAssignment = addSubAssignment(assignment);
 
         var createAssignmentDTO = new CreateAssignmentDTO(key, subAssignment.getAssignedName());
+
+        // When
+        Response response = callPostRestEndpoint(gitLabUserToken,
+                                                 REPOSITORY_ENDPOINT + "/" + platformId + ASSIGNMENT_EXTENSION,
+                                                 createAssignmentDTO);
+
+        // Then
+        assertThat(response.getStatusCode(), equalTo(HttpStatus.CREATED.value()));
+    }
+
+    @Test
+    public void addAssignment_userAllowedToAccessRepositoryAndKeyEqualToAssignedName_shouldThrowConflictException()
+        throws GitLabApiException {
+        // Given
+        long platformId = Randoms.getLong();
+        String randomName = Randoms.alpha();
+
+        prepareGitLabAllowedToAccess(platformId);
+
+        var createAssignmentDTO = new CreateAssignmentDTO(randomName, randomName);
 
         // When
         Response response = callPostRestEndpoint(gitLabUserToken,
