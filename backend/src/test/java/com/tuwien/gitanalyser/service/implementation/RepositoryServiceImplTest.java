@@ -19,6 +19,7 @@ import com.tuwien.gitanalyser.service.AssignmentService;
 import com.tuwien.gitanalyser.service.GitService;
 import com.tuwien.gitanalyser.service.SubAssignmentService;
 import com.tuwien.gitanalyser.service.UserService;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import utils.CreateAssignmentDTOs;
@@ -535,7 +536,7 @@ class RepositoryServiceImplTest {
         List<CommitAggregatedInternalDTO> result = sut.getCommits(user.getId(), platformId, branch, false, null);
 
         // Then
-        assertThat(result, containsInAnyOrder(commitAggreagteDTOMatcher(commit1), commitAggreagteDTOMatcher(commit2)));
+        assertThat(result, Matchers.containsInAnyOrder(commitAggreagteDTOMatcher(commit1), commitAggreagteDTOMatcher(commit2)));
     }
 
     @Test
@@ -561,7 +562,7 @@ class RepositoryServiceImplTest {
         List<CommitAggregatedInternalDTO> result = sut.getCommits(user.getId(), platformId, branch, true, null);
 
         // Then
-        assertThat(result, containsInAnyOrder(commitAggreagteDTOMatcher(resultCommit)));
+        assertThat(result, Matchers.containsInAnyOrder(commitAggreagteDTOMatcher(resultCommit)));
     }
 
     @Test
@@ -590,8 +591,8 @@ class RepositoryServiceImplTest {
         List<CommitAggregatedInternalDTO> result = sut.getCommits(user.getId(), platformId, branch, true, null);
 
         // Then
-        assertThat(result, containsInAnyOrder(commitAggreagteDTOMatcher(resultCommit1),
-                                              commitAggreagteDTOMatcher(resultCommit2)
+        assertThat(result, Matchers.containsInAnyOrder(commitAggreagteDTOMatcher(resultCommit1),
+                                                       commitAggreagteDTOMatcher(resultCommit2)
         ));
     }
 
@@ -622,7 +623,7 @@ class RepositoryServiceImplTest {
         List<CommitAggregatedInternalDTO> result = sut.getCommits(user.getId(), platformId, branch, true, null);
 
         // Then
-        assertThat(result, containsInAnyOrder(
+        assertThat(result, Matchers.containsInAnyOrder(
             commitAggreagteDTOMatcher(resultCommit1),
             commitAggreagteDTOMatcher(resultCommit2),
             commitAggreagteDTOMatcher(commit3)

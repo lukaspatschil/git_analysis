@@ -17,7 +17,7 @@ public interface GitExceptionHandlerService {
      *
      * @param userId of the current user
      * @return List of Repositories
-     * @throws GitException if something went wrong
+     * @throws com.tuwien.gitanalyser.exception.GitException if something went wrong
      */
     List<NotSavedRepositoryInternalDTO> getAllRepositories(Long userId) throws GitException;
 

@@ -8,6 +8,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -29,6 +30,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode
+@ToString(exclude = "repositories")
 @Table(uniqueConstraints = {@UniqueConstraint(name = "Provider_platformId", columnNames = {"authentication_provider",
     "platform_id"})})
 public class User {

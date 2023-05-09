@@ -12,6 +12,8 @@ import org.gitlab4j.api.GitLabApi;
 import org.gitlab4j.api.GitLabApiException;
 import org.gitlab4j.api.models.Commit;
 import org.gitlab4j.api.models.CommitStats;
+import org.hamcrest.MatcherAssert;
+import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.kohsuke.github.GHCommitQueryBuilder;
 import org.kohsuke.github.GHRepository;
@@ -61,7 +63,7 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         assertThat(response.as(StatsDTO[].class).length, equalTo(1));
         StatsDTO[] stats = response.as(StatsDTO[].class);
 
-        assertThat(Arrays.asList(stats), containsInAnyOrder(
+        assertThat(Arrays.asList(stats), Matchers.containsInAnyOrder(
             statsDTOMatcher(commit)
         ));
     }
@@ -90,7 +92,7 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         assertThat(response.as(StatsDTO[].class).length, equalTo(2));
         StatsDTO[] stats = response.as(StatsDTO[].class);
 
-        assertThat(Arrays.asList(stats), containsInAnyOrder(
+        assertThat(Arrays.asList(stats), Matchers.containsInAnyOrder(
             statsDTOMatcher(commit1),
             statsDTOMatcher(commit2)
         ));
@@ -121,7 +123,7 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         assertThat(response.as(StatsDTO[].class).length, equalTo(1));
         StatsDTO[] stats = response.as(StatsDTO[].class);
 
-        assertThat(Arrays.asList(stats), containsInAnyOrder(
+        assertThat(Arrays.asList(stats), Matchers.containsInAnyOrder(
             statsDTOMatcher(commit1, commit2)
         ));
     }
@@ -150,7 +152,7 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         assertThat(response.as(StatsDTO[].class).length, equalTo(1));
         StatsDTO[] stats = response.as(StatsDTO[].class);
 
-        assertThat(Arrays.asList(stats), containsInAnyOrder(
+        assertThat(Arrays.asList(stats), Matchers.containsInAnyOrder(
             statsDTOMatcher(commit)
         ));
     }
@@ -180,7 +182,7 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         assertThat(response.as(StatsDTO[].class).length, equalTo(2));
         StatsDTO[] stats = response.as(StatsDTO[].class);
 
-        assertThat(Arrays.asList(stats), containsInAnyOrder(
+        assertThat(Arrays.asList(stats), Matchers.containsInAnyOrder(
             statsDTOMatcher(commit1),
             statsDTOMatcher(commit2)
         ));
@@ -211,7 +213,7 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         assertThat(response.as(StatsDTO[].class).length, equalTo(1));
         StatsDTO[] stats = response.as(StatsDTO[].class);
 
-        assertThat(Arrays.asList(stats), containsInAnyOrder(
+        assertThat(Arrays.asList(stats), Matchers.containsInAnyOrder(
             statsDTOMatcher(commit1, commit2)
         ));
     }
@@ -243,7 +245,7 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         assertThat(response.as(StatsDTO[].class).length, equalTo(1));
         StatsDTO[] stats = response.as(StatsDTO[].class);
 
-        assertThat(Arrays.asList(stats), containsInAnyOrder(
+        assertThat(Arrays.asList(stats), Matchers.containsInAnyOrder(
             statsDTOMatcher(key, commit)
         ));
     }
@@ -279,7 +281,7 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         assertThat(response.as(StatsDTO[].class).length, equalTo(1));
         StatsDTO[] stats = response.as(StatsDTO[].class);
 
-        assertThat(Arrays.asList(stats), containsInAnyOrder(
+        assertThat(Arrays.asList(stats), Matchers.containsInAnyOrder(
             statsDTOMatcher(key, commit1, commit2)
         ));
     }
@@ -330,7 +332,7 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         assertThat(response.as(CommitDTO[].class).length, equalTo(1));
         CommitDTO[] commits = response.as(CommitDTO[].class);
 
-        assertThat(Arrays.asList(commits), containsInAnyOrder(
+        assertThat(Arrays.asList(commits), Matchers.containsInAnyOrder(
             CommitDTOMatcher(commitDTO)
         ));
     }
@@ -362,9 +364,9 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         CommitDTO[] commits = response.as(CommitDTO[].class);
 
         assertThat(Arrays.asList(commits),
-                   containsInAnyOrder(commitDTOMatcher(commitDTO1,
-                                                       commitDTO1.getAdditions() - commitDTO1.getDeletions()),
-                                      commitDTOMatcher(commitDTO2,
+                   Matchers.containsInAnyOrder(commitDTOMatcher(commitDTO1,
+                                                                commitDTO1.getAdditions() - commitDTO1.getDeletions()),
+                                               commitDTOMatcher(commitDTO2,
                                                        commitDTO1.getAdditions() - commitDTO1.getDeletions()
                                                            + commitDTO2.getAdditions() - commitDTO2.getDeletions())));
     }
@@ -467,7 +469,7 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         assertThat(response.as(CommitDTO[].class).length, equalTo(1));
         CommitDTO[] commits = response.as(CommitDTO[].class);
 
-        assertThat(Arrays.asList(commits), containsInAnyOrder(
+        assertThat(Arrays.asList(commits), Matchers.containsInAnyOrder(
             CommitDTOMatcher(commitDTO)
         ));
     }
@@ -505,7 +507,7 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         assertThat(response.as(CommitDTO[].class).length, equalTo(2));
         CommitDTO[] commits = response.as(CommitDTO[].class);
 
-        assertThat(Arrays.asList(commits), containsInAnyOrder(
+        assertThat(Arrays.asList(commits), Matchers.containsInAnyOrder(
                        commitDTOMatcher(commitDTO1),
                        commitDTOMatcher(commitDTO2)
                    )
@@ -608,7 +610,7 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         assertThat(response.as(CommitDTO[].class).length, equalTo(1));
         CommitDTO[] commits = response.as(CommitDTO[].class);
 
-        assertThat(Arrays.asList(commits), containsInAnyOrder(
+        assertThat(Arrays.asList(commits), Matchers.containsInAnyOrder(
             CommitDTOMatcher(commitDTO)
         ));
     }
@@ -641,8 +643,8 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         CommitDTO[] commits = response.as(CommitDTO[].class);
 
         assertThat(Arrays.asList(commits),
-                   containsInAnyOrder(commitDTOMatcher(commitDTO1,
-                                                       commitDTO1.getAdditions() - commitDTO1.getDeletions())));
+                   Matchers.containsInAnyOrder(commitDTOMatcher(commitDTO1,
+                                                                commitDTO1.getAdditions() - commitDTO1.getDeletions())));
     }
 
     @Test
@@ -675,9 +677,9 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         CommitDTO[] commits = response.as(CommitDTO[].class);
 
         assertThat(Arrays.asList(commits),
-                   containsInAnyOrder(commitDTOMatcher(commitDTO1,
-                                                       commitDTO1.getAdditions() - commitDTO1.getDeletions()),
-                                      commitDTOMatcher(commitDTO2,
+                   Matchers.containsInAnyOrder(commitDTOMatcher(commitDTO1,
+                                                                commitDTO1.getAdditions() - commitDTO1.getDeletions()),
+                                               commitDTOMatcher(commitDTO2,
                                                        commitDTO1.getAdditions() - commitDTO1.getDeletions()
                                                            + commitDTO2.getAdditions() - commitDTO2.getDeletions())
                    ));
@@ -789,7 +791,7 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         assertThat(response.as(CommitDTO[].class).length, equalTo(1));
         CommitDTO[] commits = response.as(CommitDTO[].class);
 
-        assertThat(Arrays.asList(commits), containsInAnyOrder(
+        assertThat(Arrays.asList(commits), Matchers.containsInAnyOrder(
             CommitDTOMatcher(commitDTO)
         ));
     }
@@ -828,7 +830,7 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         assertThat(response.as(CommitDTO[].class).length, equalTo(2));
         CommitDTO[] commits = response.as(CommitDTO[].class);
 
-        assertThat(Arrays.asList(commits), containsInAnyOrder(
+        assertThat(Arrays.asList(commits), Matchers.containsInAnyOrder(
                        commitDTOMatcher(commitDTO1),
                        commitDTOMatcher(commitDTO2)
                    )
@@ -989,8 +991,8 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         assertThat(response.as(CommitterDTO[].class).length, equalTo(1));
         CommitterDTO[] committers = response.as(CommitterDTO[].class);
 
-        assertThat(Arrays.asList(committers), containsInAnyOrder(
-            committerDTOMatcher(committerDTO)
+        MatcherAssert.assertThat(Arrays.asList(committers), Matchers.containsInAnyOrder(
+            utils.Matchers.committerDTOMatcher(committerDTO)
         ));
     }
 
@@ -1083,7 +1085,7 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         assertThat(response.as(CommitterDTO[].class).length, equalTo(1));
         CommitterDTO[] committers = response.as(CommitterDTO[].class);
 
-        assertThat(Arrays.asList(committers), containsInAnyOrder(committerDTOMatcher(key)));
+        assertThat(Arrays.asList(committers), Matchers.containsInAnyOrder(committerDTOMatcher(key)));
     }
 
     @Test
@@ -1115,8 +1117,8 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         assertThat(response.as(CommitterDTO[].class).length, equalTo(2));
         CommitterDTO[] committers = response.as(CommitterDTO[].class);
 
-        assertThat(Arrays.asList(committers), containsInAnyOrder(committerDTOMatcher(key),
-                                                                 committerDTOMatcher(commit2.getAuthorName())));
+        assertThat(Arrays.asList(committers), Matchers.containsInAnyOrder(committerDTOMatcher(key),
+                                                                          committerDTOMatcher(commit2.getAuthorName())));
     }
 
     @Test
@@ -1148,7 +1150,7 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         assertThat(response.as(CommitterDTO[].class).length, equalTo(1));
         CommitterDTO[] committers = response.as(CommitterDTO[].class);
 
-        assertThat(Arrays.asList(committers), containsInAnyOrder(
+        assertThat(Arrays.asList(committers), Matchers.containsInAnyOrder(
             committerDTOMatcher(key)
         ));
     }

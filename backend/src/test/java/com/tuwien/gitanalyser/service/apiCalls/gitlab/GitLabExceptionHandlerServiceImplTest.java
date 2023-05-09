@@ -7,6 +7,7 @@ import com.tuwien.gitanalyser.exception.AuthenticationException;
 import com.tuwien.gitanalyser.exception.GitException;
 import com.tuwien.gitanalyser.exception.GitLabException;
 import com.tuwien.gitanalyser.exception.TryRefreshException;
+import org.hamcrest.MatcherAssert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import utils.Randoms;
@@ -452,7 +453,7 @@ class GitLabExceptionHandlerServiceImplTest {
 
         // Then
         assertThat(result.size(), equalTo(3));
-        assertThat(result, containsInAnyOrder(commit1, commit2, commit3));
+        MatcherAssert.assertThat(result, containsInAnyOrder(commit1, commit2, commit3));
     }
 
     @Test

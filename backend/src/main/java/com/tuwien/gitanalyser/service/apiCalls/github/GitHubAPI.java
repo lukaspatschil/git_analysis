@@ -9,8 +9,6 @@ import com.tuwien.gitanalyser.service.GitAPIFactory;
 import org.kohsuke.github.GHCommit;
 import org.kohsuke.github.GHRepository;
 import org.kohsuke.github.GitHub;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Nullable;
@@ -22,8 +20,6 @@ import java.util.stream.Collectors;
 @Service
 public class GitHubAPI implements GitAPI {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(GitHubAPI.class);
-
     private final GitAPIFactory<GitHub> gitHubAPIFactory;
 
     public GitHubAPI(final GitAPIFactory<GitHub> gitHubAPIFactory) {
@@ -31,7 +27,6 @@ public class GitHubAPI implements GitAPI {
     }
 
     public List<NotSavedRepositoryInternalDTO> getAllRepositories(final String accessToken) throws GitHubException {
-        LOGGER.info("getAllRepositories");
 
         List<NotSavedRepositoryInternalDTO> repositories;
 
@@ -46,11 +41,8 @@ public class GitHubAPI implements GitAPI {
                                                                                 repo.getHttpTransportUrl()))
                                  .collect(Collectors.toList());
         } catch (IOException e) {
-            LOGGER.error(e.getMessage());
             throw new GitHubException(e);
         }
-
-        LOGGER.info("getAllRepositories finished: " + repositories.size());
 
         return repositories;
     }
@@ -58,18 +50,14 @@ public class GitHubAPI implements GitAPI {
     @Override
     public NotSavedRepositoryInternalDTO getRepositoryById(final String accessToken, final long platformId)
         throws GitHubException {
-        LOGGER.info("getRepositoryById: " + platformId);
 
         GHRepository repository;
         try {
             GitHub github = gitHubAPIFactory.createObject(accessToken);
             repository = github.getRepositoryById(platformId);
         } catch (IOException e) {
-            LOGGER.error(e.getMessage());
             throw new GitHubException(e);
         }
-
-        LOGGER.info("getRepositoryById finished: " + repository.getName());
 
         return NotSavedRepositoryInternalDTO.builder()
                                             .name(repository.getName())
@@ -81,7 +69,6 @@ public class GitHubAPI implements GitAPI {
     @Override
     public List<BranchInternalDTO> getAllBranches(final String accessToken, final Long platformId)
         throws GitHubException {
-        LOGGER.info("getAllBranches: " + platformId);
 
         List<BranchInternalDTO> branches;
         try {
@@ -92,35 +79,29 @@ public class GitHubAPI implements GitAPI {
                              .stream()
                              .map(branch -> new BranchInternalDTO(branch.getName()))
                              .collect(Collectors.toList());
-
         } catch (IOException e) {
-            LOGGER.error(e.getMessage());
             throw new GitHubException(e);
         }
-        LOGGER.info("getAllBranches for repo {} finished", platformId);
         return branches;
     }
 
     @Override
     public List<CommitInternalDTO> getAllCommits(final String accessToken, final long platformId,
                                                  final @Nullable String branchName) throws GitHubException {
-        LOGGER.info("getAllCommits: {}; {}", platformId, branchName);
 
         List<CommitInternalDTO> result = new ArrayList<>();
 
         try {
             GitHub github = gitHubAPIFactory.createObject(accessToken);
             String branch = branchName == null ? github.getRepositoryById(platformId).getDefaultBranch() : branchName;
-            github.getRepositoryById(platformId).queryCommits().from(branch).list().forEach(commit -> {
-                LOGGER.info("commit: {}", commit.getSHA1());
-                result.add(this.mapGHCommitToInternalDTO(commit));
-            });
+            github.getRepositoryById(platformId)
+                  .queryCommits()
+                  .from(branch)
+                  .list()
+                  .forEach(commit -> result.add(this.mapGHCommitToInternalDTO(commit)));
         } catch (IOException e) {
-            LOGGER.error(e.getMessage());
             throw new GitHubException(e);
         }
-
-        LOGGER.info("getAllCommits for repo {} finished", platformId);
 
         return result;
     }
@@ -139,7 +120,6 @@ public class GitHubAPI implements GitAPI {
                 }
             }
         } catch (IOException e) {
-            LOGGER.error(e.getMessage());
             author = "unknown";
         }
 
@@ -155,7 +135,6 @@ public class GitHubAPI implements GitAPI {
                                     .deletions(commit.getLinesDeleted())
                                     .build();
         } catch (IOException e) {
-            LOGGER.error(e.getMessage());
             throw new RuntimeException(e);
         }
     }

@@ -7,9 +7,6 @@ import com.tuwien.gitanalyser.exception.AuthenticationException;
 import com.tuwien.gitanalyser.exception.GitException;
 import com.tuwien.gitanalyser.exception.TryRefreshException;
 import com.tuwien.gitanalyser.service.GitExceptionHandlerService;
-import com.tuwien.gitanalyser.service.apiCalls.github.GitHubExceptionHandlerServiceImpl;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,7 +14,6 @@ import java.util.List;
 @Service
 public class GitLabExceptionHandlerServiceImpl implements GitExceptionHandlerService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(GitHubExceptionHandlerServiceImpl.class);
     private final GitLabAccessTokenServiceImpl gitLabAccessTokenService;
     private final GitLabRefreshTokenService gitLabRefreshTokenService;
 
@@ -30,7 +26,6 @@ public class GitLabExceptionHandlerServiceImpl implements GitExceptionHandlerSer
     @Override
     public List<NotSavedRepositoryInternalDTO> getAllRepositories(final Long userId)
         throws GitException {
-        LOGGER.info("getAllRepositories for user " + userId);
 
         List<NotSavedRepositoryInternalDTO> allRepos;
 
@@ -51,7 +46,6 @@ public class GitLabExceptionHandlerServiceImpl implements GitExceptionHandlerSer
     @Override
     public List<BranchInternalDTO> getAllBranches(final Long userId, final Long platformId)
         throws GitException {
-        LOGGER.info("getAllBranches for user {} and repository {}", userId, platformId);
 
         List<BranchInternalDTO> allBranches;
         try {
@@ -65,14 +59,12 @@ public class GitLabExceptionHandlerServiceImpl implements GitExceptionHandlerSer
             }
         }
 
-        LOGGER.info("getAllBranches for user {} and repository {} finished", userId, platformId);
         return allBranches;
     }
 
     @Override
     public NotSavedRepositoryInternalDTO getRepositoryById(final Long userId, final Long platformId)
         throws GitException {
-        LOGGER.info("getRepositoryById with Id {} for user {}", platformId, userId);
 
         NotSavedRepositoryInternalDTO repository;
         try {
@@ -86,14 +78,12 @@ public class GitLabExceptionHandlerServiceImpl implements GitExceptionHandlerSer
             }
         }
 
-        LOGGER.info("getRepositoryById with Id {} for user {} finished", platformId, userId);
         return repository;
     }
 
     @Override
     public List<CommitInternalDTO> getAllCommits(final long userId, final Long platformId, final String branch)
         throws GitException {
-        LOGGER.info("getAllCommits for user {} and repository {} and branch {}", userId, platformId, branch);
 
         List<CommitInternalDTO> allCommits;
         try {
@@ -107,14 +97,11 @@ public class GitLabExceptionHandlerServiceImpl implements GitExceptionHandlerSer
             }
         }
 
-        LOGGER.info("getAllCommits for user {} and repository {} and branch {} finished with length {}", userId,
-                    platformId, branch, allCommits.size());
         return allCommits;
     }
 
     @Override
     public boolean repositoryAccessibleByUser(final long userId, final Long platformId) {
-        LOGGER.info("repositoryAccessibleByUser for user {} and repository {}", userId, platformId);
 
         boolean result;
 

@@ -12,8 +12,6 @@ import com.tuwien.gitanalyser.security.jwt.FingerprintService;
 import com.tuwien.gitanalyser.security.jwt.JWTTokenProvider;
 import com.tuwien.gitanalyser.security.oauth2.BasicAuth2User;
 import com.tuwien.gitanalyser.service.UserService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -21,8 +19,6 @@ import java.util.Optional;
 
 @Service
 public class UserServiceImpl implements UserService {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(UserServiceImpl.class);
 
     private final UserRepository userRepository;
 
@@ -41,7 +37,6 @@ public class UserServiceImpl implements UserService {
     @Override
     public User getUser(final @NotNull Long id) throws NotFoundException {
         return userRepository.findById(id).orElseThrow(() -> {
-            LOGGER.error("User: Could not find user with id {}", id);
             return new NotFoundException("User: Could not find user with id " + id);
         });
     }
@@ -87,10 +82,7 @@ public class UserServiceImpl implements UserService {
 
         Long userId = jwtTokenProvider.getUserId(refreshToken);
 
-        User user = userRepository.findById(userId).orElseThrow(() -> {
-            LOGGER.error("User: Could not find user with id {}", userId);
-            return new AuthenticationException("user is invalid");
-        });
+        User user = userRepository.findById(userId).orElseThrow(() -> new AuthenticationException("user is invalid"));
 
         String hash = fingerprintService.sha256(fingerprint);
 
@@ -107,15 +99,12 @@ public class UserServiceImpl implements UserService {
                                                         newRefreshToken,
                                                         fingerprintPair.getFingerprint());
         } else {
-            LOGGER.info("Fingerprint does not match");
             throw new AuthenticationException("Fingerprint does not match");
         }
     }
 
     @Override
     public void refreshGitAccessToken(final Long userId, final String accessToken, final String refreshToken) {
-        LOGGER.info("refreshGitAccessToken save new tokens for user {}", userId);
-
         User user = getUser(userId);
         user.setAccessToken(accessToken);
         user.setRefreshToken(refreshToken);

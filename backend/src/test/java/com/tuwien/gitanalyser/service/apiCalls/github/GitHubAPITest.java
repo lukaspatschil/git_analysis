@@ -3,6 +3,7 @@ package com.tuwien.gitanalyser.service.apiCalls.github;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.NotSavedRepositoryInternalDTO;
 import com.tuwien.gitanalyser.exception.GitHubException;
 import com.tuwien.gitanalyser.service.apiCalls.factory.GitHubAPIFactory;
+import org.hamcrest.MatcherAssert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -61,7 +62,7 @@ class GitHubAPITest {
         var result = sut.getAllRepositories(accessToken);
 
         // Then
-        assertThat(result, is(empty()));
+        MatcherAssert.assertThat(result, is(empty()));
     }
 
     @Disabled
@@ -76,7 +77,7 @@ class GitHubAPITest {
         var result = sut.getAllRepositories(accessToken);
 
         // Then
-        assertThat(result, contains(
+        MatcherAssert.assertThat(result, contains(
             hasProperty("id", is(1L))
         ));
     }
@@ -94,7 +95,7 @@ class GitHubAPITest {
         var result = sut.getAllRepositories(accessToken);
 
         // Then
-        assertThat(result, contains(
+        MatcherAssert.assertThat(result, contains(
             hasProperty("id", is(1L)),
             hasProperty("id", is(2L))
         ));
@@ -154,7 +155,7 @@ class GitHubAPITest {
         var result = sut.getAllBranches(accessToken, repositoryId);
 
         // Then
-        assertThat(result, is(empty()));
+        MatcherAssert.assertThat(result, is(empty()));
     }
 
     private GitHub mockFactory() throws IOException {

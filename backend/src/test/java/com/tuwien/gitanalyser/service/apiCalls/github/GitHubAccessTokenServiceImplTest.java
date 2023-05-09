@@ -7,6 +7,7 @@ import com.tuwien.gitanalyser.entity.User;
 import com.tuwien.gitanalyser.exception.GitException;
 import com.tuwien.gitanalyser.exception.GitHubException;
 import com.tuwien.gitanalyser.service.UserService;
+import org.hamcrest.MatcherAssert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import utils.Randoms;
@@ -181,7 +182,7 @@ class GitHubAccessTokenServiceImplTest {
 
         // Then
         assertThat(result.size(), equalTo(3));
-        assertThat(result, containsInAnyOrder(branch1, branch2, branch3));
+        MatcherAssert.assertThat(result, containsInAnyOrder(branch1, branch2, branch3));
     }
 
     @Test
@@ -313,7 +314,7 @@ class GitHubAccessTokenServiceImplTest {
 
         // Then
         assertThat(result.size(), equalTo(3));
-        assertThat(result, containsInAnyOrder(commit1, commit2, commit3));
+        MatcherAssert.assertThat(result, containsInAnyOrder(commit1, commit2, commit3));
     }
 
     @Test
