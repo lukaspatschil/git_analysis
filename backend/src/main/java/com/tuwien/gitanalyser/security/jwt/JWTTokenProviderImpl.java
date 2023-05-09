@@ -9,8 +9,6 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -27,7 +25,6 @@ import java.util.stream.Collectors;
 @Component
 public class JWTTokenProviderImpl implements JWTTokenProvider {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(JWTTokenProviderImpl.class);
     private static final List<GrantedAuthority> GRANTED_AUTHORITIES = AuthorityUtils
                                                                           .commaSeparatedStringToAuthorityList(
                                                                               "ROLE_USER");
@@ -80,7 +77,6 @@ public class JWTTokenProviderImpl implements JWTTokenProvider {
             user = userService.getUser(getUserId(token));
             return new UsernamePasswordAuthenticationToken(user.getId(), "", GRANTED_AUTHORITIES);
         } catch (NotFoundException e) {
-            LOGGER.error(e.getMessage());
             throw new AuthenticationException(e.getMessage());
         }
 
@@ -97,14 +93,12 @@ public class JWTTokenProviderImpl implements JWTTokenProvider {
                     .getSubject()
             );
         } catch (JwtException e) {
-            LOGGER.error(e.getMessage());
             throw new AuthenticationException(e.getMessage());
         }
     }
 
     @Override
     public String resolveToken(final HttpServletRequest request) {
-        LOGGER.info(request.getRequestURI());
         String bearerToken = request.getHeader(HttpHeaders.AUTHORIZATION);
         if (bearerToken != null && bearerToken.startsWith(AuthenticationConstants.TOKEN_PREFIX)) {
             return bearerToken.substring(AuthenticationConstants.TOKEN_PREFIX.length());
@@ -118,7 +112,6 @@ public class JWTTokenProviderImpl implements JWTTokenProvider {
             Jwts.parser().setSigningKey(AuthenticationConstants.JWT_SECRET_KEY).parseClaimsJws(token);
             return true;
         } catch (JwtException | IllegalArgumentException e) {
-            LOGGER.error(e.getMessage());
             return false;
         }
     }

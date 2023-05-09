@@ -10,8 +10,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,8 +20,6 @@ import org.springframework.web.bind.annotation.RestController;
 @SecurityRequirement(name = "oauth2")
 @Tag(name = "User Endpoint")
 public class UserEndpoint extends BaseEndpoint {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(UserEndpoint.class);
 
     private final UserService userService;
 
@@ -45,7 +41,6 @@ public class UserEndpoint extends BaseEndpoint {
     })
     public UserDTO getLoggedInUser(final Authentication authentication) throws NotFoundException {
         long userId = getUserId(authentication);
-        LOGGER.info("GET /user -  get data of the logged in user with id: {}", userId);
         return userMapper.entityToDTO(userService.getUser(userId));
     }
 }

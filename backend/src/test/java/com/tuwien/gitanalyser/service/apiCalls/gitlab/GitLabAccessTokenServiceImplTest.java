@@ -9,6 +9,7 @@ import com.tuwien.gitanalyser.exception.GitHubException;
 import com.tuwien.gitanalyser.exception.GitLabException;
 import com.tuwien.gitanalyser.exception.TryRefreshException;
 import com.tuwien.gitanalyser.service.UserService;
+import org.hamcrest.MatcherAssert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import utils.Randoms;
@@ -185,7 +186,7 @@ class GitLabAccessTokenServiceImplTest {
 
         // Then
         assertThat(result.size(), equalTo(3));
-        assertThat(result, containsInAnyOrder(branch1, branch2, branch3));
+        MatcherAssert.assertThat(result, containsInAnyOrder(branch1, branch2, branch3));
     }
 
     @Test
@@ -318,7 +319,7 @@ class GitLabAccessTokenServiceImplTest {
 
         // Then
         assertThat(result.size(), equalTo(3));
-        assertThat(result, containsInAnyOrder(commit1, commit2, commit3));
+        MatcherAssert.assertThat(result, containsInAnyOrder(commit1, commit2, commit3));
     }
 
     @Test

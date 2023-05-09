@@ -10,7 +10,6 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface CommitMapper {
     @Mapping(source = "mergeCommit", target = "isMergeCommit")
-
     CommitDTO dtoToDTO(CommitAggregatedInternalDTO commit);
 
     List<CommitDTO> dtosToDTOs(List<CommitAggregatedInternalDTO> commitInternalDTOS);

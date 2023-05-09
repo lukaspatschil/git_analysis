@@ -11,6 +11,7 @@ import org.gitlab4j.api.ProjectApi;
 import org.gitlab4j.api.RepositoryApi;
 import org.gitlab4j.api.models.Branch;
 import org.gitlab4j.api.models.Project;
+import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.kohsuke.github.GHRepository;
 import org.kohsuke.github.GitHub;
@@ -25,7 +26,6 @@ import java.util.Optional;
 import static com.github.npathai.hamcrestopt.OptionalMatchers.isEmpty;
 import static com.github.npathai.hamcrestopt.OptionalMatchers.isPresent;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.core.Is.is;
 import static org.mockito.Mockito.when;
@@ -111,7 +111,7 @@ public class GitIntegrationTest extends BaseIntegrationTest {
         assertThat(response.as(NotSavedRepositoryDTO[].class).length, is(2));
         NotSavedRepositoryDTO[] repositories = response.as(NotSavedRepositoryDTO[].class);
 
-        assertThat(Arrays.asList(repositories), containsInAnyOrder(
+        assertThat(Arrays.asList(repositories), Matchers.containsInAnyOrder(
             repositoryMatcher(ownedProject),
             repositoryMatcher(memberedProject)
         ));
@@ -269,7 +269,7 @@ public class GitIntegrationTest extends BaseIntegrationTest {
         assertThat(response.as(BranchDTO[].class).length, equalTo(2));
         BranchDTO[] branchDTOS = response.as(BranchDTO[].class);
 
-        assertThat(Arrays.asList(branchDTOS), containsInAnyOrder(
+        assertThat(Arrays.asList(branchDTOS), Matchers.containsInAnyOrder(
             branchDTOMatcher(branch1),
             branchDTOMatcher(branch2)
         ));

@@ -11,6 +11,7 @@ import org.gitlab4j.api.ProjectApi;
 import org.gitlab4j.api.RepositoryApi;
 import org.gitlab4j.api.models.Branch;
 import org.gitlab4j.api.models.Project;
+import org.hamcrest.MatcherAssert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -64,7 +65,7 @@ class GitLabAPITest {
         var result = sut.getAllRepositories(accessToken);
 
         // Then
-        assertThat(result, is(empty()));
+        MatcherAssert.assertThat(result, is(empty()));
     }
 
     @Test
@@ -77,7 +78,7 @@ class GitLabAPITest {
         var result = sut.getAllRepositories(accessToken);
 
         // Then
-        assertThat(result, contains(
+        MatcherAssert.assertThat(result, contains(
             hasProperty("platformId", is(1L))
         ));
     }
@@ -92,7 +93,7 @@ class GitLabAPITest {
         var result = sut.getAllRepositories(accessToken);
 
         // Then
-        assertThat(result, contains(
+        MatcherAssert.assertThat(result, contains(
             hasProperty("platformId", is(3L))
         ));
     }
@@ -107,7 +108,7 @@ class GitLabAPITest {
         var result = sut.getAllRepositories(accessToken);
 
         // Then
-        assertThat(result, contains(
+        MatcherAssert.assertThat(result, contains(
             hasProperty("platformId", is(1L)),
             hasProperty("platformId", is(3L))
         ));
@@ -123,7 +124,7 @@ class GitLabAPITest {
         var result = sut.getAllRepositories(accessToken);
 
         // Then
-        assertThat(result, contains(
+        MatcherAssert.assertThat(result, contains(
             hasProperty("platformId", is(1L)),
             hasProperty("platformId", is(2L)),
             hasProperty("platformId", is(3L)),
@@ -198,7 +199,7 @@ class GitLabAPITest {
         var result = sut.getAllBranches(accessToken, platformId);
 
         // Then
-        assertThat(result, is(empty()));
+        MatcherAssert.assertThat(result, is(empty()));
     }
 
     @Test
@@ -237,7 +238,7 @@ class GitLabAPITest {
         var result = sut.getAllBranches(accessToken, platformId);
 
         // Then
-        assertThat(result, containsInAnyOrder(
+        MatcherAssert.assertThat(result, containsInAnyOrder(
             branchInternalDTOMatcher(branchMock1),
             branchInternalDTOMatcher(branchMock2)
         ));
@@ -260,7 +261,7 @@ class GitLabAPITest {
         var result = sut.getAllBranches(accessToken, platformId);
 
         // Then
-        assertThat(result, containsInAnyOrder(
+        MatcherAssert.assertThat(result, containsInAnyOrder(
             branchInternalDTOMatcher(branchMock1),
             branchInternalDTOMatcher(branchMock2),
             branchInternalDTOMatcher(branchMock3)

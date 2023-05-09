@@ -17,7 +17,7 @@ public interface GitAccessTokenService {
      * loads all repositories.
      * @param userId of the current user
      * @return List of repositories
-     * @throws GitException if something went wrong
+     * @throws com.tuwien.gitanalyser.exception.GitException if something went wrong
      * @throws TryRefreshException if the access token needs to be updated
      */
     List<NotSavedRepositoryInternalDTO> getAllRepositories(Long userId) throws GitException, TryRefreshException;

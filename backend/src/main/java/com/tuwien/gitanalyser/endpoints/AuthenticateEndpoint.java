@@ -10,8 +10,6 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -26,7 +24,6 @@ import javax.servlet.http.HttpServletResponse;
 @Tag(name = "Refresh Endpoint")
 public class AuthenticateEndpoint extends BaseEndpoint {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(AuthenticateEndpoint.class);
     private final UserService userService;
 
     public AuthenticateEndpoint(final UserService userService) {
@@ -47,7 +44,6 @@ public class AuthenticateEndpoint extends BaseEndpoint {
         final @CookieValue("fingerprint") String fingerprint,
         final HttpServletResponse response)
         throws NotFoundException {
-        LOGGER.info("GET /refresh - refresh tokens for user with id: {}", refreshAccessTokenDTO);
 
         RefreshAuthenticationInternalDTO refreshAuthenticationInternalDTO = userService.refreshAccessToken(
             refreshAccessTokenDTO.getRefreshToken(),
