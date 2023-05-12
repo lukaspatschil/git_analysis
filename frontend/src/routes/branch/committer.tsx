@@ -1,16 +1,18 @@
 import AsyncDataHandler from "../../components/AsyncDataHandler";
 import {useAuthStore} from "../../stores/useAuthStore";
-import {useParams} from "react-router-dom";
+import {useNavigate, useParams} from "react-router-dom";
 import useSWR, {mutate} from "swr";
 import {committersSchema} from "../../schemas/commiterSchema";
 import useDocumentTitle from "../../hooks/useDocumentTitle";
-import {FormEventHandler, useState} from "react";
+import {EventHandler, FormEventHandler, useState} from "react";
 import {assignmentsSchema} from "../../schemas/assignmentSchema";
+import {ArrowLeftIcon, TrashIcon} from "@heroicons/react/24/outline";
 
 export default function Committer() {
     const { token } = useAuthStore();
     const [name, setName] = useState('');
     const { repositoryId, branchName} = useParams();
+    const navigate = useNavigate();
     useDocumentTitle(`${branchName} committer`);
     const { data, error, isLoading } = useSWR(`${import.meta.env.VITE_BASE_API_URL}apiV1/repository/${repositoryId}/committer?branch=${branchName}`, (url: string) => {
         if (!token) {
@@ -47,7 +49,7 @@ export default function Committer() {
             throw new Error('Token is not set');
         }
 
-        const updateNameQueries = data?.filter((x, i) => selectedNames[i]).map((comitter, i) => fetch(`${import.meta.env.VITE_BASE_API_URL}apiV1/repository/${repositoryId}/assignment`, {
+        const updateNameQueries = data?.filter((x, i) => selectedNames[i]).map(comitter => fetch(`${import.meta.env.VITE_BASE_API_URL}apiV1/repository/${repositoryId}/assignment`, {
             method: 'POST',
             headers: {
                 Authorization: token,
@@ -60,11 +62,34 @@ export default function Committer() {
         })) ?? [];
 
         await Promise.all(updateNameQueries);
-        mutate(`${import.meta.env.VITE_BASE_API_URL}apiV1/repository/${repositoryId}/assignment`);
+        await mutate(`${import.meta.env.VITE_BASE_API_URL}apiV1/repository/${repositoryId}/assignment`);
+    };
+
+    const handleDeleteAssignment = async (id?: number) => {
+        if (!token) {
+            throw new Error('Token is not set');
+        }
+
+        if (id) {
+            await fetch(`${import.meta.env.VITE_BASE_API_URL}apiV1/repository/${repositoryId}/assignment/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    Authorization: token
+                }
+            });
+
+            await mutate(`${import.meta.env.VITE_BASE_API_URL}apiV1/repository/${repositoryId}/assignment`);
+        }
     };
 
     return (
         <>
+            <div className="flex gap-2">
+                <button onClick={() => navigate(`/repository/${repositoryId}`)}>
+                    <ArrowLeftIcon className="block h-6 w-6" aria-hidden="true" />
+                </button>
+                <h2 className="text-2xl">Committer</h2>
+            </div>
             <AsyncDataHandler isLoading={isLoading} error={error} data={data}>
                 <form onSubmit={handleSetAssignment}>
                     {<ul className='p-6'>
@@ -109,7 +134,10 @@ export default function Committer() {
                     {assignments?.map(assignment => <li key={assignment.key}>
                         {assignment.key}:
                         <ul className="ml-5">
-                        {assignment.assignedNames.map(assignedName => <li key={assignedName.id}>{assignedName.name}</li>)}
+                        {assignment.assignedNames.map(assignedName =>
+                            <li key={assignedName.id} className="flex gap-2">
+                                <TrashIcon className="block h-6 w-6 cursor-pointer hover:text-gray-500" aria-hidden="true" onClick={() => handleDeleteAssignment(assignedName.id)} />{assignedName.name}
+                            </li>)}
                         </ul>
                     </li>)}
                 </ul>
