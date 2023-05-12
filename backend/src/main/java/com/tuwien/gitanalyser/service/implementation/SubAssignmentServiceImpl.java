@@ -8,6 +8,8 @@ import com.tuwien.gitanalyser.exception.NotFoundException;
 import com.tuwien.gitanalyser.repository.SubAssignmentRepository;
 import com.tuwien.gitanalyser.service.SubAssignmentService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -23,6 +25,7 @@ public class SubAssignmentServiceImpl implements SubAssignmentService {
         this.subAssignmentFactory = subAssignmentFactory;
     }
 
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     @Override
     public SubAssignment addSubAssignment(final Assignment assignment, final String assignedName) {
 
@@ -37,6 +40,7 @@ public class SubAssignmentServiceImpl implements SubAssignmentService {
         }
     }
 
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     @Override
     public void deleteSubAssignmentById(final Long subAssignmentId) {
         Optional<SubAssignment> subAssignment = subAssignmentRepository.findById(subAssignmentId);

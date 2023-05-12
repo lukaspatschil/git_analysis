@@ -81,6 +81,7 @@ class RepositoryServiceImplTest {
         Repository repositoryEntity = new Repository();
 
         prepareRepositoryFactory(repositoryEntity);
+        prepareRepositorySave(repositoryEntity);
 
         // When
         sut.addAssignment(user.getId(), platformId, createDTO);
@@ -96,6 +97,7 @@ class RepositoryServiceImplTest {
 
         prepareRepositoryFactory(repositoryEntity);
         mockRepositoryFindByUserAndPlatformIdEmpty(user, platformId);
+        prepareRepositorySave(repositoryEntity);
 
         // When
         sut.addAssignment(user.getId(), platformId, createDTO);
@@ -126,7 +128,8 @@ class RepositoryServiceImplTest {
         // Given
         User user = prepareUserService();
         long platformId = Randoms.getLong();
-        CreateAssignmentDTO createDTO = CreateAssignmentDTOs.random();
+        String assignedName = Randoms.alpha();
+        CreateAssignmentDTO createDTO = new CreateAssignmentDTO(Randoms.alpha(), List.of(assignedName));
         Repository repository = new Repository();
         Assignment assignment = new Assignment();
 
@@ -137,7 +140,7 @@ class RepositoryServiceImplTest {
         sut.addAssignment(user.getId(), platformId, createDTO);
 
         // Then
-        verify(subAssignmentService).addSubAssignment(assignment, createDTO.getAssignedName());
+        verify(subAssignmentService).addSubAssignment(assignment, assignedName);
     }
 
     @Test
@@ -148,7 +151,7 @@ class RepositoryServiceImplTest {
         String keyAndAssignedName = Randoms.alpha();
         CreateAssignmentDTO createDTO = CreateAssignmentDTO.builder()
                                                            .key(keyAndAssignedName)
-                                                           .assignedName(keyAndAssignedName)
+                                                           .assignedNames(List.of(keyAndAssignedName))
                                                            .build();
         Repository repository = new Repository();
 
@@ -168,7 +171,7 @@ class RepositoryServiceImplTest {
         String assignedName = Randoms.alpha();
         CreateAssignmentDTO createDTO = CreateAssignmentDTO.builder()
                                                            .key(key)
-                                                           .assignedName(assignedName)
+                                                           .assignedNames(List.of(assignedName))
                                                            .build();
         Repository repository = new Repository();
         SubAssignment subAssignment = SubAssignment.builder().assignedName(assignedName).build();
@@ -199,7 +202,7 @@ class RepositoryServiceImplTest {
         String assignedName = Randoms.alpha();
         CreateAssignmentDTO createDTO = CreateAssignmentDTO.builder()
                                                            .key(key)
-                                                           .assignedName(assignedName)
+                                                           .assignedNames(List.of(assignedName))
                                                            .build();
         Repository repository = new Repository();
         SubAssignment subAssignment = SubAssignment.builder().assignedName(assignedName).build();
@@ -231,7 +234,7 @@ class RepositoryServiceImplTest {
         String assignedName = Randoms.alpha();
         CreateAssignmentDTO createDTO = CreateAssignmentDTO.builder()
                                                            .key(key)
-                                                           .assignedName(assignedName)
+                                                           .assignedNames(List.of(assignedName))
                                                            .build();
         Repository repository = new Repository();
         Assignment assignment =
@@ -257,7 +260,7 @@ class RepositoryServiceImplTest {
         String assignedName = Randoms.alpha();
         CreateAssignmentDTO createDTO = CreateAssignmentDTO.builder()
                                                            .key(key)
-                                                           .assignedName(assignedName)
+                                                           .assignedNames(List.of(assignedName))
                                                            .build();
         Repository repository = new Repository();
         Assignment assignment =
@@ -942,5 +945,9 @@ class RepositoryServiceImplTest {
     private void prepareGitServiceGetCommits(long platformId, User user, String branch, List<CommitInternalDTO> commits)
         throws GitException, NoProviderFoundException {
         when(gitService.getAllCommits(user.getId(), platformId, branch)).thenReturn(commits);
+    }
+
+    private void prepareRepositorySave(Repository repositoryEntity) {
+        when(repositoryRepository.save(repositoryEntity)).thenReturn(repositoryEntity);
     }
 }

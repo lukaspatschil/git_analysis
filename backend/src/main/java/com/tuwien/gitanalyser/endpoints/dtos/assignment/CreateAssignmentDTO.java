@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.util.List;
+
 @Getter
 @Setter
 @Builder
@@ -15,5 +17,5 @@ import lombok.ToString;
 @ToString
 public class CreateAssignmentDTO {
     private String key;
-    private String assignedName;
+    private List<String> assignedNames;
 }

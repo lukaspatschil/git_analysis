@@ -46,7 +46,7 @@ public class AssignmentIntegrationTest extends BaseIntegrationTest {
         long platformId = Randoms.getLong();
         String key = Randoms.alpha();
         String assignedName = Randoms.alpha();
-        var createAssignmentDTO = new CreateAssignmentDTO(key, assignedName);
+        var createAssignmentDTO = new CreateAssignmentDTO(key, List.of(assignedName));
 
         prepareGitLabAllowedToAccess(platformId);
 
@@ -65,7 +65,40 @@ public class AssignmentIntegrationTest extends BaseIntegrationTest {
         assertAssignment(assignment, createAssignmentDTO.getKey(), 1);
 
         SubAssignment subAssignment = assignment.getSubAssignments().get(0);
-        assertSubAssignment(subAssignment, createAssignmentDTO.getAssignedName());
+        assertSubAssignment(subAssignment, assignedName);
+    }
+
+    @Test
+    public void addAssignments_userAllowedToAccessRepositoryAndNoRepositoryExists_shouldCreateNewRepositoryWithOneAssignmentAndMultipleSubAssignments()
+        throws GitLabApiException {
+        // Given
+        long platformId = Randoms.getLong();
+        String key = Randoms.alpha();
+        String assignedName1 = Randoms.alpha();
+        String assignedName2 = Randoms.alpha();
+
+        var createAssignmentDTO = new CreateAssignmentDTO(key, List.of(assignedName1, assignedName2));
+
+        prepareGitLabAllowedToAccess(platformId);
+
+        // When
+        Response response = callPostRestEndpoint(gitLabUserToken,
+                                                 REPOSITORY_ENDPOINT + "/" + platformId + ASSIGNMENT_EXTENSION,
+                                                 createAssignmentDTO);
+
+        // Then
+        assertThat(response.getStatusCode(), equalTo(HttpStatus.CREATED.value()));
+
+        Repository createdRepository = repositoryRepository.findByUserAndPlatformId(gitLabUser, platformId).get();
+        assertRepository(createdRepository, platformId, gitLabUser, 1);
+
+        Assignment assignment = createdRepository.getAssignments().get(0);
+        assertAssignment(assignment, createAssignmentDTO.getKey(), 2);
+
+        assertThat(assignment.getSubAssignments(), containsInAnyOrder(
+            hasFeature("assignedName", SubAssignment::getAssignedName, equalTo(assignedName1)),
+            hasFeature("assignedName", SubAssignment::getAssignedName, equalTo(assignedName2))
+        ));
     }
 
     @Test
@@ -75,7 +108,7 @@ public class AssignmentIntegrationTest extends BaseIntegrationTest {
         long platformId = Randoms.getLong();
         String key = Randoms.alpha();
         String assignedName = Randoms.alpha();
-        var createAssignmentDTO = new CreateAssignmentDTO(key, assignedName);
+        var createAssignmentDTO = new CreateAssignmentDTO(key, List.of(assignedName));
 
         prepareGitLabAllowedToAccess(platformId);
         addRepository(gitLabUser, platformId);
@@ -95,7 +128,7 @@ public class AssignmentIntegrationTest extends BaseIntegrationTest {
         assertAssignment(assignment, createAssignmentDTO.getKey(), 1);
 
         SubAssignment subAssignment = assignment.getSubAssignments().get(0);
-        assertSubAssignment(subAssignment, createAssignmentDTO.getAssignedName());
+        assertSubAssignment(subAssignment, assignedName);
     }
 
     @Test
@@ -105,7 +138,7 @@ public class AssignmentIntegrationTest extends BaseIntegrationTest {
         long platformId = Randoms.getLong();
         String key = Randoms.alpha();
         String assignedName = Randoms.alpha();
-        var createAssignmentDTO = new CreateAssignmentDTO(key, assignedName);
+        var createAssignmentDTO = new CreateAssignmentDTO(key, List.of(assignedName));
 
         prepareGitLabAllowedToAccess(platformId);
         Repository repository = addRepository(gitLabUser, platformId);
@@ -133,7 +166,7 @@ public class AssignmentIntegrationTest extends BaseIntegrationTest {
         long platformId = Randoms.getLong();
         String key = Randoms.alpha();
         String assignedName = Randoms.alpha();
-        var createAssignmentDTO = new CreateAssignmentDTO(key, assignedName);
+        var createAssignmentDTO = new CreateAssignmentDTO(key, List.of(assignedName));
 
         prepareGitLabAllowedToAccess(platformId);
         Repository repository = addRepository(gitLabUser, platformId);
@@ -156,7 +189,7 @@ public class AssignmentIntegrationTest extends BaseIntegrationTest {
 
         assertThat(assignmentResult.getSubAssignments(), containsInAnyOrder(
             hasProperty("assignedName", equalTo(subAssignment.getAssignedName())),
-            hasProperty("assignedName", equalTo(createAssignmentDTO.getAssignedName()))
+            hasProperty("assignedName", equalTo(assignedName))
         ));
     }
 
@@ -167,7 +200,7 @@ public class AssignmentIntegrationTest extends BaseIntegrationTest {
         long platformId = Randoms.getLong();
         String dtoKey = Randoms.alpha();
         String dtoName = Randoms.alpha();
-        var createAssignmentDTO = new CreateAssignmentDTO(dtoKey, dtoName);
+        var createAssignmentDTO = new CreateAssignmentDTO(dtoKey, List.of(dtoName));
 
         String existingKey = "existingAssignmentKey";
 
@@ -209,7 +242,7 @@ public class AssignmentIntegrationTest extends BaseIntegrationTest {
         long platformId = Randoms.getLong();
         String key = Randoms.alpha();
         String assignedName = Randoms.alpha();
-        var createAssignmentDTO = new CreateAssignmentDTO(key, assignedName);
+        var createAssignmentDTO = new CreateAssignmentDTO(key, List.of(assignedName));
 
         GitLabApi gitLabApi = gitLabMockFactory();
         ProjectApi projectApi = this.gitLabMockProjectApi(gitLabApi);
@@ -236,7 +269,7 @@ public class AssignmentIntegrationTest extends BaseIntegrationTest {
         Assignment assignment = addAssignment(key, repository);
         SubAssignment subAssignment = addSubAssignment(assignment);
 
-        var createAssignmentDTO = new CreateAssignmentDTO(key, subAssignment.getAssignedName());
+        var createAssignmentDTO = new CreateAssignmentDTO(key, List.of(subAssignment.getAssignedName()));
 
         // When
         Response response = callPostRestEndpoint(gitLabUserToken,
@@ -256,7 +289,7 @@ public class AssignmentIntegrationTest extends BaseIntegrationTest {
 
         prepareGitLabAllowedToAccess(platformId);
 
-        var createAssignmentDTO = new CreateAssignmentDTO(randomName, randomName);
+        var createAssignmentDTO = new CreateAssignmentDTO(randomName, List.of(randomName));
 
         // When
         Response response = callPostRestEndpoint(gitLabUserToken,
@@ -280,7 +313,7 @@ public class AssignmentIntegrationTest extends BaseIntegrationTest {
         Assignment assignment = addAssignment(key, repository);
         SubAssignment subAssignment = addSubAssignment(assignment);
 
-        var createAssignmentDTO = new CreateAssignmentDTO(newKey, subAssignment.getAssignedName());
+        var createAssignmentDTO = new CreateAssignmentDTO(newKey, List.of(subAssignment.getAssignedName()));
 
         // When
         Response response = callPostRestEndpoint(gitLabUserToken,
@@ -304,7 +337,7 @@ public class AssignmentIntegrationTest extends BaseIntegrationTest {
         Assignment assignment = addAssignment(key, repository);
         SubAssignment subAssignment = addSubAssignment(assignment);
 
-        var createAssignmentDTO = new CreateAssignmentDTO(newKey, subAssignment.getAssignedName());
+        var createAssignmentDTO = new CreateAssignmentDTO(newKey, List.of(subAssignment.getAssignedName()));
 
         // When
         callPostRestEndpoint(gitLabUserToken,
@@ -315,7 +348,8 @@ public class AssignmentIntegrationTest extends BaseIntegrationTest {
         Optional<Repository> resultRepository = repositoryRepository.findByUserAndPlatformId(gitLabUser, platformId);
         assertThat(resultRepository, isPresent());
         assertThat(resultRepository.get().getAssignments().size(), equalTo(1));
-        assertThat(resultRepository.get().getAssignments(), not(hasItem(hasFeature("oldKey", Assignment::getKey, equalTo(key)))));
+        assertThat(resultRepository.get().getAssignments(),
+                   not(hasItem(hasFeature("oldKey", Assignment::getKey, equalTo(key)))));
     }
 
     @Test
@@ -331,7 +365,7 @@ public class AssignmentIntegrationTest extends BaseIntegrationTest {
         Assignment assignment = addAssignment(key, repository);
         SubAssignment subAssignment = addSubAssignment(assignment);
 
-        var createAssignmentDTO = new CreateAssignmentDTO(newKey, subAssignment.getAssignedName());
+        var createAssignmentDTO = new CreateAssignmentDTO(newKey, List.of(subAssignment.getAssignedName()));
 
         // When
         callPostRestEndpoint(gitLabUserToken,
@@ -342,7 +376,8 @@ public class AssignmentIntegrationTest extends BaseIntegrationTest {
         Optional<Repository> resultRepository = repositoryRepository.findByUserAndPlatformId(gitLabUser, platformId);
         assertThat(resultRepository, isPresent());
         assertThat(resultRepository.get().getAssignments().size(), equalTo(1));
-        assertThat(resultRepository.get().getAssignments(), not(hasItem(hasFeature("oldKey", Assignment::getKey, equalTo(key)))));
+        assertThat(resultRepository.get().getAssignments(),
+                   not(hasItem(hasFeature("oldKey", Assignment::getKey, equalTo(key)))));
     }
 
     @Test
@@ -358,7 +393,7 @@ public class AssignmentIntegrationTest extends BaseIntegrationTest {
         Assignment assignment = addAssignment(key, repository);
         SubAssignment subAssignment = addSubAssignment(assignment);
 
-        var createAssignmentDTO = new CreateAssignmentDTO(newKey, subAssignment.getAssignedName());
+        var createAssignmentDTO = new CreateAssignmentDTO(newKey, List.of(subAssignment.getAssignedName()));
 
         // When
         callPostRestEndpoint(gitLabUserToken,
@@ -376,7 +411,9 @@ public class AssignmentIntegrationTest extends BaseIntegrationTest {
                     hasFeature("subAssignments", Assignment::getSubAssignments, hasSize(1)),
                     hasFeature("subAssignments", Assignment::getSubAssignments, hasItem(
                         allOf(
-                            hasFeature("assignedName", SubAssignment::getAssignedName, equalTo(subAssignment.getAssignedName()))
+                            hasFeature("assignedName",
+                                       SubAssignment::getAssignedName,
+                                       equalTo(subAssignment.getAssignedName()))
                         )
                     ))
                 )

@@ -8,6 +8,8 @@ import com.tuwien.gitanalyser.repository.AssignmentRepository;
 import com.tuwien.gitanalyser.service.AssignmentService;
 import com.tuwien.gitanalyser.service.SubAssignmentService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -26,6 +28,7 @@ public class AssignmentServiceImpl implements AssignmentService {
         this.assignmentFactory = assignmentFactory;
     }
 
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     @Override
     public Assignment getOrCreateAssignment(final Repository repository, final String key) {
         Optional<Assignment> assignmentOptional = assignmentRepository.findByRepositoryAndKey(repository, key);
@@ -33,6 +36,7 @@ public class AssignmentServiceImpl implements AssignmentService {
         return assignmentOptional.orElseGet(() -> createNewAssignment(repository, key));
     }
 
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     @Override
     public void deleteSubAssignmentById(final Repository repository, final Long subAssignmentId) {
 
@@ -53,6 +57,7 @@ public class AssignmentServiceImpl implements AssignmentService {
             throw new NotFoundException("SubAssignment not found");
         }
     }
+
 
     private void deleteAssignment(final Assignment assignment) {
         assignmentRepository.delete(assignment);

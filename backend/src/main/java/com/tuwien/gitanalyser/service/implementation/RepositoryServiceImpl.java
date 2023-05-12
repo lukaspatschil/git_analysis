@@ -65,31 +65,29 @@ public class RepositoryServiceImpl implements RepositoryService {
 
         User user = userService.getUser(userId);
 
-        Repository repositoryEntity;
         Optional<Repository> repositoryOptional = findRepositoryByPlatformIdAndUser(platformId, user);
 
         // Create Repository if it does NotExist
-        repositoryEntity = repositoryOptional.orElseGet(() -> createRepository(platformId, user));
+        Repository repositoryEntity = repositoryOptional.orElseGet(() -> createRepository(platformId, user));
 
         checkIAssignmentsDoesNotProduceCircularAssignments(dto, repositoryEntity);
 
         Assignment assignment = assignmentService.getOrCreateAssignment(repositoryEntity, dto.getKey());
 
-        boolean overwritten = false;
-
-        for (Assignment tempAssignment : repositoryEntity.getAssignments()) {
-            for (SubAssignment subAssignment : tempAssignment.getSubAssignments()) {
-                if (subAssignment.getAssignedName().equals(dto.getAssignedName())) {
-                    overwriteSubAssignment(dto, repositoryEntity, subAssignment);
-                    overwritten = true;
+        for (String assignedName : dto.getAssignedNames()) {
+            boolean overwritten = false;
+            for (Assignment tempAssignment : repositoryEntity.getAssignments()) {
+                for (SubAssignment subAssignment : tempAssignment.getSubAssignments()) {
+                    if (subAssignment.getAssignedName().equals(assignedName)) {
+                        overwriteSubAssignment(dto.getKey(), assignedName, repositoryEntity, subAssignment);
+                        overwritten = true;
+                    }
                 }
             }
+            if (!overwritten) {
+                subAssignmentService.addSubAssignment(assignment, assignedName);
+            }
         }
-
-        if (!overwritten) {
-            subAssignmentService.addSubAssignment(assignment, dto.getAssignedName());
-        }
-
     }
 
     @Override
@@ -201,31 +199,34 @@ public class RepositoryServiceImpl implements RepositoryService {
         return result;
     }
 
-    private void overwriteSubAssignment(final CreateAssignmentDTO dto,
+    private void overwriteSubAssignment(final String key,
+                                        final String assignedName,
                                         final Repository repositoryEntity,
                                         final SubAssignment subAssignmentToRemoveSubAssignmentFrom) {
         assignmentService.deleteSubAssignmentById(repositoryEntity, subAssignmentToRemoveSubAssignmentFrom.getId());
-        Assignment assignment = assignmentService.getOrCreateAssignment(repositoryEntity, dto.getKey());
-        subAssignmentService.addSubAssignment(assignment, dto.getAssignedName());
+        Assignment assignment = assignmentService.getOrCreateAssignment(repositoryEntity, key);
+        subAssignmentService.addSubAssignment(assignment, assignedName);
     }
 
     private void checkIAssignmentsDoesNotProduceCircularAssignments(final CreateAssignmentDTO dto,
                                                                     final Repository repositoryEntity)
         throws IllegalArgumentException {
 
-        if (dto.getKey().equals(dto.getAssignedName())) {
-            throw new IllegalArgumentException("Assignment key and assigned name must not be equal");
-        }
-
-        for (Assignment assignment : repositoryEntity.getAssignments()) {
-            if (assignment.getKey().equals(dto.getAssignedName())) {
-                String message = "Assigned name must not be equal to an existing assignment key";
-                throw new IllegalArgumentException(message);
+        for (String assignedName : dto.getAssignedNames()) {
+            if (dto.getKey().equals(assignedName)) {
+                throw new IllegalArgumentException("Assignment key and assigned name must not be equal");
             }
-            for (SubAssignment subAssignment : assignment.getSubAssignments()) {
-                if (subAssignment.getAssignedName().equals(dto.getKey())) {
-                    String message = "Assignment key must not be equal to an existing sub assignment name";
+
+            for (Assignment assignment : repositoryEntity.getAssignments()) {
+                if (assignment.getKey().equals(assignedName)) {
+                    String message = "Assigned name must not be equal to an existing assignment key";
                     throw new IllegalArgumentException(message);
+                }
+                for (SubAssignment subAssignment : assignment.getSubAssignments()) {
+                    if (subAssignment.getAssignedName().equals(dto.getKey())) {
+                        String message = "Assignment key must not be equal to an existing sub assignment name";
+                        throw new IllegalArgumentException(message);
+                    }
                 }
             }
         }
@@ -279,8 +280,7 @@ public class RepositoryServiceImpl implements RepositoryService {
         repositoryEntity = repositoryFactory.create();
         repositoryEntity.setUser(user);
         repositoryEntity.setPlatformId(platformId);
-        repositoryRepository.save(repositoryEntity);
-        return repositoryEntity;
+        return repositoryRepository.save(repositoryEntity);
     }
 
     private void mapFromAssignmentToKey(final Map<String, StatsInternalDTO> statsMap, final String key,
