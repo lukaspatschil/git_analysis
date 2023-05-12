@@ -8,6 +8,7 @@ export default function Index() {
 
     const navigation = [
         {name: 'Overview', href: `/repository/${repositoryId}/${branchName}`, current: true},
+        {name: 'Committer timeline', href: `/repository/${repositoryId}/${branchName}/timeline`, current: false},
         {name: 'Committer Stats', href: `/repository/${repositoryId}/${branchName}/committerStats`, current: false},
         {name: 'Commits', href: `/repository/${repositoryId}/${branchName}/commits`, current: false},
         {name: 'Committer', href: `/repository/${repositoryId}/${branchName}/committer`, current: false},

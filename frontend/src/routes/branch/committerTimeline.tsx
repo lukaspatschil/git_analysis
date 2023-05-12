@@ -7,7 +7,6 @@ import {commitsSchema} from "../../schemas/commitSchema";
 import { Line } from "react-chartjs-2";
 import { ChartData, Point } from "chart.js";
 import {dateFormatter} from "../../utils/dateFormatter";
-import {useEffect, useState} from "react";
 import {red, green} from 'tailwindcss/colors';
 import {ArrowLeftIcon} from "@heroicons/react/24/outline";
 import {committersSchema} from "../../schemas/commiterSchema";
@@ -16,12 +15,9 @@ export default function BranchOverview() {
     const { token } = useAuthStore();
     const {branchName, repositoryId} = useParams();
     const navigate = useNavigate();
-    const [display, setDisplay] = useState<ChartData<"line", (number | Point | null)[], unknown>>({
-        labels: [],
-        datasets: emptyDataSet()});
-    useDocumentTitle(`${branchName} overview`);
+    useDocumentTitle(`${branchName} committer timeline`);
 
-    const { data, error, isLoading } = useSWR(`${import.meta.env.VITE_BASE_API_URL}apiV1/repository/${repositoryId}/commit?branch=${branchName}&mappedByAssignments=true`, (url: string) => {
+    const {data} = useSWR(`${import.meta.env.VITE_BASE_API_URL}apiV1/repository/${repositoryId}/commit?branch=${branchName}&mappedByAssignments=true`, (url: string) => {
         if (!token) {
             throw new Error('Token is not set');
         }
@@ -49,49 +45,47 @@ export default function BranchOverview() {
             .then(maybeCommits => committersSchema.parse(maybeCommits));
     });
 
-    useEffect(() => {
-        if (data) {
-            const newData: ChartData<"line", (number | Point | null)[], unknown> = {
-                labels: [],
-                datasets: emptyDataSet()};
-            data
-                .sort((commitA, commitB) => new Date(commitB.timestamp).getTime() - new Date(commitA.timestamp).getTime())
-                .forEach(commit => {
-                    if (newData.labels) {
-                        newData.labels.push(dateFormatter.format(new Date(commit.timestamp)));
-                    }
-                    newData.datasets[0].data.push(commit.additions);
-                    newData.datasets[1].data.push(commit.deletions);
-                });
-
-            setDisplay(newData);
-        }
-    }, [data]);
-
-    const options = {
-        responsive: true,
-        plugins: {
-            legend: {
-                position: 'top' as const,
-            },
-            title: {
-                display: true,
-                text: `Additions/Deletions for ${branchName}`,
-            },
-        },
-    };
-
     return (
         <>
             <div className="flex gap-2">
                 <button onClick={() => navigate(`/repository/${repositoryId}`)}>
                     <ArrowLeftIcon className="block h-6 w-6" aria-hidden="true" />
                 </button>
-                <h2 className="text-2xl">Overview</h2>
+                <h2 className="text-2xl">Committer timeline</h2>
             </div>
-            <AsyncDataHandler isLoading={isLoading} error={error} data={data}>
-                <h3 className="text-xl">Overall commits</h3>
-                <Line options={options} data={display} />
+            <AsyncDataHandler isLoading={committerLoading} error={committerError} data={committerData}>
+                <ul>
+                    {committerData?.map(committer => {
+                        const committerDisplay: ChartData<"line", (number | Point | null)[], unknown> = {
+                            labels: [],
+                            datasets: emptyDataSet()};
+                        const committerOptions = {
+                            responsive: true,
+                            plugins: {
+                                legend: {
+                                    position: 'top' as const,
+                                },
+                                title: {
+                                    display: true,
+                                    text: `Additions/Deletions for ${branchName} from ${committer.name}`,
+                                },
+                            },
+                        };
+                        data
+                            ?.sort((commitA, commitB) => new Date(commitB.timestamp).getTime() - new Date(commitA.timestamp).getTime())
+                            .forEach(commit => {
+                                if (commit.author === committer.name) {
+                                    if (committerDisplay.labels) {
+                                        committerDisplay.labels.push(dateFormatter.format(new Date(commit.timestamp)));
+                                    }
+                                    committerDisplay.datasets[0].data.push(commit.additions);
+                                    committerDisplay.datasets[1].data.push(commit.deletions);
+                                }
+                            });
+
+                        return <Line options={committerOptions} data={committerDisplay} />;
+                    })}
+                </ul>
             </AsyncDataHandler>
         </>
     );

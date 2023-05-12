@@ -4,9 +4,9 @@ import {useNavigate, useParams} from "react-router-dom";
 import useSWR, {mutate} from "swr";
 import {committersSchema} from "../../schemas/commiterSchema";
 import useDocumentTitle from "../../hooks/useDocumentTitle";
-import {FormEventHandler, useState} from "react";
+import {EventHandler, FormEventHandler, useState} from "react";
 import {assignmentsSchema} from "../../schemas/assignmentSchema";
-import {ArrowLeftIcon} from "@heroicons/react/24/outline";
+import {ArrowLeftIcon, TrashIcon} from "@heroicons/react/24/outline";
 
 export default function Committer() {
     const { token } = useAuthStore();
@@ -62,7 +62,24 @@ export default function Committer() {
         })) ?? [];
 
         await Promise.all(updateNameQueries);
-        mutate(`${import.meta.env.VITE_BASE_API_URL}apiV1/repository/${repositoryId}/assignment`);
+        await mutate(`${import.meta.env.VITE_BASE_API_URL}apiV1/repository/${repositoryId}/assignment`);
+    };
+
+    const handleDeleteAssignment = async (id?: number) => {
+        if (!token) {
+            throw new Error('Token is not set');
+        }
+
+        if (id) {
+            await fetch(`${import.meta.env.VITE_BASE_API_URL}apiV1/repository/${repositoryId}/assignment/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    Authorization: token
+                }
+            });
+
+            await mutate(`${import.meta.env.VITE_BASE_API_URL}apiV1/repository/${repositoryId}/assignment`);
+        }
     };
 
     return (
@@ -117,7 +134,10 @@ export default function Committer() {
                     {assignments?.map(assignment => <li key={assignment.key}>
                         {assignment.key}:
                         <ul className="ml-5">
-                        {assignment.assignedNames.map(assignedName => <li key={assignedName.id}>{assignedName.name}</li>)}
+                        {assignment.assignedNames.map(assignedName =>
+                            <li key={assignedName.id} className="flex gap-2">
+                                <TrashIcon className="block h-6 w-6 cursor-pointer hover:text-gray-500" aria-hidden="true" onClick={() => handleDeleteAssignment(assignedName.id)} />{assignedName.name}
+                            </li>)}
                         </ul>
                     </li>)}
                 </ul>
