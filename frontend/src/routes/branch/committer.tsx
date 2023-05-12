@@ -49,7 +49,7 @@ export default function Committer() {
             throw new Error('Token is not set');
         }
 
-        const updateNameQueries = data?.filter((x, i) => selectedNames[i]).map((comitter, i) => fetch(`${import.meta.env.VITE_BASE_API_URL}apiV1/repository/${repositoryId}/assignment`, {
+        const updateNameQueries = data?.filter((x, i) => selectedNames[i]).map(comitter => fetch(`${import.meta.env.VITE_BASE_API_URL}apiV1/repository/${repositoryId}/assignment`, {
             method: 'POST',
             headers: {
                 Authorization: token,
@@ -67,13 +67,13 @@ export default function Committer() {
 
     return (
         <>
+            <div className="flex gap-2">
+                <button onClick={() => navigate(`/repository/${repositoryId}`)}>
+                    <ArrowLeftIcon className="block h-6 w-6" aria-hidden="true" />
+                </button>
+                <h2 className="text-2xl">Committer</h2>
+            </div>
             <AsyncDataHandler isLoading={isLoading} error={error} data={data}>
-                <div className="flex gap-2">
-                    <button onClick={() => navigate(`/repository/${repositoryId}`)}>
-                        <ArrowLeftIcon className="block h-6 w-6" aria-hidden="true" />
-                    </button>
-                    <h2 className="text-2xl">Committer</h2>
-                </div>
                 <form onSubmit={handleSetAssignment}>
                     {<ul className='p-6'>
                         {data?.map(committer => <li key={committer.name}>

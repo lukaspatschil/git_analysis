@@ -44,13 +44,13 @@ export default function committerStats() {
 
     return (
         <>
+            <div className="flex gap-2">
+                <button onClick={() => navigate(`/repository/${repositoryId}`)}>
+                    <ArrowLeftIcon className="block h-6 w-6" aria-hidden="true" />
+                </button>
+                <h2 className="text-2xl">Commiter Stats</h2>
+            </div>
             <AsyncDataHandler isLoading={isLoading} error={error} data={data}>
-                <div className="flex gap-2">
-                    <button onClick={() => navigate(`/repository/${repositoryId}`)}>
-                        <ArrowLeftIcon className="block h-6 w-6" aria-hidden="true" />
-                    </button>
-                    <h2 className="text-2xl">Commiter Stats</h2>
-                </div>
                 <h3 className="text-xl">Number of commits</h3>
                 <div className="h-96">
                     <Pie data={displayCommits} width={100}
