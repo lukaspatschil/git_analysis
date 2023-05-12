@@ -1,4 +1,4 @@
-import {useParams} from "react-router-dom";
+import {useNavigate, useParams} from "react-router-dom";
 import useDocumentTitle from "../../hooks/useDocumentTitle";
 import useSWR from "swr";
 import {useAuthStore} from "../../stores/useAuthStore";
@@ -9,10 +9,12 @@ import { ChartData, Point } from "chart.js";
 import {dateFormatter} from "../../utils/dateFormatter";
 import {useEffect, useState} from "react";
 import {red, green} from 'tailwindcss/colors';
+import {ArrowLeftIcon} from "@heroicons/react/24/outline";
 
 export default function BranchOverview() {
     const { token } = useAuthStore();
     const {branchName, repositoryId} = useParams();
+    const navigate = useNavigate();
     const [display, setDisplay] = useState<ChartData<"line", (number | Point | null)[], unknown>>({
         labels: [],
         datasets: [
@@ -31,7 +33,7 @@ export default function BranchOverview() {
         ]});
     useDocumentTitle(`${branchName} overview`);
 
-    const { data, error, isLoading } = useSWR(`${import.meta.env.VITE_BASE_API_URL}apiV1/repository/${repositoryId}/commit?branch=${branchName}&mappedByAssignments`, (url: string) => {
+    const { data, error, isLoading } = useSWR(`${import.meta.env.VITE_BASE_API_URL}apiV1/repository/${repositoryId}/commit?branch=${branchName}&mappedByAssignments=true`, (url: string) => {
         if (!token) {
             throw new Error('Token is not set');
         }
@@ -93,6 +95,12 @@ export default function BranchOverview() {
     return (
         <>
             <AsyncDataHandler isLoading={isLoading} error={error} data={data}>
+                <div className="flex gap-2">
+                    <button onClick={() => navigate(`/repository/${repositoryId}`)}>
+                        <ArrowLeftIcon className="block h-6 w-6" aria-hidden="true" />
+                    </button>
+                    <h2 className="text-2xl">Overview</h2>
+                </div>
                 <Line options={options} data={display} />
             </AsyncDataHandler>
         </>

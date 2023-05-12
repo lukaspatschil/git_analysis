@@ -8,8 +8,7 @@ import ProfileFull from './profile/ProfileFull';
 import LoginFull from './login/LoginFull';
 
 const navigation = [
-  { name: 'Dashboard', href: '/repository' },
-  { name: 'Stats', href: '/stats' }
+  { name: 'Dashboard', href: '/repository' }
 ];
 
 function classNames(...classes: any[]) {

@@ -17,11 +17,9 @@ export default function Index() {
         <>
             <Wrapper>
                 <Navbar />
-                <Body title='Index details' navigation={navigation}>
-                    <div className="px-4 py-6 sm:px-0">
-                        <div className="h-[80vh] rounded-lg border-4 border-dashed border-gray-200 overflow-auto p-1">
-                            <Outlet />
-                        </div>
+                <Body title='Repository details' navigation={navigation}>
+                    <div className="h-[75vh] rounded-lg border-4 border-dashed border-gray-200 overflow-auto p-1">
+                        <Outlet />
                     </div>
                 </Body>
             </Wrapper>

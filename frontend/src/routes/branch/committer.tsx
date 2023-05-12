@@ -1,16 +1,18 @@
 import AsyncDataHandler from "../../components/AsyncDataHandler";
 import {useAuthStore} from "../../stores/useAuthStore";
-import {useParams} from "react-router-dom";
+import {useNavigate, useParams} from "react-router-dom";
 import useSWR, {mutate} from "swr";
 import {committersSchema} from "../../schemas/commiterSchema";
 import useDocumentTitle from "../../hooks/useDocumentTitle";
 import {FormEventHandler, useState} from "react";
 import {assignmentsSchema} from "../../schemas/assignmentSchema";
+import {ArrowLeftIcon} from "@heroicons/react/24/outline";
 
 export default function Committer() {
     const { token } = useAuthStore();
     const [name, setName] = useState('');
     const { repositoryId, branchName} = useParams();
+    const navigate = useNavigate();
     useDocumentTitle(`${branchName} committer`);
     const { data, error, isLoading } = useSWR(`${import.meta.env.VITE_BASE_API_URL}apiV1/repository/${repositoryId}/committer?branch=${branchName}`, (url: string) => {
         if (!token) {
@@ -66,6 +68,12 @@ export default function Committer() {
     return (
         <>
             <AsyncDataHandler isLoading={isLoading} error={error} data={data}>
+                <div className="flex gap-2">
+                    <button onClick={() => navigate(`/repository/${repositoryId}`)}>
+                        <ArrowLeftIcon className="block h-6 w-6" aria-hidden="true" />
+                    </button>
+                    <h2 className="text-2xl">Committer</h2>
+                </div>
                 <form onSubmit={handleSetAssignment}>
                     {<ul className='p-6'>
                         {data?.map(committer => <li key={committer.name}>
