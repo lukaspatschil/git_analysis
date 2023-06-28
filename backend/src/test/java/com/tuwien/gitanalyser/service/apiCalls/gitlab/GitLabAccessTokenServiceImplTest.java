@@ -336,6 +336,15 @@ class GitLabAccessTokenServiceImplTest {
         assertThrows(GitHubException.class, () -> sut.getAllCommits(userId, platformId, branch));
     }
 
+    @Test
+    void getEmail_always_throwsUnsupportedMethodException() {
+        // Given
+        long userId = Randoms.getLong();
+
+        // When + Then
+        assertThrows(UnsupportedOperationException.class, () -> sut.getEmail(userId));
+    }
+
     private String prepareUser(long userId) {
         String accessToken = Randoms.alpha();
         User user = mock(User.class);

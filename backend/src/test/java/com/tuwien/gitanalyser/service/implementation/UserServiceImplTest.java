@@ -13,6 +13,7 @@ import com.tuwien.gitanalyser.security.jwt.JWTTokenProvider;
 import com.tuwien.gitanalyser.security.oauth2.BasicAuth2User;
 import com.tuwien.gitanalyser.security.oauth2.GitHubOAuth2User;
 import com.tuwien.gitanalyser.security.oauth2.GitLabOAuth2User;
+import com.tuwien.gitanalyser.service.GitService;
 import com.tuwien.gitanalyser.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -45,7 +46,8 @@ class UserServiceImplTest {
         userRepository = mock(UserRepository.class);
         fingerprintService = mock(FingerprintService.class);
         jwtTokenProvider = mock(JWTTokenProvider.class);
-        sut = new UserServiceImpl(userRepository, fingerprintService, jwtTokenProvider);
+        GitService gitService = mock(GitService.class);
+        sut = new UserServiceImpl(userRepository, fingerprintService, jwtTokenProvider, gitService);
     }
 
     @Test
@@ -192,13 +194,14 @@ class UserServiceImplTest {
         // Given
         int platformId = Randoms.integer();
         String username = "John Doe";
-        User expectedUser = createUser(authenticationProvider, platformId, username);
+        String email = "john.doe@example.com";
+        User expectedUser = createUser(authenticationProvider, platformId, username, email);
 
         when(userRepository.findByAuthenticationProviderAndPlatformId(authenticationProvider, platformId)).thenReturn(
             Optional.empty());
 
         // When
-        sut.processOAuthPostLogin(createAuth2User(authenticationProvider, platformId, username), null, null);
+        sut.processOAuthPostLogin(createAuth2User(authenticationProvider, platformId, username, email), null, null);
 
         // Then
         verify(userRepository).save(expectedUser);
@@ -210,22 +213,22 @@ class UserServiceImplTest {
         // Given
         int platformId = Randoms.integer();
         String username = "John Doe";
-        User expectedUser = createUser(authenticationProvider, platformId, username);
+        String email = "john.doe@example.com";
+        User expectedUser = createUser(authenticationProvider, platformId, username, email);
 
         when(userRepository.findByAuthenticationProviderAndPlatformId(authenticationProvider, platformId))
             .thenReturn(Optional.of(expectedUser));
 
         // When
-        UserFingerprintPair userFingerprintPair = sut.processOAuthPostLogin(createAuth2User(authenticationProvider,
-                                                                                            platformId,
-                                                                                            username), null, null);
+        UserFingerprintPair userFingerprintPair = sut.processOAuthPostLogin(
+            createAuth2User(authenticationProvider, platformId, username, email), null, null);
 
         // Then
         assertThat(userFingerprintPair.getUser(), equalTo(expectedUser));
     }
 
     private BasicAuth2User createAuth2User(AuthenticationProvider authenticationProvider, int platformId,
-                                           String username) {
+                                           String username, String email) {
         BasicAuth2User auth2User;
 
         if (authenticationProvider.equals(AuthenticationProvider.GITHUB)) {
@@ -238,12 +241,13 @@ class UserServiceImplTest {
 
         when(auth2User.getPlatformId()).thenReturn(platformId);
         when(auth2User.getName()).thenReturn(username);
+        when(auth2User.getEmail()).thenReturn(email);
 
         return auth2User;
-
     }
 
-    private User createUser(AuthenticationProvider authenticationProvider, int platformId, String username) {
+    private User createUser(AuthenticationProvider authenticationProvider, int platformId, String username,
+                            String email) {
         FingerprintPair fingerprint = mockFingerprint();
 
         User expectedUser = new User();
@@ -251,6 +255,7 @@ class UserServiceImplTest {
         expectedUser.setPlatformId(platformId);
         expectedUser.setFingerPrintHash(fingerprint.getHash());
         expectedUser.setAuthenticationProvider(authenticationProvider);
+        expectedUser.setEmail(email);
         return expectedUser;
     }
 

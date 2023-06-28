@@ -3,10 +3,12 @@ package com.tuwien.gitanalyser.service.apiCalls.github;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.BranchInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.NotSavedRepositoryInternalDTO;
+import com.tuwien.gitanalyser.exception.GitException;
 import com.tuwien.gitanalyser.exception.GitHubException;
 import com.tuwien.gitanalyser.service.GitAPI;
 import com.tuwien.gitanalyser.service.GitAPIFactory;
 import org.kohsuke.github.GHCommit;
+import org.kohsuke.github.GHEmail;
 import org.kohsuke.github.GHRepository;
 import org.kohsuke.github.GitHub;
 import org.springframework.stereotype.Service;
@@ -104,6 +106,18 @@ public class GitHubAPI implements GitAPI {
         }
 
         return result;
+    }
+
+    public String getEmail(final String accessToken) throws GitException {
+        try {
+            GitHub github = gitHubAPIFactory.createObject(accessToken);
+            List<GHEmail> emails2 = github.getMyself().getEmails2();
+
+            // filter primary email
+            return emails2.stream().filter(GHEmail::isPrimary).toList().get(0).getEmail();
+        } catch (Exception e) {
+            throw new GitHubException(e);
+        }
     }
 
     private CommitInternalDTO mapGHCommitToInternalDTO(final GHCommit commit) {

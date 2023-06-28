@@ -20,7 +20,6 @@
         <spring.framework.data.version>2.7.5</spring.framework.data.version>
         <checkstyle.maven.plugin.version>3.2.1</checkstyle.maven.plugin.version>
         <jacoco.version>0.8.8</jacoco.version>
-        <libvcs4j.version>1.8.0</libvcs4j.version>
         <oauth2.client.version>3.0.3</oauth2.client.version>
         <spring.boot.starter.web.version>3.0.1</spring.boot.starter.web.version>
         <h2.version>2.1.214</h2.version>
@@ -34,9 +33,6 @@
         <junit.jupiter.engine.version>5.4.0</junit.jupiter.engine.version>
         <gitlab4j.api.version>5.0.1</gitlab4j.api.version>
         <io.jsonwebtoken.version>0.9.1</io.jsonwebtoken.version>
-        <libvcs4j.version>1.8.0</libvcs4j.version>
-        <libvcs4j.api.version>1.8.0</libvcs4j.api.version>
-        <libvcs4j.tools.version>1.8.0</libvcs4j.tools.version>
         <maven.compiler.plugin.version>3.5.1</maven.compiler.plugin.version>
         <maven.surfire.version>3.0.0-M8</maven.surfire.version>
         <pitest-junit5-plugin.version>1.1.1</pitest-junit5-plugin.version>
@@ -178,24 +174,6 @@
             <groupId>org.jacoco</groupId>
             <artifactId>jacoco-maven-plugin</artifactId>
             <version>${jacoco.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>de.uni-bremen.informatik.st</groupId>
-            <artifactId>libvcs4j</artifactId>
-            <version>${libvcs4j.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>de.uni-bremen.informatik.st</groupId>
-            <artifactId>libvcs4j-api</artifactId>
-            <version>${libvcs4j.api.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>de.uni-bremen.informatik.st</groupId>
-            <artifactId>libvcs4j-tools</artifactId>
-            <version>${libvcs4j.tools.version}</version>
         </dependency>
 
         <dependency>

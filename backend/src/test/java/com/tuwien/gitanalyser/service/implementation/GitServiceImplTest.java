@@ -727,6 +727,43 @@ class GitServiceImplTest {
         assertThat(result, hasSize(0));
     }
 
+    @Test
+    void getEmail_gitLabAuthorization_shouldCallGitLabService()
+        throws NotFoundException, GitException, NoProviderFoundException {
+        // Given
+        long userId = Randoms.getLong();
+        prepareUserService(userId, AuthenticationProvider.GITLAB);
+
+        // When
+        sut.getEmail(userId);
+
+        // Then
+        verify(gitLabService).getEmail(userId);
+    }
+
+    @Test
+    void getEmail_gitHubAuthorization_shouldCallGitHubService()
+        throws NotFoundException, GitException, NoProviderFoundException {
+        // Given
+        long userId = Randoms.getLong();
+        prepareUserService(userId, AuthenticationProvider.GITHUB);
+
+        // When
+        sut.getEmail(userId);
+
+        // Then
+        verify(gitHubService).getEmail(userId);
+    }
+
+    @Test
+    void getEmail_randomAuthorization_shouldThrowException() throws NotFoundException {
+        // Given
+        long userId = Randoms.getLong();
+
+        // When + Then
+        assertThrows(RuntimeException.class, () -> sut.getEmail(userId));
+    }
+
     private void prepareUserService(long userId, AuthenticationProvider authenticationProvider)
         throws NotFoundException {
         User user = mock(User.class);
@@ -767,5 +804,4 @@ class GitServiceImplTest {
         when(commit.getDeletions()).thenReturn(Randoms.integer(0, 10));
         return commit;
     }
-
 }
