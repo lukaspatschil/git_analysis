@@ -63,4 +63,6 @@ public interface GitExceptionHandlerService {
      * @return Boolean
      */
     boolean repositoryAccessibleByUser(long userId, Long platformId);
+
+    String getEmail(long userId) throws GitException;
 }

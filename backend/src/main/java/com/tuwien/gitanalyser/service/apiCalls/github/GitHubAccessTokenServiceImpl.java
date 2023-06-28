@@ -43,6 +43,11 @@ public class GitHubAccessTokenServiceImpl implements GitAccessTokenService {
         return gitHubAPI.getAllCommits(getAccessToken(userId), platformId, branch);
     }
 
+    @Override
+    public String getEmail(final long userId) throws GitException {
+        return gitHubAPI.getEmail(getAccessToken(userId));
+    }
+
     private String getAccessToken(final Long userId) {
         return userService.getUser(userId).getAccessToken();
     }

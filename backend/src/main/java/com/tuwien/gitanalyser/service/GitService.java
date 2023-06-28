@@ -26,4 +26,6 @@ public interface GitService {
 
     List<StatsInternalDTO> getStats(long userId, Long platformId, String branch)
         throws NoProviderFoundException, GitException;
+
+    String getEmail(long userId) throws NoProviderFoundException, GitException;
 }

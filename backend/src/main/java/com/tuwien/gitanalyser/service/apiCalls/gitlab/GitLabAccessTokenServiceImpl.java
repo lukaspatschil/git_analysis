@@ -3,6 +3,7 @@ package com.tuwien.gitanalyser.service.apiCalls.gitlab;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.BranchInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.NotSavedRepositoryInternalDTO;
+import com.tuwien.gitanalyser.exception.GitException;
 import com.tuwien.gitanalyser.exception.GitLabException;
 import com.tuwien.gitanalyser.exception.TryRefreshException;
 import com.tuwien.gitanalyser.service.GitAccessTokenService;
@@ -43,6 +44,11 @@ public class GitLabAccessTokenServiceImpl implements GitAccessTokenService {
     public List<CommitInternalDTO> getAllCommits(final long userId, final Long platformId, final String branch)
         throws GitLabException, TryRefreshException {
         return gitLabAPI.getAllCommits(getAccessToken(userId), platformId, branch);
+    }
+
+    @Override
+    public String getEmail(final long userId) throws GitException {
+        throw new UnsupportedOperationException("GitLab does not need email retrieval");
     }
 
     private String getAccessToken(final Long userId) {

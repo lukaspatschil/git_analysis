@@ -588,4 +588,28 @@ class GitLabExceptionHandlerServiceImplTest {
         // Then
         assertThat(result, equalTo(false));
     }
+
+    @Test
+    void getEmail_always_shouldCallAccessTokenService() throws GitException {
+        // Given
+        long userId = Randoms.getLong();
+
+        // When
+        sut.getEmail(userId);
+
+        // Then
+        verify(gitLabAccessTokenService).getEmail(userId);
+    }
+
+    @Test
+    void getEmail_accessTokenServiceThrowsUnsupportedOperationException_shouldThrowUnsupportedOperationException()
+        throws GitException {
+        // Given
+        long userId = Randoms.getLong();
+
+        when(gitLabAccessTokenService.getEmail(userId)).thenThrow(UnsupportedOperationException.class);
+
+        // When + Then
+        assertThrows(UnsupportedOperationException.class, () -> sut.getEmail(userId));
+    }
 }

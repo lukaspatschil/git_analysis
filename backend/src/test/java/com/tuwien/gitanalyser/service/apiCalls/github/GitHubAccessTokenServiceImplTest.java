@@ -111,7 +111,6 @@ class GitHubAccessTokenServiceImplTest {
 
         // When + Then
         assertThrows(GitHubException.class, () -> sut.getAllRepositories(userId));
-
     }
 
     @Test
@@ -329,6 +328,34 @@ class GitHubAccessTokenServiceImplTest {
 
         // When + Then
         assertThrows(GitHubException.class, () -> sut.getAllCommits(userId, platformId, branch));
+    }
+
+    @Test
+    void getEmail_always_shouldCallService() throws GitException {
+        // Given
+        long userId = Randoms.getLong();
+        String accessToken = prepareUser(userId);
+
+        // When
+        sut.getEmail(userId);
+
+        // Then
+        verify(gitHubAPI).getEmail(accessToken);
+    }
+
+    @Test
+    void getEmail_serviceReturnsString_shouldReturnString() throws GitException {
+        // Given
+        long userId = Randoms.getLong();
+        String accessToken = prepareUser(userId);
+        String email = Randoms.alpha();
+        when(gitHubAPI.getEmail(accessToken)).thenReturn(email);
+
+        // When
+        String result = sut.getEmail(userId);
+
+        // Then
+        assertThat(result, equalTo(email));
     }
 
     private String prepareUser(long userId) {

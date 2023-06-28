@@ -114,4 +114,9 @@ public class GitLabExceptionHandlerServiceImpl implements GitExceptionHandlerSer
 
         return result;
     }
+
+    @Override
+    public String getEmail(final long userId) throws GitException {
+        return gitLabAccessTokenService.getEmail(userId);
+    }
 }

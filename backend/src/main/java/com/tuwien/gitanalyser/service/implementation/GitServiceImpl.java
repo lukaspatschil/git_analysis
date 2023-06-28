@@ -136,6 +136,12 @@ public class GitServiceImpl implements GitService {
         return stats;
     }
 
+    @Override
+    public String getEmail(final long userId) throws NoProviderFoundException, GitException {
+        GitExceptionHandlerService gitApi = getAPI(userId);
+        return gitApi.getEmail(userId);
+    }
+
     private GitExceptionHandlerService getAPI(final Long userId) throws NoProviderFoundException {
         return switch (getUser(userId).getAuthenticationProvider().name().toLowerCase()) {
             case AuthenticationConstants.GITHUB_REGISTRATION_ID -> gitHubAccessTokenRefresherService;

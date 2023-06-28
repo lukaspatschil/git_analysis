@@ -362,4 +362,30 @@ class GitHubExceptionHandlerServiceImplTest {
         // Then
         assertThat(result, equalTo(false));
     }
+
+    @Test
+    void getEmail_always_shouldCallService() throws GitException {
+        // Given
+        long userId = Randoms.getLong();
+
+        // When
+        sut.getEmail(userId);
+
+        // Then
+        verify(gitHubAccessTokenService).getEmail(userId);
+    }
+
+    @Test
+    void getEmail_accessTokenServiceReturnsString_shouldReturnString() throws GitException {
+        // Given
+        long userId = Randoms.getLong();
+        String expectedEmail = Randoms.alpha();
+        when(gitHubAccessTokenService.getEmail(userId)).thenReturn(expectedEmail);
+
+        // When
+        String result = sut.getEmail(userId);
+
+        // Then
+        assertThat(result, equalTo(expectedEmail));
+    }
 }

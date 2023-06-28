@@ -55,4 +55,6 @@ public interface GitAccessTokenService {
      */
     List<CommitInternalDTO> getAllCommits(long userId, Long platformId, String branch)
         throws GitException, TryRefreshException;
+
+    String getEmail(long userId) throws GitException;
 }
