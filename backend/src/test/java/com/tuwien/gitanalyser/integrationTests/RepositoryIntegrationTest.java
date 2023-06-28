@@ -33,7 +33,6 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static utils.Matchers.CommitDTOMatcher;
 import static utils.Matchers.commitDTOMatcher;
 import static utils.Matchers.committerDTOMatcher;
 import static utils.Matchers.statsDTOMatcher;
@@ -333,7 +332,7 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         CommitDTO[] commits = response.as(CommitDTO[].class);
 
         assertThat(Arrays.asList(commits), Matchers.containsInAnyOrder(
-            CommitDTOMatcher(commitDTO)
+            commitDTOMatcher(commitDTO)
         ));
     }
 
@@ -470,7 +469,7 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         CommitDTO[] commits = response.as(CommitDTO[].class);
 
         assertThat(Arrays.asList(commits), Matchers.containsInAnyOrder(
-            CommitDTOMatcher(commitDTO)
+            commitDTOMatcher(commitDTO)
         ));
     }
 
@@ -611,7 +610,7 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         CommitDTO[] commits = response.as(CommitDTO[].class);
 
         assertThat(Arrays.asList(commits), Matchers.containsInAnyOrder(
-            CommitDTOMatcher(commitDTO)
+            commitDTOMatcher(commitDTO)
         ));
     }
 
@@ -792,7 +791,7 @@ public class RepositoryIntegrationTest extends BaseIntegrationTest {
         CommitDTO[] commits = response.as(CommitDTO[].class);
 
         assertThat(Arrays.asList(commits), Matchers.containsInAnyOrder(
-            CommitDTOMatcher(commitDTO)
+            commitDTOMatcher(commitDTO)
         ));
     }
 

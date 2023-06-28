@@ -335,7 +335,6 @@ class RepositoryServiceImplTest {
 
         // When + Then
         assertThrows(NotFoundException.class, () -> sut.getAssignments(user.getId(), platformId));
-
     }
 
     @Test
@@ -536,7 +535,11 @@ class RepositoryServiceImplTest {
         List<CommitAggregatedInternalDTO> result = sut.getCommits(user.getId(), platformId, branch, false, null);
 
         // Then
-        assertThat(result, Matchers.containsInAnyOrder(commitAggreagteDTOMatcher(commit1), commitAggreagteDTOMatcher(commit2)));
+        assertThat(result, Matchers.containsInAnyOrder(
+            commitAggreagteDTOMatcher(commit1, commit1.getAdditions() - commit1.getDeletions()),
+            commitAggreagteDTOMatcher(commit2, commit1.getAdditions() - commit1.getDeletions()
+                                                   + commit2.getAdditions() - commit2.getDeletions())
+        ));
     }
 
     @Test
@@ -562,11 +565,13 @@ class RepositoryServiceImplTest {
         List<CommitAggregatedInternalDTO> result = sut.getCommits(user.getId(), platformId, branch, true, null);
 
         // Then
-        assertThat(result, Matchers.containsInAnyOrder(commitAggreagteDTOMatcher(resultCommit)));
+        assertThat(result, Matchers.containsInAnyOrder(
+            commitAggreagteDTOMatcher(resultCommit, resultCommit.getAdditions() - resultCommit.getDeletions()))
+        );
     }
 
     @Test
-    void getCommits_twoStatsObjectAndShouldBeMapped_returnsMappedCommits()
+    void getCommits_twoStatsObjectAndShouldBeMappedToOneCommit_returnsMappedCommits()
         throws GitException, NoProviderFoundException {
         // Given
         long platformId = Randoms.getLong();
@@ -591,8 +596,11 @@ class RepositoryServiceImplTest {
         List<CommitAggregatedInternalDTO> result = sut.getCommits(user.getId(), platformId, branch, true, null);
 
         // Then
-        assertThat(result, Matchers.containsInAnyOrder(commitAggreagteDTOMatcher(resultCommit1),
-                                                       commitAggreagteDTOMatcher(resultCommit2)
+        assertThat(result, Matchers.containsInAnyOrder(
+            commitAggreagteDTOMatcher(resultCommit1, commit1.getAdditions() - commit1.getDeletions()),
+            commitAggreagteDTOMatcher(resultCommit2,
+                                      commit1.getAdditions() - commit1.getDeletions() + commit2.getAdditions()
+                                          - commit2.getDeletions())
         ));
     }
 
@@ -624,9 +632,13 @@ class RepositoryServiceImplTest {
 
         // Then
         assertThat(result, Matchers.containsInAnyOrder(
-            commitAggreagteDTOMatcher(resultCommit1),
-            commitAggreagteDTOMatcher(resultCommit2),
-            commitAggreagteDTOMatcher(commit3)
+            commitAggreagteDTOMatcher(resultCommit1, commit1.getAdditions() - commit1.getDeletions()),
+            commitAggreagteDTOMatcher(resultCommit2,
+                                      commit1.getAdditions() - commit1.getDeletions() + commit2.getAdditions()
+                                          - commit2.getDeletions()),
+            commitAggreagteDTOMatcher(commit3,
+                                      commit1.getAdditions() - commit1.getDeletions() + commit2.getAdditions()
+                                          - commit2.getDeletions() + commit3.getAdditions() - commit3.getDeletions())
         ));
     }
 

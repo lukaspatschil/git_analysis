@@ -20,6 +20,8 @@ import com.tuwien.gitanalyser.service.GitService;
 import com.tuwien.gitanalyser.service.RepositoryService;
 import com.tuwien.gitanalyser.service.SubAssignmentService;
 import com.tuwien.gitanalyser.service.UserService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,6 +38,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class RepositoryServiceImpl implements RepositoryService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(RepositoryServiceImpl.class);
 
     private final UserService userService;
     private final RepositoryRepository repositoryRepository;
@@ -89,7 +93,6 @@ public class RepositoryServiceImpl implements RepositoryService {
         if (!overwritten) {
             subAssignmentService.addSubAssignment(assignment, dto.getAssignedName());
         }
-
     }
 
     @Override
@@ -173,6 +176,8 @@ public class RepositoryServiceImpl implements RepositoryService {
         int overallLineOfCode = 0;
         for (CommitInternalDTO commit : internalCommits) {
             overallLineOfCode = overallLineOfCode + commit.getAdditions() - commit.getDeletions();
+            LOGGER.info("#{} at {}: Overall Line of Code: {}, additions: {}, deletions: {}", commit.getId(),
+                        commit.getTimestamp(), overallLineOfCode, commit.getAdditions(), commit.getDeletions());
             var aggregatedCommit = new CommitAggregatedInternalDTO(commit.getId(), commit.getMessage(),
                                                                    commit.getAuthor(), commit.getTimestamp(),
                                                                    commit.getParentIds(), commit.isMergeCommit(),
@@ -229,7 +234,6 @@ public class RepositoryServiceImpl implements RepositoryService {
                 }
             }
         }
-
     }
 
     private void mapCommitsByAssignments(final Collection<CommitInternalDTO> commits,

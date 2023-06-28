@@ -12,6 +12,8 @@ import org.gitlab4j.api.GitLabApiException;
 import org.gitlab4j.api.models.Branch;
 import org.gitlab4j.api.models.Commit;
 import org.gitlab4j.api.models.Project;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -22,6 +24,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class GitLabAPI implements GitAPI {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(GitLabAPI.class);
 
     private final GitAPIFactory<GitLabApi> gitLabAPIFactory;
 
@@ -151,16 +155,18 @@ public class GitLabAPI implements GitAPI {
     }
 
     private CommitInternalDTO mapCommitsToInternalDTO(final Commit commit) {
-        return CommitInternalDTO.builder()
-                                .id(commit.getId())
-                                .author(commit.getAuthorName())
-                                .timestamp(commit.getCommittedDate())
-                                .message(commit.getMessage())
-                                .parentIds(commit.getParentIds())
-                                .isMergeCommit(commit.getParentIds().size() > 1)
-                                .additions(commit.getStats().getAdditions())
-                                .deletions(commit.getStats().getDeletions())
-                                .build();
+        CommitInternalDTO mappedCommit = CommitInternalDTO.builder()
+                                                   .id(commit.getId())
+                                                   .author(commit.getAuthorName())
+                                                   .timestamp(commit.getCommittedDate())
+                                                   .message(commit.getMessage())
+                                                   .parentIds(commit.getParentIds())
+                                                   .isMergeCommit(commit.getParentIds().size() > 1)
+                                                   .additions(commit.getStats().getAdditions())
+                                                   .deletions(commit.getStats().getDeletions())
+                                                   .build();
+        LOGGER.info("Commit: {}; Mapped commit: {}", commit, mappedCommit);
+        return mappedCommit;
     }
 }
 
