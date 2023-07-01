@@ -43,6 +43,10 @@
         <springdoc-openapi-ui.version>1.6.15</springdoc-openapi-ui.version>
         <swagger-annotations-jakarta.version>2.2.8</swagger-annotations-jakarta.version>
         <hamcrest.version>2.2</hamcrest.version>
+        <aspectjweaver.version>1.8.9</aspectjweaver.version>
+        <aspectjrt.version>1.8.9</aspectjrt.version>
+        <android-json.version>0.0.20131108.vaadin1</android-json.version>
+        <json.version>20230227</json.version>
     </properties>
 
     <dependencies>
@@ -55,25 +59,25 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
+            <version>3.1.1</version>
         </dependency>
 
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-webflux</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.graphql</groupId>
-            <artifactId>spring-graphql-test</artifactId>
-            <scope>test</scope>
+            <version>6.0.10</version>
         </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
             <version>${spring.boot.starter.web.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-aop</artifactId>
+            <version>6.0.10</version>
         </dependency>
 
         <dependency>
@@ -251,25 +255,24 @@
         <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
-            <version>20230227</version>
+            <version>${json.version}</version>
         </dependency>
 
         <!-- aspectJ -->
         <dependency>
             <groupId>org.aspectj</groupId>
             <artifactId>aspectjrt</artifactId>
-            <version>1.8.9</version>
+            <version>${aspectjrt.version}</version>
         </dependency>
         <dependency>
             <groupId>org.aspectj</groupId>
             <artifactId>aspectjweaver</artifactId>
-            <version>1.8.9</version>
+            <version>${aspectjweaver.version}</version>
         </dependency>
         <dependency>
             <groupId>com.vaadin.external.google</groupId>
             <artifactId>android-json</artifactId>
-            <version>0.0.20131108.vaadin1</version>
-            <scope>compile</scope>
+            <version>${android-json.version}</version>
         </dependency>
 
     </dependencies>
