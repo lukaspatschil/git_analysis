@@ -72,7 +72,7 @@ export default function BranchOverview() {
                             },
                         };
                         data
-                            ?.sort((commitA, commitB) => new Date(commitB.timestamp).getTime() - new Date(commitA.timestamp).getTime())
+                            ?.sort((commitA, commitB) => new Date(commitA.timestamp).getTime() - new Date(commitB.timestamp).getTime())
                             .forEach(commit => {
                                 if (commit.author === committer.name) {
                                     if (committerDisplay.labels) {

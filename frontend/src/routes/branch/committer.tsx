@@ -93,7 +93,7 @@ export default function Committer() {
             <AsyncDataHandler isLoading={isLoading} error={error} data={data}>
                 <form onSubmit={handleSetAssignment}>
                     {<ul className='p-6'>
-                        {data?.map(committer => <li key={committer.name}>
+                        {data?.sort((a, b) => a.name.localeCompare(b.name)).map(committer => <li key={committer.name}>
                             <label className='flex gap-2 items-center'>
                                 <input
                                     id="comments"
