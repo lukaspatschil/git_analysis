@@ -57,11 +57,21 @@ export default function committerStats() {
                          height={50}
                          options={{ maintainAspectRatio: false }} />
                 </div>
+                <div className="relative my-4">
+                    <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                        <div className="w-full border-t border-gray-300"/>
+                    </div>
+                </div>
                 <h3 className="text-xl">Number of additions</h3>
                 <div className="h-96">
                     <Pie data={displayAdditions} width={100}
                          height={50}
                          options={{ maintainAspectRatio: false }} />
+                </div>
+                <div className="relative my-4">
+                    <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                        <div className="w-full border-t border-gray-300"/>
+                    </div>
                 </div>
                 <h3 className="text-xl">Number of deletions</h3>
                 <div className="h-96">

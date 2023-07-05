@@ -36,7 +36,7 @@ export default function Commits() {
             </div>
             <AsyncDataHandler isLoading={isLoading} error={error} data={data}>
                 {<ul className='p-6'>
-                    {data?.map(commit => <li className='grid gap-1' key={commit.id} style={{gridTemplateColumns: '5fr 1fr repeat(2, 0.5fr) 1fr'}}>
+                    {data?.map(commit => <li className='grid gap-1 odd:bg-gray-300 px-2' key={commit.id} style={{gridTemplateColumns: '5fr 1fr repeat(2, 0.5fr) 1fr'}}>
                         <div>{commit.message}</div>
                         <div>{commit.author}</div>
                         <div className="text-green-600">+ {commit.additions}</div>
