@@ -16,7 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -33,14 +33,13 @@ public class GitLabAPI implements GitAPI {
     public List<NotSavedRepositoryInternalDTO> getAllRepositories(final String accessToken)
         throws GitLabException, TryRefreshException {
 
-        List<NotSavedRepositoryInternalDTO> allRepos = new ArrayList<>();
+        HashMap<Long, NotSavedRepositoryInternalDTO> allRepos = new HashMap<>();
 
         GitLabApi gitLabApi;
         try {
             gitLabApi = gitLabAPIFactory.createObject(accessToken);
-            allRepos.addAll(getOwnedProjects(gitLabApi));
-            allRepos.addAll(getMemberProjects(gitLabApi));
-
+            getOwnedProjects(gitLabApi).forEach(x -> allRepos.put(x.getPlatformId(), x));
+            getMemberProjects(gitLabApi).forEach(x -> allRepos.putIfAbsent(x.getPlatformId(), x));
         } catch (IOException e) {
             throw new GitLabException(e);
         } catch (GitLabApiException e) {
@@ -50,7 +49,7 @@ public class GitLabAPI implements GitAPI {
             throw new GitLabException(e);
         }
 
-        return allRepos;
+        return allRepos.values().stream().toList();
     }
 
     @Override
@@ -69,7 +68,6 @@ public class GitLabAPI implements GitAPI {
             }
             throw new GitLabException(e);
         }
-
 
         return NotSavedRepositoryInternalDTO.builder()
                                             .platformId(project.getId())
@@ -112,7 +110,7 @@ public class GitLabAPI implements GitAPI {
         try {
             GitLabApi gitLabAPI = gitLabAPIFactory.createObject(accessToken);
             commits = gitLabAPI.getCommitsApi()
-                               .getCommits(platformId, branchName, null, null, null, true, true,
+                               .getCommits(platformId, branchName, null, null, null, false, true,
                                            null);
         } catch (IOException e) {
             throw new GitLabException(e);
@@ -130,26 +128,6 @@ public class GitLabAPI implements GitAPI {
         return result;
     }
 
-    private List<NotSavedRepositoryInternalDTO> convertToRepositories(final List<Project> projects) {
-        return projects.stream()
-                       .map(project ->
-                                NotSavedRepositoryInternalDTO.builder()
-                                                             .name(project.getName())
-                                                             .url(project.getHttpUrlToRepo())
-                                                             .platformId(project.getId())
-                                                             .build())
-                       .collect(Collectors.toList());
-    }
-
-    private List<NotSavedRepositoryInternalDTO> getOwnedProjects(final GitLabApi gitLabApi) throws GitLabApiException {
-        return convertToRepositories(gitLabApi.getProjectApi().getOwnedProjects());
-    }
-
-    private List<NotSavedRepositoryInternalDTO> getMemberProjects(final GitLabApi gitLabApi)
-        throws GitLabApiException {
-        return convertToRepositories(gitLabApi.getProjectApi().getMemberProjects());
-    }
-
     private CommitInternalDTO mapCommitsToInternalDTO(final Commit commit) {
         return CommitInternalDTO.builder()
                                 .id(commit.getId())
@@ -161,6 +139,26 @@ public class GitLabAPI implements GitAPI {
                                 .additions(commit.getStats().getAdditions())
                                 .deletions(commit.getStats().getDeletions())
                                 .build();
+    }
+
+    private List<NotSavedRepositoryInternalDTO> getOwnedProjects(final GitLabApi gitLabApi) throws GitLabApiException {
+        return convertToRepositories(gitLabApi.getProjectApi().getOwnedProjects());
+    }
+
+    private List<NotSavedRepositoryInternalDTO> getMemberProjects(final GitLabApi gitLabApi)
+        throws GitLabApiException {
+        return convertToRepositories(gitLabApi.getProjectApi().getMemberProjects());
+    }
+
+    private List<NotSavedRepositoryInternalDTO> convertToRepositories(final List<Project> projects) {
+        return projects.stream()
+                       .map(project ->
+                                NotSavedRepositoryInternalDTO.builder()
+                                                             .name(project.getName())
+                                                             .url(project.getHttpUrlToRepo())
+                                                             .platformId(project.getId())
+                                                             .build())
+                       .collect(Collectors.toList());
     }
 }
 

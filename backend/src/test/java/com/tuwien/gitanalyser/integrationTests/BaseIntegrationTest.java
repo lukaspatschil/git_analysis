@@ -218,7 +218,7 @@ public abstract class BaseIntegrationTest {
                                    null,
                                    null,
                                    null,
-                                   true,
+                                   false,
                                    true,
                                    null)).thenReturn(List.of(commits));
     }
