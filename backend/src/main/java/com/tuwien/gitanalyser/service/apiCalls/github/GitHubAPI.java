@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -105,7 +106,7 @@ public class GitHubAPI implements GitAPI {
             throw new GitHubException(e);
         }
 
-        return result;
+        return result.stream().sorted(Comparator.comparing(CommitInternalDTO::getTimestamp)).toList();
     }
 
     public String getEmail(final String accessToken) throws GitException {

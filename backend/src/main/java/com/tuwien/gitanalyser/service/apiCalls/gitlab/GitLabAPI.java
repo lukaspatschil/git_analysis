@@ -16,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -111,7 +112,10 @@ public class GitLabAPI implements GitAPI {
             GitLabApi gitLabAPI = gitLabAPIFactory.createObject(accessToken);
             commits = gitLabAPI.getCommitsApi()
                                .getCommits(platformId, branchName, null, null, null, false, true,
-                                           null);
+                                           null)
+                               .stream()
+                               .sorted(Comparator.comparing(Commit::getCommittedDate))
+                               .toList();
         } catch (IOException e) {
             throw new GitLabException(e);
         } catch (GitLabApiException e) {
