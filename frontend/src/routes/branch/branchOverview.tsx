@@ -25,6 +25,7 @@ export default function BranchOverview() {
     const [displayLinesOfCodeAgg, setDisplayLinesOfCodeAgg] = useState<ChartData<"line", (number | Point | null)[], unknown>>({
         labels: [],
         datasets: emptySet()});
+    const [commitMessages, setCommitMessages] = useState<string[]>([]);
     useDocumentTitle(`${branchName} overview`);
 
     const { data, error, isLoading } = useSWR(`${import.meta.env.VITE_BASE_API_URL}apiV1/repository/${repositoryId}/commit?branch=${branchName}&mappedByAssignments=true`, (url: string) => {
@@ -66,6 +67,7 @@ export default function BranchOverview() {
             const newDataAgg: ChartData<"line", (number | null)[], unknown> = {
                 labels: [],
                 datasets: emptySet()};
+            const newCommitMessages: string[] = [];
             data
                 .sort((commitA, commitB) => new Date(commitA.timestamp).getTime() - new Date(commitB.timestamp).getTime())
                 .forEach(commit => {
@@ -74,6 +76,7 @@ export default function BranchOverview() {
                     }
                     newData.datasets[0].data.push(commit.additions);
                     newData.datasets[1].data.push(commit.deletions);
+                    newCommitMessages.push(commit.message + '\n' + commit.author);
 
                     if (newData2.labels) {
                         newData2.labels.push(dateFormatter.format(new Date(commit.timestamp)));
@@ -90,6 +93,7 @@ export default function BranchOverview() {
             setDisplay(newData);
             setDisplayLinesOfCode(newData2);
             setDisplayLinesOfCodeAgg(newDataAgg);
+            setCommitMessages(newCommitMessages);
         }
     }, [data]);
 
@@ -103,6 +107,11 @@ export default function BranchOverview() {
                 display: true,
                 text: `Additions/Deletions for ${branchName}`,
             },
+            tooltip: {
+                callbacks: {
+                    footer: (data: any) => commitMessages.at(data[0].dataIndex),
+                }
+            }
         },
     };
 

@@ -90,6 +90,28 @@ export default function Committer() {
             <AsyncDataHandler isLoading={isLoading} error={error} data={data}>
                 <div className="grid grid-cols-2">
                     <div>
+                        <h2>Assignees</h2>
+                        {<ul className='p-6'>
+                            {data?.filter(committer => !assignments?.reduce((prev, next) => {
+                                return next.assignedNames.reduce((prev, next) => next.name === committer.name || prev, false) || next.key === committer.name || prev;
+                            }, false))
+                                .sort((a, b) => a.name.localeCompare(b.name)).map(committer => <li key={committer.name}>
+                                    <label className='flex gap-2 items-center'>
+                                        <input
+                                            id="comments"
+                                            aria-describedby="comments-description"
+                                            name="assignee"
+                                            type="radio"
+                                            className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
+                                            value={committer.name}
+                                            onClick={event => setAssignee((event.target as HTMLInputElement).value)}
+                                        />
+                                        <div>{committer.name}</div>
+                                    </label>
+                                </li>)}
+                        </ul>}
+                    </div>
+                    <div>
                         <h2>Names</h2>
                         {<ul className='p-6'>
                             {data?.filter(committer => !assignments?.reduce((prev, next) => {
@@ -105,28 +127,6 @@ export default function Committer() {
                                         className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
                                         value={committer.name}
                                         onClick={event => setName((event.target as HTMLInputElement).value)}
-                                    />
-                                    <div>{committer.name}</div>
-                                </label>
-                            </li>)}
-                        </ul>}
-                    </div>
-                    <div>
-                        <h2>Assignees</h2>
-                        {<ul className='p-6'>
-                            {data?.filter(committer => !assignments?.reduce((prev, next) => {
-                                return next.assignedNames.reduce((prev, next) => next.name === committer.name || prev, false) || next.key === committer.name || prev;
-                            }, false))
-                                .sort((a, b) => a.name.localeCompare(b.name)).map(committer => <li key={committer.name}>
-                                <label className='flex gap-2 items-center'>
-                                    <input
-                                        id="comments"
-                                        aria-describedby="comments-description"
-                                        name="assignee"
-                                        type="radio"
-                                        className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
-                                        value={committer.name}
-                                        onClick={event => setAssignee((event.target as HTMLInputElement).value)}
                                     />
                                     <div>{committer.name}</div>
                                 </label>

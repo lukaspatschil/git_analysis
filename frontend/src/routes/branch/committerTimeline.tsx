@@ -10,6 +10,7 @@ import {dateFormatter} from "../../utils/dateFormatter";
 import {red, green} from 'tailwindcss/colors';
 import {ArrowLeftIcon} from "@heroicons/react/24/outline";
 import {committersSchema} from "../../schemas/commiterSchema";
+import {useState} from "react";
 
 export default function BranchOverview() {
     const { token } = useAuthStore();
@@ -69,6 +70,11 @@ export default function BranchOverview() {
                                     display: true,
                                     text: `Additions/Deletions for ${branchName} from ${committer.name}`,
                                 },
+                                tooltip: {
+                                    callbacks: {
+                                        footer: (display: any) => data?.find(commit => dateFormatter.format(new Date(commit.timestamp)) === display[0].label)?.message
+                                    }
+                                }
                             },
                         };
                         data
