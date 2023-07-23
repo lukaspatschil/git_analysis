@@ -10,7 +10,6 @@ import {dateFormatter} from "../../utils/dateFormatter";
 import {red, green} from 'tailwindcss/colors';
 import {ArrowLeftIcon} from "@heroicons/react/24/outline";
 import {committersSchema} from "../../schemas/commiterSchema";
-import {useState} from "react";
 
 export default function BranchOverview() {
     const { token } = useAuthStore();

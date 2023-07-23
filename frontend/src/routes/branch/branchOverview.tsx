@@ -76,7 +76,7 @@ export default function BranchOverview() {
                     }
                     newData.datasets[0].data.push(commit.additions);
                     newData.datasets[1].data.push(commit.deletions);
-                    newCommitMessages.push(commit.message + '\n' + commit.author);
+                    newCommitMessages.push(commit.message + '\n🖥️ ' + commit.author);
 
                     if (newData2.labels) {
                         newData2.labels.push(dateFormatter.format(new Date(commit.timestamp)));
@@ -87,7 +87,7 @@ export default function BranchOverview() {
                         newDataAgg.labels.push(dateFormatter.format(new Date(commit.timestamp)));
                     }
                     const previousValue = newDataAgg.datasets[0].data.at(-1) ?? 0;
-                    newDataAgg.datasets[0].data.push(previousValue + commit.linesOfCodeOverall);
+                    newDataAgg.datasets[0].data.push(previousValue + (commit.additions - commit.deletions));
                 });
 
             setDisplay(newData);
@@ -152,7 +152,6 @@ export default function BranchOverview() {
             <AsyncDataHandler isLoading={isLoading} error={error} data={data}>
                 <h3 className="text-xl">Overall commits</h3>
                 <Line options={options} data={display} />
-                <Line options={optionsLinesOfCode} data={displayLinesOfCode} />
                 <Line options={optionsLinesOfCodeAgg} data={displayLinesOfCodeAgg} />
             </AsyncDataHandler>
         </>
