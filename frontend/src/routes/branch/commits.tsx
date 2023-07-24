@@ -6,6 +6,7 @@ import {useNavigate, useParams} from "react-router-dom";
 import useDocumentTitle from "../../hooks/useDocumentTitle";
 import {dateFormatter} from "../../utils/dateFormatter";
 import {ArrowLeftIcon} from "@heroicons/react/24/outline";
+import React from "react";
 
 export default function Commits() {
     const { token } = useAuthStore();
@@ -35,14 +36,15 @@ export default function Commits() {
                 <h2 className="text-2xl">Commits</h2>
             </div>
             <AsyncDataHandler isLoading={isLoading} error={error} data={data}>
-                {<ul className='p-6'>
-                    {data?.map(commit => <li className='grid gap-1 odd:bg-gray-300 px-2' key={commit.id} style={{gridTemplateColumns: '5fr 1fr repeat(2, 0.5fr) 1fr'}}>
-                        <div>{commit.message}</div>
+                {<ul className='p-6 grid gap-1 odd:bg-gray-300 px-2' style={{gridTemplateColumns: '5fr 1fr repeat(2, 0.5fr) 1fr'}}>
+                    {data?.map(commit => <React.Fragment key={commit.id}>
+                        <div className="line-clamp-1" title={commit.message}>{commit.message.replaceAll('\n', ' ')}</div>
                         <div>{commit.author}</div>
                         <div className="text-green-600">+ {commit.additions}</div>
                         <div className="text-red-600">- {commit.deletions}</div>
                         <div>{dateFormatter.format(new Date(commit.timestamp))}</div>
-                    </li>)}
+                        <hr className="col-span-5 border-black"/>
+                    </React.Fragment>)}
                 </ul>}
             </AsyncDataHandler>
         </>

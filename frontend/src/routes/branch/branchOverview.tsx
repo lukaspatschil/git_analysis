@@ -125,6 +125,11 @@ export default function BranchOverview() {
                 display: true,
                 text: `Total lines of code for ${branchName}`,
             },
+            tooltip: {
+                callbacks: {
+                    footer: (data: any) => commitMessages.at(data[0].dataIndex),
+                }
+            }
         },
     };
 
@@ -138,6 +143,11 @@ export default function BranchOverview() {
                 display: true,
                 text: `Total lines of code for ${branchName} aggregated`,
             },
+            tooltip: {
+                callbacks: {
+                    footer: (data: any) => commitMessages.at(data[0].dataIndex),
+                }
+            }
         },
     };
 
