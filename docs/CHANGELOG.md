@@ -1,3 +1,30 @@
+# [1.6.0](https://github.com/lukaspatschil/git_analysis/compare/v1.5.2...v1.6.0) (2023-07-26)
+
+
+### Bug Fixes
+
+* [#121](https://github.com/lukaspatschil/git_analysis/issues/121) add unique id to each request ([1a931d3](https://github.com/lukaspatschil/git_analysis/commit/1a931d372ecb639169af89a4f1d9949e977d0d42))
+* [#28](https://github.com/lukaspatschil/git_analysis/issues/28) email from user for github ([e172276](https://github.com/lukaspatschil/git_analysis/commit/e1722761aa92db3e8d6b22fa27aacd6201bd592d))
+* fetch not all commits, only commits for distinct branch ([efda108](https://github.com/lukaspatschil/git_analysis/commit/efda10867ff9a5d4b0b6f3d465ee07d755d7434e))
+* fix back button ([8867de5](https://github.com/lukaspatschil/git_analysis/commit/8867de5997f773054dad4ed8f118a52e1fc6b829))
+* fix ordering of commits ([50d5a37](https://github.com/lukaspatschil/git_analysis/commit/50d5a379223f262a95f4efbcdf9bdf8f7a2ce519))
+* investigate email bug for github oauth ([130b825](https://github.com/lukaspatschil/git_analysis/commit/130b825b2e144e96920718cc81da2edebd45c003))
+* order correctly and order names ([437fd02](https://github.com/lukaspatschil/git_analysis/commit/437fd0255e3f345a4f3c7061692e1b9a12b7e086))
+* remove unused user navigation from menu ([0df8a45](https://github.com/lukaspatschil/git_analysis/commit/0df8a45285a6f0028a6255253f1f52d471eaa58e))
+
+
+### Features
+
+* add add/del over time for each person ([98f71e1](https://github.com/lukaspatschil/git_analysis/commit/98f71e1666e53eadce80d74ff9797e509ffc007e))
+* add commit messages to graphs ([115bcc5](https://github.com/lukaspatschil/git_analysis/commit/115bcc5026c561579d5514e564b59c025081fd16))
+* add landing page ([ad0ff15](https://github.com/lukaspatschil/git_analysis/commit/ad0ff15203722af993bc6182ca7854b18f5d6c54))
+* add lines of code and lines of code aggregated ([c38c18c](https://github.com/lukaspatschil/git_analysis/commit/c38c18cf1df81ddb7c2abb6a60b4dd0ac2f1cf3e))
+* change commit layout and add commit messages to overall code ([9e1234c](https://github.com/lukaspatschil/git_analysis/commit/9e1234c8755264cc01f809595c98ec23c4b33add))
+* change lines of code ([2a16373](https://github.com/lukaspatschil/git_analysis/commit/2a16373e29ace368e4af829dc076e7912eb6fc48))
+* make assignments delete able ([f6fb373](https://github.com/lukaspatschil/git_analysis/commit/f6fb373aa72bb940fbc26ce82c7b7667d9dd17c5))
+* redesign committer combine ([31fbf5a](https://github.com/lukaspatschil/git_analysis/commit/31fbf5aaa5443ecbc840e1b2a786a3673f7fe41d))
+* separate graphs to make it better visible ([40a3a14](https://github.com/lukaspatschil/git_analysis/commit/40a3a14f68eb7f45ff0cfc73dd844df68795d6c7))
+
 ## [1.5.2](https://github.com/lukaspatschil/git_analysis/compare/v1.5.1...v1.5.2) (2023-04-20)
 
 
