@@ -7,7 +7,10 @@ import com.tuwien.gitanalyser.endpoints.dtos.NotSavedRepositoryDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.StatsDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.assignment.AssignmentDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.assignment.SubAssignmentDTO;
+import com.tuwien.gitanalyser.endpoints.dtos.internal.BranchInternalDTO;
+import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitAggregatedInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitInternalDTO;
+import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitterInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.StatsInternalDTO;
 import com.tuwien.gitanalyser.entity.SubAssignment;
 import org.gitlab4j.api.models.Branch;
@@ -94,16 +97,41 @@ public class Matchers {
         );
     }
 
-    public static Matcher<CommitInternalDTO> commitInteralDTOMatcher(CommitInternalDTO commit) {
+    public static Matcher<CommitAggregatedInternalDTO> commitAggreagteDTOMatcher(CommitInternalDTO commit) {
         return allOf(
-            hasFeature("id", CommitInternalDTO::getId, equalTo(commit.getId())),
-            hasFeature("message", CommitInternalDTO::getMessage, equalTo(commit.getMessage())),
-            hasFeature("author", CommitInternalDTO::getAuthor, equalTo(commit.getAuthor())),
-            hasFeature("timestamp", CommitInternalDTO::getTimestamp, equalTo(commit.getTimestamp())),
-            hasFeature("additions", CommitInternalDTO::getAdditions, equalTo(commit.getAdditions())),
-            hasFeature("deletions", CommitInternalDTO::getDeletions, equalTo(commit.getDeletions())),
-            hasFeature("isMergeCommit", CommitInternalDTO::isMergeCommit, equalTo(commit.isMergeCommit())),
-            hasFeature("parentIds", CommitInternalDTO::getParentIds, equalTo(commit.getParentIds()))
+            hasFeature("id", CommitAggregatedInternalDTO::getId, equalTo(commit.getId())),
+            hasFeature("message", CommitAggregatedInternalDTO::getMessage, equalTo(commit.getMessage())),
+            hasFeature("author", CommitAggregatedInternalDTO::getAuthor, equalTo(commit.getAuthor())),
+            hasFeature("timestamp", CommitAggregatedInternalDTO::getTimestamp, equalTo(commit.getTimestamp())),
+            hasFeature("additions", CommitAggregatedInternalDTO::getAdditions, equalTo(commit.getAdditions())),
+            hasFeature("deletions", CommitAggregatedInternalDTO::getDeletions, equalTo(commit.getDeletions())),
+            hasFeature("isMergeCommit", CommitAggregatedInternalDTO::isMergeCommit, equalTo(commit.isMergeCommit())),
+            hasFeature("parentIds", CommitAggregatedInternalDTO::getParentIds, equalTo(commit.getParentIds()))
+        );
+    }
+
+    public static Matcher<CommitDTO> commitDTOMatcher(CommitDTO commitDTO) {
+        return allOf(
+            hasFeature("id", CommitDTO::getId, equalTo(commitDTO.getId())),
+            hasFeature("message", CommitDTO::getMessage, equalTo(commitDTO.getMessage())),
+            hasFeature("author", CommitDTO::getAuthor, equalTo(commitDTO.getAuthor())),
+            hasFeature("timestamp", CommitDTO::getTimestamp, equalTo(commitDTO.getTimestamp())),
+            hasFeature("parentIds", CommitDTO::getParentIds, equalTo(commitDTO.getParentIds())),
+            hasFeature("additions", CommitDTO::getAdditions, equalTo(commitDTO.getAdditions())),
+            hasFeature("deletions", CommitDTO::getDeletions, equalTo(commitDTO.getDeletions()))
+        );
+    }
+
+    public static Matcher<CommitDTO> commitDTOMatcher(CommitDTO commitDTO, int linesOfCode) {
+        return allOf(
+            hasFeature("id", CommitDTO::getId, equalTo(commitDTO.getId())),
+            hasFeature("message", CommitDTO::getMessage, equalTo(commitDTO.getMessage())),
+            hasFeature("author", CommitDTO::getAuthor, equalTo(commitDTO.getAuthor())),
+            hasFeature("timestamp", CommitDTO::getTimestamp, equalTo(commitDTO.getTimestamp())),
+            hasFeature("parentIds", CommitDTO::getParentIds, equalTo(commitDTO.getParentIds())),
+            hasFeature("additions", CommitDTO::getAdditions, equalTo(commitDTO.getAdditions())),
+            hasFeature("deletions", CommitDTO::getDeletions, equalTo(commitDTO.getDeletions())),
+            hasFeature("linesOfCode", CommitDTO::getLinesOfCodeOverall, equalTo(linesOfCode))
         );
     }
 
@@ -115,6 +143,10 @@ public class Matchers {
 
     public static Matcher<CommitterDTO> committerDTOMatcher(CommitterDTO committerDTO) {
         return hasFeature("name", CommitterDTO::getName, equalTo(committerDTO.getName()));
+    }
+
+    public static Matcher<CommitterDTO> committerDTOMatcher(String name) {
+        return hasFeature("name", CommitterDTO::getName, equalTo(name));
     }
 
     public static Matcher<StatsDTO> statsDTOMatcher(Commit... commits) {
@@ -149,5 +181,13 @@ public class Matchers {
             hasFeature("committer", StatsDTO::getCommitter, equalTo(committerName)),
             hasFeature("committer", StatsDTO::getNumberOfCommits, equalTo(commits.length))
         );
+    }
+
+    public static Matcher<BranchInternalDTO> branchInternalDTOMatcher(Branch branchMock) {
+        return hasFeature("name", BranchInternalDTO::getName, equalTo(branchMock.getName()));
+    }
+
+    public static Matcher<CommitterInternalDTO> committerInteralDTOMatcher(String author) {
+        return hasFeature("name", CommitterInternalDTO::getName, equalTo(author));
     }
 }

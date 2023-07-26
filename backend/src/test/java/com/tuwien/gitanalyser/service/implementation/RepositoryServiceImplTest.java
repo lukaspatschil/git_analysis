@@ -1,7 +1,9 @@
 package com.tuwien.gitanalyser.service.implementation;
 
 import com.tuwien.gitanalyser.endpoints.dtos.assignment.CreateAssignmentDTO;
+import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitAggregatedInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitInternalDTO;
+import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitterInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.StatsInternalDTO;
 import com.tuwien.gitanalyser.entity.Assignment;
 import com.tuwien.gitanalyser.entity.Repository;
@@ -17,6 +19,7 @@ import com.tuwien.gitanalyser.service.AssignmentService;
 import com.tuwien.gitanalyser.service.GitService;
 import com.tuwien.gitanalyser.service.SubAssignmentService;
 import com.tuwien.gitanalyser.service.UserService;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import utils.CreateAssignmentDTOs;
@@ -26,9 +29,11 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -36,11 +41,12 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static utils.Matchers.commitInteralDTOMatcher;
+import static utils.Matchers.commitAggreagteDTOMatcher;
+import static utils.Matchers.committerInteralDTOMatcher;
 import static utils.Matchers.statsInternalDTOMatcher;
 
 class RepositoryServiceImplTest {
-    Date DATE = new Date();
+    private final Date DATE = new Date();
     private RepositoryServiceImpl sut;
     private UserService userService;
     private RepositoryRepository repositoryRepository;
@@ -153,7 +159,8 @@ class RepositoryServiceImplTest {
     }
 
     @Test
-    void addAssignment_repositoryExistsAndNameIsAlreadyAssignedToASubAssignment_throwIllegalArgumentException() {
+    void addAssignment_repositoryExistsAndNameIsAlreadyAssignedToASubAssignment_shouldRemoveFormerAssignment()
+        throws IllegalArgumentException {
         // Given
         User user = prepareUserService();
         long platformId = Randoms.getLong();
@@ -164,18 +171,55 @@ class RepositoryServiceImplTest {
                                                            .assignedName(assignedName)
                                                            .build();
         Repository repository = new Repository();
+        SubAssignment subAssignment = SubAssignment.builder().assignedName(assignedName).build();
         Assignment assignment =
             Assignment.builder()
                       .key(Randoms.alpha())
-                      .subAssignments(List.of(SubAssignment.builder().assignedName(assignedName).build()))
+                      .subAssignments(List.of(subAssignment))
                       .build();
         repository.setAssignments(List.of(assignment));
         prepareAssignment(repository, createDTO, assignment);
 
         mockRepositoryFindByUserAndPlatformId(user, platformId, repository);
 
-        // When + Then
-        assertThrows(IllegalArgumentException.class, () -> sut.addAssignment(user.getId(), platformId, createDTO));
+        // When
+        sut.addAssignment(user.getId(), platformId, createDTO);
+
+        // Then
+        verify(assignmentService).deleteSubAssignmentById(repository, subAssignment.getId());
+    }
+
+    @Test
+    void addAssignment_repositoryExistsAndNameIsAlreadyAssignedToASubAssignment_shouldAddItToTheNewAssignment()
+        throws IllegalArgumentException {
+        // Given
+        User user = prepareUserService();
+        long platformId = Randoms.getLong();
+        String key = Randoms.alpha();
+        String assignedName = Randoms.alpha();
+        CreateAssignmentDTO createDTO = CreateAssignmentDTO.builder()
+                                                           .key(key)
+                                                           .assignedName(assignedName)
+                                                           .build();
+        Repository repository = new Repository();
+        SubAssignment subAssignment = SubAssignment.builder().assignedName(assignedName).build();
+        Assignment assignment =
+            Assignment.builder()
+                      .key(Randoms.alpha())
+                      .subAssignments(List.of(subAssignment))
+                      .build();
+        repository.setAssignments(List.of(assignment));
+
+        Assignment newAssignment = Assignment.builder().id(Randoms.getLong()).subAssignments(List.of()).build();
+        prepareAssignment(repository, createDTO, newAssignment);
+
+        mockRepositoryFindByUserAndPlatformId(user, platformId, repository);
+
+        // When
+        sut.addAssignment(user.getId(), platformId, createDTO);
+
+        // Then
+        verify(subAssignmentService).addSubAssignment(newAssignment, assignedName);
     }
 
     @Test
@@ -489,10 +533,10 @@ class RepositoryServiceImplTest {
         prepareGitServiceGetCommits(platformId, user, branch, List.of(commit1, commit2));
 
         // When
-        List<CommitInternalDTO> result = sut.getCommits(user.getId(), platformId, branch, false);
+        List<CommitAggregatedInternalDTO> result = sut.getCommits(user.getId(), platformId, branch, false, null);
 
         // Then
-        assertThat(result, containsInAnyOrder(commitInteralDTOMatcher(commit1), commitInteralDTOMatcher(commit2)));
+        assertThat(result, Matchers.containsInAnyOrder(commitAggreagteDTOMatcher(commit1), commitAggreagteDTOMatcher(commit2)));
     }
 
     @Test
@@ -502,7 +546,7 @@ class RepositoryServiceImplTest {
         long platformId = Randoms.getLong();
         String branch = Randoms.alpha();
         String assignedName = Randoms.alpha();
-        String key = Randoms.alpha();
+        String key = "Fred";
 
         User user = prepareUserService();
 
@@ -515,10 +559,10 @@ class RepositoryServiceImplTest {
         prepareGitServiceGetCommits(platformId, user, branch, List.of(commit));
 
         // When
-        List<CommitInternalDTO> result = sut.getCommits(user.getId(), platformId, branch, true);
+        List<CommitAggregatedInternalDTO> result = sut.getCommits(user.getId(), platformId, branch, true, null);
 
         // Then
-        assertThat(result, containsInAnyOrder(commitInteralDTOMatcher(resultCommit)));
+        assertThat(result, Matchers.containsInAnyOrder(commitAggreagteDTOMatcher(resultCommit)));
     }
 
     @Test
@@ -544,11 +588,11 @@ class RepositoryServiceImplTest {
         prepareGitServiceGetCommits(platformId, user, branch, List.of(commit1, commit2));
 
         // When
-        List<CommitInternalDTO> result = sut.getCommits(user.getId(), platformId, branch, true);
+        List<CommitAggregatedInternalDTO> result = sut.getCommits(user.getId(), platformId, branch, true, null);
 
         // Then
-        assertThat(result, containsInAnyOrder(commitInteralDTOMatcher(resultCommit1),
-                                              commitInteralDTOMatcher(resultCommit2)
+        assertThat(result, Matchers.containsInAnyOrder(commitAggreagteDTOMatcher(resultCommit1),
+                                                       commitAggreagteDTOMatcher(resultCommit2)
         ));
     }
 
@@ -576,14 +620,192 @@ class RepositoryServiceImplTest {
         prepareGitServiceGetCommits(platformId, user, branch, List.of(commit1, commit2, commit3));
 
         // When
-        List<CommitInternalDTO> result = sut.getCommits(user.getId(), platformId, branch, true);
+        List<CommitAggregatedInternalDTO> result = sut.getCommits(user.getId(), platformId, branch, true, null);
+
+        // Then
+        assertThat(result, Matchers.containsInAnyOrder(
+            commitAggreagteDTOMatcher(resultCommit1),
+            commitAggreagteDTOMatcher(resultCommit2),
+            commitAggreagteDTOMatcher(commit3)
+        ));
+    }
+
+    @Test
+    void getCommitters_repositoryExists_shouldCallGitService()
+        throws NotFoundException, GitException, NoProviderFoundException {
+        // Given
+        long repositoryId = Randoms.getLong();
+        String branch = Randoms.alpha();
+
+        User user = prepareUserService();
+
+        // When
+        sut.getCommitters(user.getId(), repositoryId, branch, false);
+
+        // Then
+        verify(gitService).getAllCommits(user.getId(), repositoryId, branch);
+    }
+
+    @Test
+    void getCommitters_repositoryExistsAndNoCommits_shouldReturnEmptyList()
+        throws NotFoundException, GitException, NoProviderFoundException {
+        // Given
+        long repositoryId = Randoms.getLong();
+        String branch = Randoms.alpha();
+
+        User user = prepareUserService();
+        prepareGitServiceGetCommits(repositoryId, user, branch, List.of());
+
+        // When
+        Set<CommitterInternalDTO> result = sut.getCommitters(user.getId(), repositoryId, branch, false);
+
+        // Then
+        assertThat(result, empty());
+    }
+
+    @Test
+    void getCommitters_repositoryExistsAndOneCommit_shouldReturnListWithOneItem()
+        throws NotFoundException, GitException, NoProviderFoundException {
+        // Given
+        long repositoryId = Randoms.getLong();
+        String branch = Randoms.alpha();
+        CommitInternalDTO commit = mockCommitInternalDTO();
+        CommitterInternalDTO committerInternalDTO = new CommitterInternalDTO(commit.getAuthor());
+
+        User user = prepareUserService();
+
+        prepareGitServiceGetCommits(repositoryId, user, branch, List.of(commit));
+
+        // When
+        Set<CommitterInternalDTO> result = sut.getCommitters(user.getId(), repositoryId, branch, false);
+
+        // Then
+        assertThat(result, containsInAnyOrder(committerInternalDTO));
+    }
+
+    @Test
+    void getCommitters_repositoryExistsAndTwoCommitsWithDifferentName_shouldReturnListWithTwoItems()
+        throws NotFoundException, GitException, NoProviderFoundException {
+        // Given
+        long repositoryId = Randoms.getLong();
+        String branch = Randoms.alpha();
+        CommitInternalDTO commit1 = mockCommitInternalDTO();
+        CommitInternalDTO commit2 = mockCommitInternalDTO();
+        CommitterInternalDTO committerInternalDTO1 = new CommitterInternalDTO(commit1.getAuthor());
+        CommitterInternalDTO committerInternalDTO2 = new CommitterInternalDTO(commit2.getAuthor());
+
+        User user = prepareUserService();
+        prepareGitServiceGetCommits(repositoryId, user, branch, List.of(commit1, commit2));
+
+        // When
+        Set<CommitterInternalDTO> result = sut.getCommitters(user.getId(), repositoryId, branch, false);
+
+        // Then
+        assertThat(result, containsInAnyOrder(committerInternalDTO1, committerInternalDTO2));
+    }
+
+    @Test
+    void getCommitters_repositoryExistsAndTwoCommitsWithSameCommitter_shouldReturnListWithOneItem()
+        throws NotFoundException, GitException, NoProviderFoundException {
+        // Given
+        long repositoryId = Randoms.getLong();
+        String branch = Randoms.alpha();
+        String name = Randoms.alpha();
+        CommitInternalDTO commit1 = mockCommitInternalDTO(name);
+        CommitInternalDTO commit2 = mockCommitInternalDTO(name);
+        CommitterInternalDTO committerInternalDTO1 = new CommitterInternalDTO(commit1.getAuthor());
+
+        User user = prepareUserService();
+        prepareGitServiceGetCommits(repositoryId, user, branch, List.of(commit1, commit2));
+
+        // When
+        Set<CommitterInternalDTO> result = sut.getCommitters(user.getId(), repositoryId, branch, false);
+
+        // Then
+        assertThat(result, equalTo(Set.of(committerInternalDTO1)));
+    }
+
+    @Test
+    void getCommitters_repositoryExistsAndNoCommitsAndShouldBeMapped_shouldReturnEmptyList()
+        throws NotFoundException, GitException, NoProviderFoundException {
+        // Given
+        long repositoryId = Randoms.getLong();
+        String branch = Randoms.alpha();
+
+        User user = prepareUserService();
+        prepareGitServiceGetCommits(repositoryId, user, branch, List.of());
+
+        // When
+        Set<CommitterInternalDTO> result = sut.getCommitters(user.getId(), repositoryId, branch, true);
+
+        // Then
+        assertThat(result, empty());
+    }
+
+    @Test
+    void getCommitters_repositoryExistsAndOneCommitAndShouldBeMapped_shouldReturnListWithOneItem()
+        throws NotFoundException, GitException, NoProviderFoundException {
+        // Given
+        long repositoryId = Randoms.getLong();
+        String branch = Randoms.alpha();
+        String key = Randoms.alpha();
+        CommitInternalDTO commit = mockCommitInternalDTO();
+
+        User user = prepareUserService();
+        prepareAssignments(repositoryId, key, user, commit.getAuthor());
+        prepareGitServiceGetCommits(repositoryId, user, branch, List.of(commit));
+
+        // When
+        Set<CommitterInternalDTO> result = sut.getCommitters(user.getId(), repositoryId, branch, true);
+
+        // Then
+        assertThat(result, containsInAnyOrder(committerInteralDTOMatcher(key)));
+    }
+
+    @Test
+    void getCommitters_repositoryExistsAndTwoCommitsWithDifferentNameAndShouldBeMapped_shouldReturnListWithTwoItems()
+        throws NotFoundException, GitException, NoProviderFoundException {
+        // Given
+        long repositoryId = Randoms.getLong();
+        String branch = Randoms.alpha();
+        String key1 = Randoms.alpha();
+        CommitInternalDTO commit1 = mockCommitInternalDTO();
+        CommitInternalDTO commit2 = mockCommitInternalDTO();
+
+        User user = prepareUserService();
+        prepareAssignments(repositoryId, key1, user, commit1.getAuthor());
+        prepareGitServiceGetCommits(repositoryId, user, branch, List.of(commit1, commit2));
+
+        // When
+        Set<CommitterInternalDTO> result = sut.getCommitters(user.getId(), repositoryId, branch, true);
 
         // Then
         assertThat(result, containsInAnyOrder(
-            commitInteralDTOMatcher(resultCommit1),
-            commitInteralDTOMatcher(resultCommit2),
-            commitInteralDTOMatcher(commit3)
-        ));
+            committerInteralDTOMatcher(key1),
+            committerInteralDTOMatcher(commit2.getAuthor())));
+    }
+
+    @Test
+    void getCommitters_repositoryExistsAndTwoCommitsWithSameCommitterAndShouldBeMapped_shouldReturnListWithOneItem()
+        throws NotFoundException, GitException, NoProviderFoundException {
+        // Given
+        long repositoryId = Randoms.getLong();
+        String branch = Randoms.alpha();
+        String name = Randoms.alpha();
+        String key = Randoms.alpha();
+        CommitInternalDTO commit1 = mockCommitInternalDTO(name);
+        CommitInternalDTO commit2 = mockCommitInternalDTO(name);
+        CommitterInternalDTO committerInternalDTO1 = new CommitterInternalDTO(key);
+
+        User user = prepareUserService();
+        prepareAssignments(repositoryId, key, user, name);
+        prepareGitServiceGetCommits(repositoryId, user, branch, List.of(commit1, commit2));
+
+        // When
+        Set<CommitterInternalDTO> result = sut.getCommitters(user.getId(), repositoryId, branch, true);
+
+        // Then
+        assertThat(result, equalTo(Set.of(committerInternalDTO1)));
     }
 
     private void prepareAssignments(long platformId, String key, User user, String... assignedNames) {

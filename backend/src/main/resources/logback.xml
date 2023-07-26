@@ -1,0 +1,44 @@
+<configuration>
+
+    <property name="logging.level.org.springframework.web" value="DEBUG"/>
+    <property name="logging.level.org.hibernate.type" value="DEBUG"/>
+    <timestamp key="day" datePattern="yyyy-MM-dd"/>
+
+    <property name="LOGS" value="./logs"/>
+
+    <appender name="Console"
+              class="ch.qos.logback.core.ConsoleAppender">
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <Pattern>
+                %green(%d) %highlight(%-5level) [%blue(%t)] %red(request-id: %X{requestId}) %yellow(%logger{1.}): %msg%n%throwable
+            </Pattern>
+        </layout>
+    </appender>
+
+    <appender name="RollingFile"
+              class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOGS}/git-analyser-backend-${day}.log</file>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <Pattern>
+                %green(%d) %highlight(%-5level) [%blue(%t)] %red(request-id: %X{requestId}) %yellow(%logger{1.}): %msg%n%throwable
+            </Pattern>
+        </encoder>
+
+        <rollingPolicy
+                class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- rollover daily and when the file reaches 10 MegaBytes -->
+            <fileNamePattern>${LOGS}/archived/git-analyser-backend-%d{yyyy-MM-dd}.%i.log
+            </fileNamePattern>
+            <timeBasedFileNamingAndTriggeringPolicy
+                    class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>10MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+        </rollingPolicy>
+    </appender>
+
+    <!-- LOG everything at INFO level -->
+    <root level="INFO">
+        <appender-ref ref="RollingFile"/>
+        <appender-ref ref="Console"/>
+    </root>
+</configuration>

@@ -72,7 +72,7 @@ class UserEndpointTest {
         long userId = Randoms.getLong();
         User user = new User(Randoms.getLong(), Randoms.alpha(), Randoms.alpha(), Randoms.alpha(),
                              authenticationProvider, Randoms.integer(), Randoms.alpha(), Randoms.alpha());
-        UserDTO userDTO = new UserDTO(user.getId(), user.getUsername(),user.getEmail(), user.getPictureUrl());
+        UserDTO userDTO = new UserDTO(user.getId(), user.getUsername(), user.getEmail(), user.getPictureUrl());
 
 
         when(authentication.getName()).thenReturn(String.valueOf(userId));

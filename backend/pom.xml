@@ -20,7 +20,6 @@
         <spring.framework.data.version>2.7.5</spring.framework.data.version>
         <checkstyle.maven.plugin.version>3.2.1</checkstyle.maven.plugin.version>
         <jacoco.version>0.8.8</jacoco.version>
-        <libvcs4j.version>1.8.0</libvcs4j.version>
         <oauth2.client.version>3.0.3</oauth2.client.version>
         <spring.boot.starter.web.version>3.0.1</spring.boot.starter.web.version>
         <h2.version>2.1.214</h2.version>
@@ -34,9 +33,6 @@
         <junit.jupiter.engine.version>5.4.0</junit.jupiter.engine.version>
         <gitlab4j.api.version>5.0.1</gitlab4j.api.version>
         <io.jsonwebtoken.version>0.9.1</io.jsonwebtoken.version>
-        <libvcs4j.version>1.8.0</libvcs4j.version>
-        <libvcs4j.api.version>1.8.0</libvcs4j.api.version>
-        <libvcs4j.tools.version>1.8.0</libvcs4j.tools.version>
         <maven.compiler.plugin.version>3.5.1</maven.compiler.plugin.version>
         <maven.surfire.version>3.0.0-M8</maven.surfire.version>
         <pitest-junit5-plugin.version>1.1.1</pitest-junit5-plugin.version>
@@ -47,6 +43,10 @@
         <springdoc-openapi-ui.version>1.6.15</springdoc-openapi-ui.version>
         <swagger-annotations-jakarta.version>2.2.8</swagger-annotations-jakarta.version>
         <hamcrest.version>2.2</hamcrest.version>
+        <aspectjweaver.version>1.8.9</aspectjweaver.version>
+        <aspectjrt.version>1.8.9</aspectjrt.version>
+        <android-json.version>0.0.20131108.vaadin1</android-json.version>
+        <json.version>20230227</json.version>
     </properties>
 
     <dependencies>
@@ -59,25 +59,25 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
+            <version>3.1.1</version>
         </dependency>
 
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-webflux</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.graphql</groupId>
-            <artifactId>spring-graphql-test</artifactId>
-            <scope>test</scope>
+            <version>6.0.10</version>
         </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
             <version>${spring.boot.starter.web.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-aop</artifactId>
+            <version>6.0.10</version>
         </dependency>
 
         <dependency>
@@ -181,24 +181,6 @@
         </dependency>
 
         <dependency>
-            <groupId>de.uni-bremen.informatik.st</groupId>
-            <artifactId>libvcs4j</artifactId>
-            <version>${libvcs4j.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>de.uni-bremen.informatik.st</groupId>
-            <artifactId>libvcs4j-api</artifactId>
-            <version>${libvcs4j.api.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>de.uni-bremen.informatik.st</groupId>
-            <artifactId>libvcs4j-tools</artifactId>
-            <version>${libvcs4j.tools.version}</version>
-        </dependency>
-
-        <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-jwt</artifactId>
             <version>${spring.security.jwt.version}</version>
@@ -268,6 +250,29 @@
             <artifactId>hamcrest</artifactId>
             <version>${hamcrest.version}</version>
             <scope>test</scope>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.json/json -->
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>${json.version}</version>
+        </dependency>
+
+        <!-- aspectJ -->
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjrt</artifactId>
+            <version>${aspectjrt.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjweaver</artifactId>
+            <version>${aspectjweaver.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.vaadin.external.google</groupId>
+            <artifactId>android-json</artifactId>
+            <version>${android-json.version}</version>
         </dependency>
 
     </dependencies>

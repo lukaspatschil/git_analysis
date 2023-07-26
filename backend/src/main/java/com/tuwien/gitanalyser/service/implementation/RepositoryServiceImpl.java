@@ -1,7 +1,9 @@
 package com.tuwien.gitanalyser.service.implementation;
 
 import com.tuwien.gitanalyser.endpoints.dtos.assignment.CreateAssignmentDTO;
+import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitAggregatedInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitInternalDTO;
+import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitterInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.StatsInternalDTO;
 import com.tuwien.gitanalyser.entity.Assignment;
 import com.tuwien.gitanalyser.entity.Repository;
@@ -18,14 +20,16 @@ import com.tuwien.gitanalyser.service.GitService;
 import com.tuwien.gitanalyser.service.RepositoryService;
 import com.tuwien.gitanalyser.service.SubAssignmentService;
 import com.tuwien.gitanalyser.service.UserService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -33,7 +37,6 @@ import java.util.stream.Collectors;
 @Service
 public class RepositoryServiceImpl implements RepositoryService {
 
-    public static final Logger LOGGER = LoggerFactory.getLogger(RepositoryServiceImpl.class);
     private final UserService userService;
     private final RepositoryRepository repositoryRepository;
     private final AssignmentService assignmentService;
@@ -55,10 +58,10 @@ public class RepositoryServiceImpl implements RepositoryService {
         this.repositoryFactory = repositoryFactory;
     }
 
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     @Override
     public void addAssignment(final long userId, final Long platformId, final CreateAssignmentDTO dto)
         throws IllegalArgumentException {
-        LOGGER.info("assignCommitter with userId {} and platformId {} and DTO {}", userId, platformId, dto);
 
         User user = userService.getUser(userId);
 
@@ -72,34 +75,41 @@ public class RepositoryServiceImpl implements RepositoryService {
 
         Assignment assignment = assignmentService.getOrCreateAssignment(repositoryEntity, dto.getKey());
 
-        subAssignmentService.addSubAssignment(assignment, dto.getAssignedName());
+        boolean overwritten = false;
+
+        for (Assignment tempAssignment : repositoryEntity.getAssignments()) {
+            for (SubAssignment subAssignment : tempAssignment.getSubAssignments()) {
+                if (subAssignment.getAssignedName().equals(dto.getAssignedName())) {
+                    overwriteSubAssignment(dto, repositoryEntity, subAssignment);
+                    overwritten = true;
+                }
+            }
+        }
+
+        if (!overwritten) {
+            subAssignmentService.addSubAssignment(assignment, dto.getAssignedName());
+        }
+
     }
 
     @Override
     public List<Assignment> getAssignments(final long userId, final Long platformId) {
-        LOGGER.info("getAssignments with userId {} and platformId {}", userId, platformId);
         User user = userService.getUser(userId);
         Optional<Repository> repository = findRepositoryByPlatformIdAndUser(platformId, user);
 
         if (repository.isEmpty()) {
-            LOGGER.info("getAssignments finished with empty repository for platformId {}", platformId);
             throw new NotFoundException("Repository not found");
         }
-
-        LOGGER.info("getAssignments finished for platformId {}", platformId);
 
         return repository.get().getAssignments();
     }
 
     @Override
     public void deleteAssignment(final Long userId, final Long platformId, final Long subAssignmentId) {
-        LOGGER.info("deleteAssignment with userId {} and platformId {} and subAssignmentId {}",
-                    userId, platformId, subAssignmentId);
         User user = userService.getUser(userId);
         Optional<Repository> repository = findRepositoryByPlatformIdAndUser(platformId, user);
 
         if (repository.isEmpty()) {
-            LOGGER.info("getAssignments finished with empty repository for platformId {}", platformId);
             throw new NotFoundException("Repository not found");
         }
 
@@ -108,10 +118,9 @@ public class RepositoryServiceImpl implements RepositoryService {
 
     @Override
     public void deleteAllNotAccessibleRepositoryEntities(final Long userId, final List<Long> gitRepositoryIds) {
-        LOGGER.info("deleteAllNotAccessibleRepositoryEntities with userId {} and gitRepositoryIds {}",
-                    userId, gitRepositoryIds);
 
-        User user = userService.getUser(userId);
+        User user =
+            userService.getUser(userId);
         List<Repository> repositories = repositoryRepository.findByUser(user);
 
         for (Repository repository : repositories) {
@@ -125,8 +134,6 @@ public class RepositoryServiceImpl implements RepositoryService {
     public List<StatsInternalDTO> getStats(final long userId, final Long platformId, final String branch,
                                            final boolean mappedByAssignments)
         throws GitException, NoProviderFoundException {
-        LOGGER.info("getStats with userId {} and platformId {} and branch {} and mappedByAssignments {}",
-                    userId, platformId, branch, mappedByAssignments);
 
         List<StatsInternalDTO> stats = gitService.getStats(userId, platformId, branch);
 
@@ -134,32 +141,72 @@ public class RepositoryServiceImpl implements RepositoryService {
             try {
                 List<Assignment> assignments = getAssignments(userId, platformId);
                 stats = mapStatsByAssignments(stats, assignments);
-            } catch (NotFoundException e) {
-                LOGGER.info("getStats finished with empty repository for platformId {}", platformId);
+            } catch (NotFoundException ignored) {
             }
         }
         return stats;
     }
 
     @Override
-    public List<CommitInternalDTO> getCommits(final long userId, final Long platformId, final String branch,
-                                              final Boolean mappedByAssignments)
+    public List<CommitAggregatedInternalDTO> getCommits(final long userId, final Long platformId, final String branch,
+                                                        final Boolean mappedByAssignments, final String name)
         throws GitException, NoProviderFoundException {
-        LOGGER.info("getAllCommits with userId {} and platformId {} and branch {} and mappedByAssignments {}",
-                    userId, platformId, branch, mappedByAssignments);
 
-        List<CommitInternalDTO> commits = gitService.getAllCommits(userId, platformId, branch);
+        List<CommitInternalDTO> internalCommits = gitService.getAllCommits(userId, platformId, branch);
 
         if (mappedByAssignments) {
             try {
                 List<Assignment> assignments = getAssignments(userId, platformId);
-                commits = mapCommitsByAssignments(commits, assignments);
-            } catch (NotFoundException e) {
-                LOGGER.info("getAllCommits finished with empty repository for platformId {}", platformId);
+                mapCommitsByAssignments(internalCommits, assignments);
+            } catch (NotFoundException ignored) {
             }
         }
 
-        return commits;
+        if (name != null) {
+            internalCommits = internalCommits.stream()
+                                             .filter(commit -> commit.getAuthor().equals(name))
+                                             .collect(Collectors.toList());
+        }
+
+        List<CommitAggregatedInternalDTO> resultCommit = new ArrayList<>();
+
+        int overallLineOfCode = 0;
+        for (CommitInternalDTO commit : internalCommits) {
+            overallLineOfCode = overallLineOfCode + commit.getAdditions() - commit.getDeletions();
+            var aggregatedCommit = new CommitAggregatedInternalDTO(commit.getId(), commit.getMessage(),
+                                                                   commit.getAuthor(), commit.getTimestamp(),
+                                                                   commit.getParentIds(), commit.isMergeCommit(),
+                                                                   commit.getAdditions(), commit.getDeletions(),
+                                                                   overallLineOfCode);
+            resultCommit.add(aggregatedCommit);
+        }
+
+        return resultCommit;
+    }
+
+    @Override
+    public Set<CommitterInternalDTO> getCommitters(final long userId, final Long platformId, final String branch,
+                                                   final Boolean mappedByAssignments)
+        throws GitException, NoProviderFoundException {
+
+        Set<CommitterInternalDTO> result;
+
+        List<CommitAggregatedInternalDTO> internalCommits = getCommits(userId, platformId, branch,
+                                                                       mappedByAssignments, null);
+
+        result = internalCommits.stream()
+                                .map(commit -> new CommitterInternalDTO(commit.getAuthor()))
+                                .collect(Collectors.toSet());
+
+        return result;
+    }
+
+    private void overwriteSubAssignment(final CreateAssignmentDTO dto,
+                                        final Repository repositoryEntity,
+                                        final SubAssignment subAssignmentToRemoveSubAssignmentFrom) {
+        assignmentService.deleteSubAssignmentById(repositoryEntity, subAssignmentToRemoveSubAssignmentFrom.getId());
+        Assignment assignment = assignmentService.getOrCreateAssignment(repositoryEntity, dto.getKey());
+        subAssignmentService.addSubAssignment(assignment, dto.getAssignedName());
     }
 
     private void checkIAssignmentsDoesNotProduceCircularAssignments(final CreateAssignmentDTO dto,
@@ -170,29 +217,23 @@ public class RepositoryServiceImpl implements RepositoryService {
             throw new IllegalArgumentException("Assignment key and assigned name must not be equal");
         }
 
-        if (repositoryEntity.getAssignments() == null) {
-            return;
-        }
         for (Assignment assignment : repositoryEntity.getAssignments()) {
             if (assignment.getKey().equals(dto.getAssignedName())) {
-                throw new IllegalArgumentException("Assigned name must not be equal to an existing assignment key");
+                String message = "Assigned name must not be equal to an existing assignment key";
+                throw new IllegalArgumentException(message);
             }
             for (SubAssignment subAssignment : assignment.getSubAssignments()) {
-                if (subAssignment.getAssignedName().equals(dto.getAssignedName())) {
-                    throw new IllegalArgumentException(
-                        "Assigned name must not be equal to an existing sub assignment name");
-                }
                 if (subAssignment.getAssignedName().equals(dto.getKey())) {
-                    throw new IllegalArgumentException(
-                        "Assignment key must not be equal to an existing sub assignment name");
+                    String message = "Assignment key must not be equal to an existing sub assignment name";
+                    throw new IllegalArgumentException(message);
                 }
             }
         }
 
     }
 
-    private List<CommitInternalDTO> mapCommitsByAssignments(final List<CommitInternalDTO> commits,
-                                                            final List<Assignment> assignments) {
+    private void mapCommitsByAssignments(final Collection<CommitInternalDTO> commits,
+                                         final List<Assignment> assignments) {
         for (CommitInternalDTO commit : commits) {
             for (Assignment assignment : assignments) {
 
@@ -205,7 +246,6 @@ public class RepositoryServiceImpl implements RepositoryService {
                 }
             }
         }
-        return commits;
     }
 
     private List<StatsInternalDTO> mapStatsByAssignments(final List<StatsInternalDTO> stats,
@@ -231,7 +271,6 @@ public class RepositoryServiceImpl implements RepositoryService {
     }
 
     private Optional<Repository> findRepositoryByPlatformIdAndUser(final Long platformId, final User user) {
-        LOGGER.info("findRepositoryByPlatformIdAndUser with platformId {} and user {}", platformId, user);
         return repositoryRepository.findByUserAndPlatformId(user, platformId);
     }
 

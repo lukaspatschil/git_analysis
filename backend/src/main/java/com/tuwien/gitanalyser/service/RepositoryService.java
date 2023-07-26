@@ -1,7 +1,8 @@
 package com.tuwien.gitanalyser.service;
 
 import com.tuwien.gitanalyser.endpoints.dtos.assignment.CreateAssignmentDTO;
-import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitInternalDTO;
+import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitAggregatedInternalDTO;
+import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitterInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.StatsInternalDTO;
 import com.tuwien.gitanalyser.entity.Assignment;
 import com.tuwien.gitanalyser.exception.GitException;
@@ -9,6 +10,7 @@ import com.tuwien.gitanalyser.exception.IllegalArgumentException;
 import com.tuwien.gitanalyser.exception.NoProviderFoundException;
 
 import java.util.List;
+import java.util.Set;
 
 public interface RepositoryService {
 
@@ -23,6 +25,10 @@ public interface RepositoryService {
     List<StatsInternalDTO> getStats(long userId, Long platformId, String branch, boolean mappedByAssignments)
         throws GitException, NoProviderFoundException;
 
-    List<CommitInternalDTO> getCommits(long userId, Long platformId, String branch, Boolean mappedByAssignments)
+    List<CommitAggregatedInternalDTO> getCommits(long userId, Long platformId, String branch,
+                                                 Boolean mappedByAssignments, String name)
+        throws GitException, NoProviderFoundException;
+
+    Set<CommitterInternalDTO> getCommitters(long userId, Long platformId, String branch, Boolean mappedByAssignments)
         throws GitException, NoProviderFoundException;
 }

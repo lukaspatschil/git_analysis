@@ -53,8 +53,6 @@ import static org.mockito.Mockito.when;
 @Import(BaseIntegrationTest.IntegrationTestDependencyInjection.class)
 public abstract class BaseIntegrationTest {
 
-    private static final String SERVER_HOST = "http://localhost";
-
     protected static final String GITHUB_LOGIN_ENDPOINT = "/oauth2/authorization/github";
     protected static final String GITLAB_LOGIN_ENDPOINT = "/oauth2/authorization/gitlab";
     protected static final String REPOSITORY_ENDPOINT = "/apiV1/repository";
@@ -65,7 +63,7 @@ public abstract class BaseIntegrationTest {
     protected static final String COMMITTER_ENDPOINT_EXTENSION = "committer";
     protected static final String STATS_ENDPOINT_EXTENSION = "stats";
     protected static final String COMMITS_ENDPOINT_EXTENSION = "commit";
-
+    private static final String SERVER_HOST = "http://localhost";
     protected String gitHubUserToken;
     protected String gitHubAccessToken;
 
@@ -113,15 +111,13 @@ public abstract class BaseIntegrationTest {
         gitHubUser = createUser("John", "john@random.com", gitHubAccessToken, Randoms.integer(),
                                 AuthenticationProvider.GITHUB, "https://github.com/pictureURL", gitHubFingerprint);
         gitHubUserToken = Strings.join(AuthenticationConstants.TOKEN_PREFIX,
-                                       jwtTokenProvider.createAccessToken(gitHubUser.getId()))
-                                 .with(" ");
+                                       jwtTokenProvider.createAccessToken(gitHubUser.getId())).with("");
         gitHubRefreshToken = jwtTokenProvider.createRefreshToken(gitHubUser.getId());
 
         gitLabUser = createUser("Tom", "tom@random.com", gitLabAccessToken, Randoms.integer(),
                                 AuthenticationProvider.GITLAB, "https://gitlab.com/pictureURL", gitLabFingerprint);
         gitLabUserToken = Strings.join(AuthenticationConstants.TOKEN_PREFIX,
-                                       jwtTokenProvider.createAccessToken(gitLabUser.getId()))
-                                 .with(" ");
+                                       jwtTokenProvider.createAccessToken(gitLabUser.getId())).with("");
         gitLabRefreshToken = jwtTokenProvider.createRefreshToken(gitLabUser.getId());
     }
 
@@ -222,7 +218,7 @@ public abstract class BaseIntegrationTest {
                                    null,
                                    null,
                                    null,
-                                   true,
+                                   false,
                                    true,
                                    null)).thenReturn(List.of(commits));
     }
@@ -259,6 +255,14 @@ public abstract class BaseIntegrationTest {
                           .contentType(ContentType.JSON)
                           .header(HttpHeaders.AUTHORIZATION, authorizationToken)
                           .when().get(url)
+                          .then().extract().response();
+    }
+
+    protected Response callGetRestEndpoint(String authorizationToken, String url, Map<String, String> queryParams) {
+        return RestAssured.given().log().all()
+                          .contentType(ContentType.JSON)
+                          .header(HttpHeaders.AUTHORIZATION, authorizationToken)
+                          .when().queryParams(queryParams).get(url)
                           .then().extract().response();
     }
 

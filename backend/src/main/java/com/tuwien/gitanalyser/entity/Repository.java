@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -17,6 +18,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -25,6 +27,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString(exclude = "assignments")
 @Table(name = "repository", uniqueConstraints = {
     @UniqueConstraint(name = "User_platformId", columnNames = {"platform_id", "user_id"})
 })
@@ -39,6 +42,6 @@ public class Repository {
     @JoinColumn(name = "user_id")
     private User user;
     @OneToMany(mappedBy = "repository", fetch = FetchType.EAGER)
-    private List<Assignment> assignments;
+    private List<Assignment> assignments = new ArrayList<>();
 
 }

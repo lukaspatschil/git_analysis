@@ -7,16 +7,12 @@ import com.tuwien.gitanalyser.exception.NotFoundException;
 import com.tuwien.gitanalyser.repository.AssignmentRepository;
 import com.tuwien.gitanalyser.service.AssignmentService;
 import com.tuwien.gitanalyser.service.SubAssignmentService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
 @Service
 public class AssignmentServiceImpl implements AssignmentService {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(AssignmentService.class);
 
     private final SubAssignmentService subAssignmentService;
     private final AssignmentRepository assignmentRepository;
@@ -32,7 +28,6 @@ public class AssignmentServiceImpl implements AssignmentService {
 
     @Override
     public Assignment getOrCreateAssignment(final Repository repository, final String key) {
-        LOGGER.info("addAssignment for repository {} with the key {}", repository.getId(), key);
         Optional<Assignment> assignmentOptional = assignmentRepository.findByRepositoryAndKey(repository, key);
 
         return assignmentOptional.orElseGet(() -> createNewAssignment(repository, key));
@@ -40,8 +35,6 @@ public class AssignmentServiceImpl implements AssignmentService {
 
     @Override
     public void deleteSubAssignmentById(final Repository repository, final Long subAssignmentId) {
-        LOGGER.info("deleteSubAssignmentById for repository {} with the subAssignmentId {}",
-                    repository.getId(), subAssignmentId);
 
         Optional<Assignment> assignmentOptional = findByRepositoryAndSubAssignment(repository, subAssignmentId);
 
@@ -59,9 +52,6 @@ public class AssignmentServiceImpl implements AssignmentService {
         } else {
             throw new NotFoundException("SubAssignment not found");
         }
-
-        LOGGER.info("deleteSubAssignmentById for repository {} with the subAssignmentId {} finished",
-                    repository.getId(), subAssignmentId);
     }
 
     private void deleteAssignment(final Assignment assignment) {

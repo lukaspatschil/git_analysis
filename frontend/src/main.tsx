@@ -13,6 +13,7 @@ import Commits from './routes/branch/commits';
 import Committer from "./routes/branch/committer";
 import BranchOverview from "./routes/branch/branchOverview";
 import CommitterStats from "./routes/branch/committerStats";
+import CommitterTimeline from "./routes/branch/committerTimeline";
 import {
     Chart as ChartJS,
     CategoryScale,
@@ -42,6 +43,7 @@ const router = createBrowserRouter([
   { path: '/repository/:repositoryId', element: <ProtectedRoute><Repository /></ProtectedRoute>},
   { path: '/repository/:repositoryId/:branchName', element: <ProtectedRoute><Index /></ProtectedRoute>, children: [
       { path: '', element: <BranchOverview />},
+          { path: 'timeline', element: <CommitterTimeline />},
       { path: 'committerStats', element: <CommitterStats />},
       { path: 'commits', element: <Commits />},
       { path: 'committer', element: <Committer />},

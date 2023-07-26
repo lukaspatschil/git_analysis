@@ -1,9 +1,10 @@
-package com.tuwien.gitanalyser.service.apiCalls;
+package com.tuwien.gitanalyser.service.apiCalls.gitlab;
 
 import com.tuwien.gitanalyser.endpoints.dtos.internal.BranchInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.NotSavedRepositoryInternalDTO;
 import com.tuwien.gitanalyser.exception.GitLabException;
+import com.tuwien.gitanalyser.exception.TryRefreshException;
 import com.tuwien.gitanalyser.service.GitAPI;
 import com.tuwien.gitanalyser.service.GitAPIFactory;
 import org.gitlab4j.api.GitLabApi;
@@ -11,19 +12,17 @@ import org.gitlab4j.api.GitLabApiException;
 import org.gitlab4j.api.models.Branch;
 import org.gitlab4j.api.models.Commit;
 import org.gitlab4j.api.models.Project;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 public class GitLabAPI implements GitAPI {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(GitLabAPI.class);
 
     private final GitAPIFactory<GitLabApi> gitLabAPIFactory;
 
@@ -32,40 +31,44 @@ public class GitLabAPI implements GitAPI {
     }
 
     @Override
-    public List<NotSavedRepositoryInternalDTO> getAllRepositories(final String accessToken) throws GitLabException {
-        LOGGER.info("getAllRepositories");
+    public List<NotSavedRepositoryInternalDTO> getAllRepositories(final String accessToken)
+        throws GitLabException, TryRefreshException {
 
-        List<NotSavedRepositoryInternalDTO> allRepos = new ArrayList<>();
+        HashMap<Long, NotSavedRepositoryInternalDTO> allRepos = new HashMap<>();
 
         GitLabApi gitLabApi;
         try {
             gitLabApi = gitLabAPIFactory.createObject(accessToken);
+            getOwnedProjects(gitLabApi).forEach(x -> allRepos.put(x.getPlatformId(), x));
+            getMemberProjects(gitLabApi).forEach(x -> allRepos.putIfAbsent(x.getPlatformId(), x));
         } catch (IOException e) {
+            throw new GitLabException(e);
+        } catch (GitLabApiException e) {
+            if (e.getHttpStatus() == HttpStatus.UNAUTHORIZED.value()) {
+                throw new TryRefreshException(e);
+            }
             throw new GitLabException(e);
         }
 
-        allRepos.addAll(getOwnedProjects(gitLabApi));
-        allRepos.addAll(getMemberProjects(gitLabApi));
-
-        LOGGER.info("getAllRepositories finished: " + allRepos.size());
-
-        return allRepos;
+        return allRepos.values().stream().toList();
     }
 
     @Override
     public NotSavedRepositoryInternalDTO getRepositoryById(final String accessToken, final long platformId)
-        throws GitLabException {
-        LOGGER.info("getRepositoryById: " + platformId);
+        throws GitLabException, TryRefreshException {
 
         Project project;
         try {
             GitLabApi gitLabAPI = gitLabAPIFactory.createObject(accessToken);
             project = gitLabAPI.getProjectApi().getProject(platformId);
-        } catch (IOException | GitLabApiException e) {
+        } catch (IOException e) {
+            throw new GitLabException(e);
+        } catch (GitLabApiException e) {
+            if (e.getHttpStatus() == HttpStatus.UNAUTHORIZED.value()) {
+                throw new TryRefreshException(e);
+            }
             throw new GitLabException(e);
         }
-
-        LOGGER.info("getRepositoryById: " + project);
 
         return NotSavedRepositoryInternalDTO.builder()
                                             .platformId(project.getId())
@@ -76,14 +79,18 @@ public class GitLabAPI implements GitAPI {
 
     @Override
     public List<BranchInternalDTO> getAllBranches(final String accessToken, final Long platformId)
-        throws GitLabException {
-        LOGGER.info("getAllBranches for platformId {}", platformId);
+        throws GitLabException, TryRefreshException {
 
         List<Branch> branches;
         try {
             GitLabApi gitLabAPI = gitLabAPIFactory.createObject(accessToken);
             branches = gitLabAPI.getRepositoryApi().getBranches(platformId);
-        } catch (IOException | GitLabApiException e) {
+        } catch (IOException e) {
+            throw new GitLabException(e);
+        } catch (GitLabApiException e) {
+            if (e.getHttpStatus() == HttpStatus.UNAUTHORIZED.value()) {
+                throw new TryRefreshException(e);
+            }
             throw new GitLabException(e);
         }
 
@@ -96,8 +103,7 @@ public class GitLabAPI implements GitAPI {
 
     @Override
     public List<CommitInternalDTO> getAllCommits(final String accessToken, final long platformId,
-                                                 final String branchName) throws GitLabException {
-        LOGGER.info("getAllCommits for platformId {} and branch {}", platformId, branchName);
+                                                 final String branchName) throws GitLabException, TryRefreshException {
 
         List<CommitInternalDTO> result;
 
@@ -105,45 +111,25 @@ public class GitLabAPI implements GitAPI {
         try {
             GitLabApi gitLabAPI = gitLabAPIFactory.createObject(accessToken);
             commits = gitLabAPI.getCommitsApi()
-                               .getCommits(platformId, branchName, null, null, null, true, true,
-                                           null);
-        } catch (IOException | GitLabApiException e) {
+                               .getCommits(platformId, branchName, null, null, null, false, true,
+                                           null)
+                               .stream()
+                               .sorted(Comparator.comparing(Commit::getCommittedDate))
+                               .toList();
+        } catch (IOException e) {
+            throw new GitLabException(e);
+        } catch (GitLabApiException e) {
+            if (e.getHttpStatus() == HttpStatus.UNAUTHORIZED.value()) {
+                throw new TryRefreshException(e);
+            }
             throw new GitLabException(e);
         }
+
         result = commits.stream()
                         .map(this::mapCommitsToInternalDTO)
                         .collect(Collectors.toList());
 
-        LOGGER.info("getAllCommits finished for platformId {} and branch {}", platformId, branchName);
-
         return result;
-    }
-
-    private List<NotSavedRepositoryInternalDTO> convertToRepository(final List<Project> projects) {
-        return projects.stream()
-                       .map(project ->
-                                NotSavedRepositoryInternalDTO.builder()
-                                                             .name(project.getName())
-                                                             .url(project.getHttpUrlToRepo())
-                                                             .platformId(project.getId())
-                                                             .build())
-                       .collect(Collectors.toList());
-    }
-
-    private List<NotSavedRepositoryInternalDTO> getOwnedProjects(final GitLabApi gitLabApi) throws GitLabException {
-        try {
-            return convertToRepository(gitLabApi.getProjectApi().getOwnedProjects());
-        } catch (GitLabApiException e) {
-            throw new GitLabException(e);
-        }
-    }
-
-    private List<NotSavedRepositoryInternalDTO> getMemberProjects(final GitLabApi gitLabApi) throws GitLabException {
-        try {
-            return convertToRepository(gitLabApi.getProjectApi().getMemberProjects());
-        } catch (GitLabApiException e) {
-            throw new GitLabException(e);
-        }
     }
 
     private CommitInternalDTO mapCommitsToInternalDTO(final Commit commit) {
@@ -157,6 +143,26 @@ public class GitLabAPI implements GitAPI {
                                 .additions(commit.getStats().getAdditions())
                                 .deletions(commit.getStats().getDeletions())
                                 .build();
+    }
+
+    private List<NotSavedRepositoryInternalDTO> getOwnedProjects(final GitLabApi gitLabApi) throws GitLabApiException {
+        return convertToRepositories(gitLabApi.getProjectApi().getOwnedProjects());
+    }
+
+    private List<NotSavedRepositoryInternalDTO> getMemberProjects(final GitLabApi gitLabApi)
+        throws GitLabApiException {
+        return convertToRepositories(gitLabApi.getProjectApi().getMemberProjects());
+    }
+
+    private List<NotSavedRepositoryInternalDTO> convertToRepositories(final List<Project> projects) {
+        return projects.stream()
+                       .map(project ->
+                                NotSavedRepositoryInternalDTO.builder()
+                                                             .name(project.getName())
+                                                             .url(project.getHttpUrlToRepo())
+                                                             .platformId(project.getId())
+                                                             .build())
+                       .collect(Collectors.toList());
     }
 }
 

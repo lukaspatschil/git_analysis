@@ -1,3 +1,1 @@
-export const userNavigation = [
-  { name: 'Settings', href: '/settings' },
-];
+export const userNavigation:  { name: string, href: string }[] = [];

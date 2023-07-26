@@ -2,7 +2,6 @@ package com.tuwien.gitanalyser.service.implementation;
 
 import com.tuwien.gitanalyser.endpoints.dtos.internal.BranchInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitInternalDTO;
-import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitterInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.NotSavedRepositoryInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.StatsInternalDTO;
 import com.tuwien.gitanalyser.entity.User;
@@ -10,53 +9,47 @@ import com.tuwien.gitanalyser.exception.GitException;
 import com.tuwien.gitanalyser.exception.NoProviderFoundException;
 import com.tuwien.gitanalyser.exception.NotFoundException;
 import com.tuwien.gitanalyser.security.AuthenticationConstants;
-import com.tuwien.gitanalyser.service.GitAPI;
+import com.tuwien.gitanalyser.service.GitExceptionHandlerService;
 import com.tuwien.gitanalyser.service.GitService;
 import com.tuwien.gitanalyser.service.RepositoryService;
 import com.tuwien.gitanalyser.service.UserService;
-import com.tuwien.gitanalyser.service.apiCalls.GitHubAPI;
-import com.tuwien.gitanalyser.service.apiCalls.GitLabAPI;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.tuwien.gitanalyser.service.apiCalls.github.GitHubExceptionHandlerServiceImpl;
+import com.tuwien.gitanalyser.service.apiCalls.gitlab.GitLabExceptionHandlerServiceImpl;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 public class GitServiceImpl implements GitService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(GitServiceImpl.class);
     private final UserService userService;
 
     private final RepositoryService repositoryService;
-    private final GitHubAPI gitHubAPI;
-    private final GitLabAPI gitLabAPI;
+    private final GitHubExceptionHandlerServiceImpl gitHubAccessTokenRefresherService;
+    private final GitLabExceptionHandlerServiceImpl gitLabAccessTokenRefresherService;
 
     public GitServiceImpl(final UserService userService,
                           @Lazy final RepositoryService repositoryService,
-                          final GitHubAPI gitHubAPI,
-                          final GitLabAPI gitLabAPI) {
+                          final GitHubExceptionHandlerServiceImpl gitHubAccessTokenRefresherService,
+                          final GitLabExceptionHandlerServiceImpl gitLabAccessTokenRefresherService) {
         this.userService = userService;
         this.repositoryService = repositoryService;
-        this.gitHubAPI = gitHubAPI;
-        this.gitLabAPI = gitLabAPI;
+        this.gitHubAccessTokenRefresherService = gitHubAccessTokenRefresherService;
+        this.gitLabAccessTokenRefresherService = gitLabAccessTokenRefresherService;
     }
 
     @Override
     public List<NotSavedRepositoryInternalDTO> getAllRepositories(final Long userId)
         throws NoProviderFoundException, GitException {
-        LOGGER.info("RepositoryServiceImpl: getAllRepositories for user " + userId);
 
         List<NotSavedRepositoryInternalDTO> allRepos;
 
-        GitAPI gitAPI = getAPI(userId);
-        allRepos = gitAPI.getAllRepositories(getAccessToken(userId));
+        GitExceptionHandlerService gitAPI = getAPI(userId);
+        allRepos = gitAPI.getAllRepositories(userId);
 
         repositoryService.deleteAllNotAccessibleRepositoryEntities(
             userId,
@@ -70,77 +63,46 @@ public class GitServiceImpl implements GitService {
     @Override
     public List<BranchInternalDTO> getAllBranches(final Long userId, final Long platformId)
         throws GitException, NoProviderFoundException {
-        LOGGER.info("getAllBranches for user {} and repository {}", userId, platformId);
 
-        GitAPI gitAPI = getAPI(userId);
-        List<BranchInternalDTO> allBranches = gitAPI.getAllBranches(getAccessToken(userId), platformId);
+        List<BranchInternalDTO> allBranches;
+        GitExceptionHandlerService gitAPI = getAPI(userId);
+        allBranches = gitAPI.getAllBranches(userId, platformId);
 
-        LOGGER.info("getAllBranches for user {} and repository {} finished", userId, platformId);
         return allBranches;
     }
 
     @Override
     public NotSavedRepositoryInternalDTO getRepositoryById(final Long userId, final Long platformId)
         throws GitException, NoProviderFoundException {
-        LOGGER.info("getRepositoryById with Id {} for user {}", platformId, userId);
 
-        GitAPI gitAPI = getAPI(userId);
-        NotSavedRepositoryInternalDTO nSRIDTO = gitAPI.getRepositoryById(getAccessToken(userId), platformId);
+        GitExceptionHandlerService gitAPI = getAPI(userId);
 
-        LOGGER.info("getRepositoryById with Id {} for user {} finished", platformId, userId);
-        return nSRIDTO;
+        return gitAPI.getRepositoryById(userId, platformId);
     }
 
     @Override
     public List<CommitInternalDTO> getAllCommits(final long userId, final Long platformId, final String branch)
         throws GitException, NoProviderFoundException {
-        LOGGER.info("getAllCommits for user {} and repository {} and branch {}", userId, platformId, branch);
 
-        GitAPI gitApi = getAPI(userId);
-        List<CommitInternalDTO> allCommits = gitApi.getAllCommits(getAccessToken(userId), platformId, branch);
-
-        LOGGER.info("getAllCommits for user {} and repository {} and branch {} finished with length {}", userId,
-                    platformId, branch, allCommits.size());
+        GitExceptionHandlerService gitApi = getAPI(userId);
+        List<CommitInternalDTO> allCommits;
+        allCommits = gitApi.getAllCommits(userId, platformId, branch);
         return allCommits;
-    }
-
-    @Override
-    public Set<CommitterInternalDTO> getAllCommitters(final long userId, final Long platformId, final String branch)
-        throws GitException, NoProviderFoundException {
-        LOGGER.info("getAllCommitters for user {} and repository {} and branch {}", userId, platformId, branch);
-
-        Set<CommitterInternalDTO> result = new HashSet<>();
-
-        GitAPI gitApi = getAPI(userId);
-        List<CommitInternalDTO> allCommits = gitApi.getAllCommits(getAccessToken(userId), platformId, branch);
-
-        for (CommitInternalDTO commit : allCommits) {
-            result.add(new CommitterInternalDTO(commit.getAuthor()));
-        }
-
-        LOGGER.info("getAllCommitters for user {} and repository {} and branch {} finished with length {}", userId,
-                    platformId, branch, result.size());
-
-        return result;
-
     }
 
     @Override
     public boolean repositoryAccessibleByUser(final long userId, final Long platformId)
         throws NoProviderFoundException {
-        LOGGER.info("repositoryAccessibleByUser for user {} and repository {}", userId, platformId);
 
         boolean result;
 
-        GitAPI gitApi = getAPI(userId);
+        GitExceptionHandlerService gitApi = getAPI(userId);
         try {
-            gitApi.getRepositoryById(getAccessToken(userId), platformId);
+            gitApi.getRepositoryById(userId, platformId);
             result = true;
         } catch (Exception e) {
-            LOGGER.error("repositoryAccessibleByUser for user {} and repository {} failed: {}", userId, platformId, e);
             result = false;
         }
-        LOGGER.info("repositoryAccessibleByUser for user {} and repository {} finished positive", userId, platformId);
         return result;
     }
 
@@ -174,16 +136,18 @@ public class GitServiceImpl implements GitService {
         return stats;
     }
 
-    private GitAPI getAPI(final Long userId) throws NoProviderFoundException {
-        return switch (getUser(userId).getAuthenticationProvider().name().toLowerCase()) {
-            case AuthenticationConstants.GITHUB_REGISTRATION_ID -> gitHubAPI;
-            case AuthenticationConstants.GITLAB_REGISTRATION_ID -> gitLabAPI;
-            default -> throw new NoProviderFoundException(getUser(userId).getAuthenticationProvider().name());
-        };
+    @Override
+    public String getEmail(final long userId) throws NoProviderFoundException, GitException {
+        GitExceptionHandlerService gitApi = getAPI(userId);
+        return gitApi.getEmail(userId);
     }
 
-    private String getAccessToken(final Long userId) throws NotFoundException {
-        return userService.getUser(userId).getAccessToken();
+    private GitExceptionHandlerService getAPI(final Long userId) throws NoProviderFoundException {
+        return switch (getUser(userId).getAuthenticationProvider().name().toLowerCase()) {
+            case AuthenticationConstants.GITHUB_REGISTRATION_ID -> gitHubAccessTokenRefresherService;
+            case AuthenticationConstants.GITLAB_REGISTRATION_ID -> gitLabAccessTokenRefresherService;
+            default -> throw new NoProviderFoundException(getUser(userId).getAuthenticationProvider().name());
+        };
     }
 
     private User getUser(final Long userId) throws NotFoundException {

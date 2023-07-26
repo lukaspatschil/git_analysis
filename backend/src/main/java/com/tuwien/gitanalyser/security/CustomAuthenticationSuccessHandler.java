@@ -62,8 +62,16 @@ public class CustomAuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                                                             authentication,
                                                             request);
 
+        String refreshToken;
+        if (authorizedClient.getRefreshToken() == null) {
+            refreshToken = null;
+        } else {
+            refreshToken = authorizedClient.getRefreshToken().getTokenValue();
+        }
+
         var userFingerprintPair = userService.processOAuthPostLogin(oauthUser,
-                                                                    authorizedClient.getAccessToken().getTokenValue());
+                                                                    authorizedClient.getAccessToken().getTokenValue(),
+                                                                    refreshToken);
 
         Cookie fingerprintCookie = new Cookie("fingerprint", userFingerprintPair.getFingerprintPair().getFingerprint());
         fingerprintCookie.setHttpOnly(false);

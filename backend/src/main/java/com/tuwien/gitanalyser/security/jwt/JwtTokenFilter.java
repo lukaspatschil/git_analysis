@@ -2,8 +2,6 @@ package com.tuwien.gitanalyser.security.jwt;
 
 import com.tuwien.gitanalyser.exception.AuthenticationException;
 import io.jsonwebtoken.lang.Assert;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -15,8 +13,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 public class JwtTokenFilter extends OncePerRequestFilter {
-
-    public static final Logger LOGGER = LoggerFactory.getLogger(JwtTokenFilter.class);
 
     private final JWTTokenProvider jwtTokenProviderImpl;
 
@@ -40,7 +36,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
             } else {
                 handleUnauthorized(response);
             }
-        } catch (AuthenticationException ex) {
+        } catch (AuthenticationException e) {
             handleUnauthorized(response);
         }
     }

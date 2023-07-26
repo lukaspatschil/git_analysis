@@ -1,5 +1,5 @@
 import {useAuthStore} from "../../stores/useAuthStore";
-import {useParams} from "react-router-dom";
+import {useNavigate, useParams} from "react-router-dom";
 import useDocumentTitle from "../../hooks/useDocumentTitle";
 import useSWR from "swr";
 import {statsSchema} from "../../schemas/statSchema";
@@ -8,17 +8,19 @@ import {Pie} from "react-chartjs-2";
 import {useEffect, useState} from "react";
 import {ChartData, Point} from "chart.js/dist/types";
 import {colors} from "../../utils/colorGenerator";
+import {ArrowLeftIcon} from "@heroicons/react/24/outline";
 
 export default function committerStats() {
     const { token } = useAuthStore();
     const {branchName, repositoryId} = useParams();
+    const navigate = useNavigate();
     useDocumentTitle(`${branchName} committer stats`);
     const [displayAdditions, setDisplayAdditions] = useState<ChartData<"pie", (number | Point | null)[], unknown>>(generateDisplayData('Additions'));
     const [displayDeletions, setDisplayDeletions] = useState<ChartData<"pie", (number | Point | null)[], unknown>>(generateDisplayData('Deletions'));
     const [displayCommits, setDisplayCommits] = useState<ChartData<"pie", (number | Point | null)[], unknown>>(generateDisplayData('Commits'));
 
 
-    const { data, error, isLoading } = useSWR(`${import.meta.env.VITE_BASE_API_URL}apiV1/repository/${repositoryId}/stats?branch=${branchName}&mappedByAssignments`, (url: string) => {
+    const { data, error, isLoading } = useSWR(`${import.meta.env.VITE_BASE_API_URL}apiV1/repository/${repositoryId}/stats?branch=${branchName}&mappedByAssignments=true`, (url: string) => {
         if (!token) {
             throw new Error('Token is not set');
         }
@@ -42,20 +44,36 @@ export default function committerStats() {
 
     return (
         <>
+            <div className="flex gap-2">
+                <button onClick={() => navigate(`/repository/${repositoryId}`)}>
+                    <ArrowLeftIcon className="block h-6 w-6" aria-hidden="true" />
+                </button>
+                <h2 className="text-2xl">Commiter Stats</h2>
+            </div>
             <AsyncDataHandler isLoading={isLoading} error={error} data={data}>
-                <h2 className="text-xl">Number of commits</h2>
+                <h3 className="text-xl">Number of commits</h3>
                 <div className="h-96">
                     <Pie data={displayCommits} width={100}
                          height={50}
                          options={{ maintainAspectRatio: false }} />
                 </div>
-                <h2 className="text-xl">Number of additions</h2>
+                <div className="relative my-4">
+                    <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                        <div className="w-full border-t border-gray-300"/>
+                    </div>
+                </div>
+                <h3 className="text-xl">Number of additions</h3>
                 <div className="h-96">
                     <Pie data={displayAdditions} width={100}
                          height={50}
                          options={{ maintainAspectRatio: false }} />
                 </div>
-                <h2 className="text-xl">Number of deletions</h2>
+                <div className="relative my-4">
+                    <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                        <div className="w-full border-t border-gray-300"/>
+                    </div>
+                </div>
+                <h3 className="text-xl">Number of deletions</h3>
                 <div className="h-96">
                     <Pie data={displayDeletions} width={100}
                          height={50}

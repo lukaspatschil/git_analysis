@@ -8,7 +8,7 @@ import com.tuwien.gitanalyser.endpoints.dtos.StatsDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.assignment.AssignmentDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.assignment.CreateAssignmentDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.BranchInternalDTO;
-import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitInternalDTO;
+import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitAggregatedInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.CommitterInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.NotSavedRepositoryInternalDTO;
 import com.tuwien.gitanalyser.endpoints.dtos.internal.StatsInternalDTO;
@@ -35,8 +35,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -48,6 +46,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Set;
@@ -58,7 +57,6 @@ import java.util.Set;
 @Tag(name = "Repository Endpoint")
 public class RepositoryEndpoint extends BaseEndpoint {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(RepositoryEndpoint.class);
     private final RepositoryService repositoryService;
     private final GitService gitService;
     private final NotSavedRepositoryMapper notSavedRepositoryMapper;
@@ -97,7 +95,6 @@ public class RepositoryEndpoint extends BaseEndpoint {
     })
     public List<NotSavedRepositoryDTO> getAllRepositories(final Authentication authentication)
         throws InternalServerErrorException, BadRequestException {
-        LOGGER.info("GET /repository - get all repositories");
         List<NotSavedRepositoryInternalDTO> repositories;
         try {
             repositories = gitService.getAllRepositories(getUserId(authentication));
@@ -120,8 +117,7 @@ public class RepositoryEndpoint extends BaseEndpoint {
     })
     public NotSavedRepositoryDTO getRepositoryById(
         final Authentication authentication,
-        final @PathVariable Long platformId) throws InternalServerErrorException, BadRequestException {
-        LOGGER.info("GET /repository/{id} - get repository by platform id {}", platformId);
+        final @PathVariable Long platformId) throws ResponseStatusException {
 
         NotSavedRepositoryInternalDTO repository;
         try {
@@ -130,7 +126,7 @@ public class RepositoryEndpoint extends BaseEndpoint {
         } catch (NoProviderFoundException e) {
             throw new InternalServerErrorException();
         } catch (GitException e) {
-            throw new BadRequestException();
+            throw new BadRequestException(e.getMessage());
         }
         return notSavedRepositoryMapper.dtoToDTO(repository);
     }
@@ -145,16 +141,14 @@ public class RepositoryEndpoint extends BaseEndpoint {
             schema = @Schema(hidden = true)))
     })
     public List<BranchDTO> getBranchesByRepositoryId(
-        final Authentication authentication,
-        final @PathVariable Long platformId) throws InternalServerErrorException, BadRequestException {
-        LOGGER.info("GET /repository/{id}/branch - get repository by platform id {}", platformId);
+        final Authentication authentication, final @PathVariable Long platformId) {
         List<BranchInternalDTO> branches;
         try {
             branches = gitService.getAllBranches(getUserId(authentication), platformId);
         } catch (NoProviderFoundException e) {
             throw new InternalServerErrorException();
         } catch (GitException e) {
-            throw new BadRequestException();
+            throw new BadRequestException(e.getMessage());
         }
         return branchMapper.dtosToDTOs(branches);
     }
@@ -173,17 +167,17 @@ public class RepositoryEndpoint extends BaseEndpoint {
         final @PathVariable Long platformId,
         final @RequestParam(name = "branch", required = false) String branch,
         final @RequestParam(name = "mappedByAssignments", required = false,
-            defaultValue = "false") Boolean mappedByAssignments)
-        throws BadRequestException, InternalServerErrorException {
-        LOGGER.info("GET /repository/{id}/commits - get repository by platform id {} and branch {}",
-                    platformId, branch);
-        List<CommitInternalDTO> commits;
+            defaultValue = "false") Boolean mappedByAssignments,
+        final @RequestParam(name = "committerName", required = false) String name)
+        throws ResponseStatusException {
+        List<CommitAggregatedInternalDTO> commits;
         try {
-            commits = repositoryService.getCommits(getUserId(authentication), platformId, branch, mappedByAssignments);
+            commits = repositoryService.getCommits(getUserId(authentication),
+                                                   platformId, branch, mappedByAssignments, name);
         } catch (NoProviderFoundException e) {
             throw new InternalServerErrorException();
         } catch (GitException e) {
-            throw new BadRequestException();
+            throw new BadRequestException(e.getMessage());
         }
         return commitsMapper.dtosToDTOs(commits);
     }
@@ -200,17 +194,18 @@ public class RepositoryEndpoint extends BaseEndpoint {
     public List<CommitterDTO> getCommittersByRepositoryId(
         final Authentication authentication,
         final @PathVariable Long platformId,
-        final @RequestParam(name = "branch", required = false) String branch)
-        throws InternalServerErrorException, BadRequestException {
-        LOGGER.info("GET /repository/{id}/committers - get repository by platform id {} and branch {}",
-                    platformId, branch);
+        final @RequestParam(name = "branch", required = false) String branch,
+        final @RequestParam(name = "mappedByAssignments", required = false,
+            defaultValue = "false") Boolean mappedByAssignments)
+        throws ResponseStatusException {
         Set<CommitterInternalDTO> committers;
         try {
-            committers = gitService.getAllCommitters(getUserId(authentication), platformId, branch);
+            committers = repositoryService.getCommitters(getUserId(authentication), platformId,
+                                                         branch, mappedByAssignments);
         } catch (NoProviderFoundException e) {
             throw new InternalServerErrorException();
         } catch (GitException e) {
-            throw new BadRequestException();
+            throw new BadRequestException(e.getMessage());
         }
         return committerMapper.dtosToDTOs(committers);
     }
@@ -227,8 +222,6 @@ public class RepositoryEndpoint extends BaseEndpoint {
     public void assignCommitters(final Authentication authentication,
                                  final @PathVariable Long platformId,
                                  final @RequestBody CreateAssignmentDTO createAssignmentDTO) {
-        LOGGER.info("POST /repository/{id}/assignment - assign committer to repository by platform id {} "
-                        + "values {}", platformId, createAssignmentDTO.toString());
 
         try {
             repositoryService.addAssignment(getUserId(authentication), platformId,
@@ -241,14 +234,12 @@ public class RepositoryEndpoint extends BaseEndpoint {
     @GetMapping("/{platformId}/assignment")
     @SecurityAnnotations.UserOwnsRepo()
     @Operation(description = "Get assignment for committers for a repository", responses = {
-        @ApiResponse(responseCode = "201", content = @Content(
+        @ApiResponse(responseCode = "200", content = @Content(
             array = @ArraySchema(schema = @Schema(implementation = AssignmentDTO.class)),
             mediaType = "application/json"))
     })
     public List<AssignmentDTO> getAssignments(final Authentication authentication,
                                               final @PathVariable Long platformId) {
-        LOGGER.info("GET /repository/{id}/assignment - get assignments from repository by platform id {} ", platformId);
-
         List<Assignment> assignments = repositoryService.getAssignments(getUserId(authentication),
                                                                         platformId);
         return assignmentMapper.entitiesToDTO(assignments);
@@ -268,9 +259,7 @@ public class RepositoryEndpoint extends BaseEndpoint {
                                    final @RequestParam(name = "branch", required = false) String branch,
                                    final @RequestParam(name = "mappedByAssignments", required = false,
                                        defaultValue = "false") Boolean mappedByAssignments)
-        throws InternalServerErrorException, BadRequestException {
-        LOGGER.info("GET /repository/{id}/stats - get statistics from repository by platform id {} and branch {} ",
-                    platformId, branch);
+        throws ResponseStatusException {
 
         List<StatsInternalDTO> stats;
         try {
@@ -278,7 +267,7 @@ public class RepositoryEndpoint extends BaseEndpoint {
         } catch (NoProviderFoundException e) {
             throw new InternalServerErrorException();
         } catch (GitException e) {
-            throw new BadRequestException();
+            throw new BadRequestException(e.getMessage());
         }
         return statsMapper.dtosToDTOs(stats);
     }
@@ -294,9 +283,6 @@ public class RepositoryEndpoint extends BaseEndpoint {
     public void deleteAssignment(final Authentication authentication,
                                  final @PathVariable("platformId") Long platformId,
                                  final @PathVariable("subAssignmentId") Long subAssignmentId) {
-        LOGGER.info("DELETE /repository/{id}/assignment/{subAssignmentId} - delete assignment from repository "
-                        + "by platform id {} and subAssignmentId {}",
-                    platformId, subAssignmentId);
 
         repositoryService.deleteAssignment(getUserId(authentication), platformId, subAssignmentId);
     }

@@ -3,10 +3,10 @@ package com.tuwien.gitanalyser.security;
 import com.tuwien.gitanalyser.security.jwt.JWTTokenProviderImpl;
 import com.tuwien.gitanalyser.security.jwt.JwtTokenFilter;
 import com.tuwien.gitanalyser.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -45,11 +45,15 @@ public class SecurityConfiguration {
     @Order(SecurityProperties.BASIC_AUTH_ORDER)
     public class OAuth2LoginConfig {
 
-        @Autowired
-        private OAuth2AuthorizedClientRepository authorizedClientRepository;
+        private final OAuth2AuthorizedClientRepository authorizedClientRepository;
 
-        @Autowired
-        private JWTTokenProviderImpl jwtTokenProviderImpl;
+        private final JWTTokenProviderImpl jwtTokenProviderImpl;
+
+        public OAuth2LoginConfig(final @Lazy OAuth2AuthorizedClientRepository authorizedClientRepository,
+                                 final JWTTokenProviderImpl jwtTokenProviderImpl) {
+            this.authorizedClientRepository = authorizedClientRepository;
+            this.jwtTokenProviderImpl = jwtTokenProviderImpl;
+        }
 
         @Bean
         public SecurityFilterChain filterChain(final HttpSecurity http) throws Exception {
