@@ -42,6 +42,16 @@ cd backend
 mvn spring-boot:run
 ```
 
+### docker compose
+
+The frontend and backend can also be started by just running docker compose. In the root folder use 
+
+```bash
+docker-compose up
+```
+
+Be aware that this also requires the environment variables to be set. The docker compose file accepts them via an `.env.local` file in the respective folders (`frontend` and `backend`) 
+
 ## Environment variables
 
 Environment variables are used to customize the application to your needs.
